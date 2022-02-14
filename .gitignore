@@ -1,0 +1,12 @@
+.env
+.vscode
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask
+instance/
+.webassets-cache
+
+
