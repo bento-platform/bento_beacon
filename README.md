@@ -1,0 +1,1 @@
+Prototype of a [GA4GH Beacon v2](https://beacon-project.io/) data discovery service.
