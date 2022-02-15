@@ -41,4 +41,4 @@ def generic_exception_handler(e):
 # TODO: handle unexpected api errors
 # TODO: all routes should start with "/api"
 # TODO: take port from config, remove hardcoded debug
-app.run(port=5001, debug=True)
+
