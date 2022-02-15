@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, current_app
-from utils.exceptions import NotImplemented
+from ..utils.exceptions import NotImplemented
 
 biosamples = Blueprint("biosamples", __name__)
 

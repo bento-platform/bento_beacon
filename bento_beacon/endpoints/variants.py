@@ -1,7 +1,7 @@
 import requests
 from flask import Blueprint, jsonify, current_app, request
 
-from utils.beacon_request import map_beacon_query_to_gohan_query
+from ..utils.beacon_request import map_beacon_query_to_gohan_query
 
 variants = Blueprint("variants", __name__)
 

@@ -1,12 +1,12 @@
 import requests
 from flask import Flask, json, jsonify, request, render_template
-from endpoints.info import info
-from endpoints.individuals import individuals
-from endpoints.variants import variants
-from endpoints.biosamples import biosamples
-from utils.exceptions import APIException
+from .endpoints.info import info
+from .endpoints.individuals import individuals
+from .endpoints.variants import variants
+from .endpoints.biosamples import biosamples
+from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
-from config import Config
+from .config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
