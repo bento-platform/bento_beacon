@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, current_app
 # TODO: return real service info
 
 
-info = Blueprint("info", __name__)
+info = Blueprint("info", __name__, url_prefix="/api")
 
 # ga4gh service-info
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, request
 
-individuals = Blueprint("individuals", __name__)
+individuals = Blueprint("individuals", __name__, url_prefix="/api")
 
 
 
