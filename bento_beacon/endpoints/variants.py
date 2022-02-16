@@ -2,7 +2,6 @@ import requests
 from flask import Blueprint, jsonify, current_app, request
 
 from ..utils.beacon_request import map_beacon_query_to_gohan_query
-from ..utils.constants import GOHAN_SEARCH_ENDPOINT, GOHAN_COUNT_ENDPOINT
 
 variants = Blueprint("variants", __name__, url_prefix="/api" )
 
@@ -67,7 +66,7 @@ def query_gohan(query):
     print("query gohan")
     config = current_app.config
 
-    query_url = config["GOHAN_BASE_URL"] + GOHAN_SEARCH_ENDPOINT
+    query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
     verify_certificates = not config["BENTO_DEBUG"]
     timeout = config["GOHAN_TIMEOUT"]
 
@@ -103,6 +102,6 @@ def query_gohan(query):
 def query_gohan_count_only(query):
     print("query gohan counts")
 
-    query_url = current_app.config["GOHAN_BASE_URL"] + GOHAN_COUNT_ENDPOINT
+    query_url = current_app.config["GOHAN_BASE_URL"] + current_app.config["GOHAN_COUNT_ENDPOINT"]
 
     pass
