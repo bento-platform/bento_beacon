@@ -19,7 +19,7 @@ app.register_blueprint(biosamples)
 
 @app.errorhandler(APIException)
 def beacon_exception(e):
-    return e.beacon_exception(), e.status_code or 500
+    return e.beacon_exception()
 
 # return beacon error json instead of default flask html template
 # TODO: use becaon error spec:
