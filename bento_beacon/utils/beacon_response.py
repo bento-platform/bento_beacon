@@ -6,14 +6,26 @@ def map_gohan_response_to_beacon_reponse(r):
     pass
 
 
-def map_katsu_response_to_beacon_response():
+def map_katsu_response_to_beacon_response(r):
+    # check for "not found" and other null results, see note below
+    if katsu_not_found(r):
+        return {"response": {"resultSets": []}}
+
+    #TODO: full mapping    
+    return {"response": r}
+
+
+def katsu_not_found(r):
+    if "count" in r:
+        return r["count"] == 0
+
+    # some endpoints return either an object with an id or an error (with no id)
+    return "id" not in r
+
+
+def beacon_not_found_response_details():
     pass
 
-
-# Beacon schema for individuals"
-# https://github.com/ga4gh-beacon/beacon-v2-Models/blob/main/BEACON-V2-Model/individuals/defaultSchema.json
-
-# beacons can also return phenopackets on request
 
 def beacon_response(results):
     return {
@@ -50,7 +62,7 @@ def build_response_summary(results):
     # TODOs, compute from response
     exists = True
     count = -1
-    # only "exists" field is required, 
+    # only "exists" field is required,
     # can hide count if it's below some threshold for re-identification attack
     # ----------------------
     return {

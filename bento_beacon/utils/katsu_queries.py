@@ -32,23 +32,9 @@ def query_katsu(endpoint, id=None, query=None):
         )
         katsu_response = r.json()    
 
-    except JSONDecodeError:
-        # katsu "bad request" repsonse is html, not json
-        # todo: logging
-        raise APIException()  
+    except JSONDecodeError as e:
+        # katsu returns html for unhandled exceptions, not json
+        current_app.logger.debug("katsu error")
+        raise APIException()
 
     return katsu_response
-
-
-
-# katsu "not found" responses:
-
-# for, eg, "/biosamples/id" when id not found: { "detail": "Not found." }
-
-# for search endpoints, eg "/biosamples" when query return no results:
-#     {
-#       "count": 0,
-#       "next": null,
-#       "previous": null,
-#       "results": []
-#      }
