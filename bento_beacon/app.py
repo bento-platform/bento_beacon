@@ -1,5 +1,5 @@
 import requests
-from flask import Flask, json, jsonify, request, render_template
+from flask import Flask, json
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
