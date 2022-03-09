@@ -29,7 +29,7 @@ app.register_blueprint(biosamples)
 
 @app.errorhandler(APIException)
 def beacon_exception(e):
-    return e.beacon_exception()
+    return e.beacon_exception(), e.status_code
 
 
 @app.errorhandler(HTTPException)
@@ -41,7 +41,7 @@ def generic_exception_handler(e):
         "description": e.description,
     })
     response.content_type = "application/json"
-    return response
+    return response, e.code
 
 # TODO: handle unexpected api errors
 # TODO: always return beacon format error
