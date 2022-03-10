@@ -2,6 +2,13 @@ from urllib.parse import _NetlocResultMixinStr
 from flask import request, current_app
 
 
+# TODO: default request META
+# TODO: pull values from spec instead of hardcoding
+default_request = {
+    "IncludeResultsetResponses": "HIT",
+    "pagination": 10
+}
+
 
 def map_beacon_query_to_gohan_query():
     print("map_beacon_query_to_gohan_query()")
@@ -13,9 +20,6 @@ def map_beacon_query_to_gohan_query():
     print(values)
 
     # RE-MAP COORDINATES!
-
-
-
 
     return {}
 
