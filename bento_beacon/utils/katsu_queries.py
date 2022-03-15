@@ -30,7 +30,7 @@ def query_katsu(endpoint, id=None, query=None):
             verify=verify_certificates,
             timeout=timeout
         )
-        katsu_response = r.json()    
+        katsu_response = r.json()
 
     except JSONDecodeError as e:
         # katsu returns html for unhandled exceptions, not json
