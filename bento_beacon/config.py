@@ -13,6 +13,9 @@ class Config:
     # TODO: default should probably be boolean rather than record
     BEACON_GRANULARITY = os.environ.get("BEACON_GRANULARITY", "record")
 
+    MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
+        "MAP_EXTRA_PROPERTIES_TO_INFO", True)
+
 # -------------------
 
     KATSU_BASE_URL = os.environ.get(

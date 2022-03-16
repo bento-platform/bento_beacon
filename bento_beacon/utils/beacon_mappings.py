@@ -1,10 +1,12 @@
+from flask import current_app
 
 # temp hardcoding for beacon required fields missing from katsu
+# TODO: better solution or move to config
 BIOSAMPLE_STATUS = {"id": "BFO:0000040", "label": "material entity"}
 BIOSAMPLE_ORIGIN_TYPE = {"id": "OBI:0001479",
                          "label": "specimen from organism"}
 
-katsu_beacon_mapped_fields = {
+katsu_beacon_biosample_mapped_fields = {
     "id": "id",
     "individual_id": "individualId",
     "sampled_tissue": "sampleOriginDetail",
@@ -21,19 +23,23 @@ def katsu_biosample_to_beacon_biosample(obj):
     obj_keys = obj.keys()
     beacon_biosample = {}
 
-    # beacon required fields
+    # beacon required fields without katsu equivalents
     beacon_biosample["biosampleStatus"] = BIOSAMPLE_STATUS
     beacon_biosample["sampleOriginType"] = BIOSAMPLE_ORIGIN_TYPE
 
-    # directly mapped fields
-    for katsu_property, beacon_property in katsu_beacon_mapped_fields.items():
+    # directly mapped fields (change in keyname only)
+    for katsu_property, beacon_property in katsu_beacon_biosample_mapped_fields.items():
         if (katsu_property) in obj_keys:
             beacon_biosample[beacon_property] = obj[katsu_property]
 
-    # todo:
-    # collectionMoment
-    # notes
-    # info
+    # remaining fields
+    age_at_collection = obj.get("individual_age_at_collection", {}).get("age")
+    if age_at_collection is not None:
+        beacon_biosample["collectionMoment"] = age_at_collection
+
+    # beacon prefers mapping extra properties to "info"
+    if "extra_properties" in obj.keys and current_app.config["MAP_EXTRA_PROPERTIES_TO_INFO"]:
+        beacon_biosample["info"] = obj["extra_properties"]
 
     return beacon_biosample
 
