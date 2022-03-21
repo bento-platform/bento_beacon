@@ -38,7 +38,7 @@ def katsu_biosample_to_beacon_biosample(obj):
         beacon_biosample["collectionMoment"] = age_at_collection
 
     # beacon prefers mapping extra properties to "info"
-    if "extra_properties" in obj.keys and current_app.config["MAP_EXTRA_PROPERTIES_TO_INFO"]:
+    if "extra_properties" in obj.keys() and current_app.config["MAP_EXTRA_PROPERTIES_TO_INFO"]:
         beacon_biosample["info"] = obj["extra_properties"]
 
     return beacon_biosample

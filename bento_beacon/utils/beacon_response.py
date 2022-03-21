@@ -7,9 +7,6 @@ def map_gohan_response_to_beacon_reponse(r):
 
 
 def map_katsu_response_to_beacon_response(r):
-    # check for "not found" and other null results, see note below
-    if katsu_not_found(r):
-        return {"response": {"resultSets": []}}
 
     #TODO: full mapping    
     return {"response": r}
