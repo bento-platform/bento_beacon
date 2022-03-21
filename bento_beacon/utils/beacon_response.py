@@ -8,7 +8,7 @@ def map_gohan_response_to_beacon_reponse(r):
 
 def map_katsu_response_to_beacon_response(r):
 
-    #TODO: full mapping    
+    # TODO: full mapping
     return {"response": r}
 
 
@@ -49,19 +49,15 @@ def build_response_meta():
 
 
 def build_response_details(results):
-    # TODO: remap response to beacon format
-    return results
+    # TODO: parameterize to count and boolean granularity
+    return {"resultSets": results}
 
 
 def build_response_summary(results):
+    count = len(results)
+    exists = count > 0
 
-    # ---------------------
-    # TODOs, compute from response
-    exists = True
-    count = -1
-    # only "exists" field is required,
-    # can hide count if it's below some threshold for re-identification attack
-    # ----------------------
+    # only "exists" is required so count can be masked if necessary to avoid re-identification attack
     return {
         "exists": exists,
         "count": count,
