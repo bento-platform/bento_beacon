@@ -1,5 +1,3 @@
-
-
 SERVICE_INFO = {
     "id": "ca.c3g.bento:beacon",
     "name": "Bento Beacon",
@@ -13,5 +11,4 @@ SERVICE_INFO = {
     "contactUrl": "mailto:gordon.krieger@computationalgenomics.ca",
 
     "version": "0.0.1"  # TODO change to __version__
-
 }
