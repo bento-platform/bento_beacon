@@ -18,7 +18,7 @@ def query_katsu(endpoint, id=None, query=None):
         url_components.scheme,
         url_components.netloc,   
         url_components.path + endpoint + id_param,
-        url_components.query,
+        url_components.query + "format=phenopackets",
         url_components.fragment
         ))
 
