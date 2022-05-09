@@ -35,7 +35,7 @@ def get_katsu_biosamples_by_id(id):
     current_app.logger.info(katsu_response)
 
     if katsu_not_found(katsu_response):
-        current_app.logger.info("katsu not found")
+        current_app.logger.info("katsu returned 'not found'")
         return beacon_response([])
 
     mapped_repsonse = katsu_biosample_to_beacon_biosample(katsu_response)
