@@ -11,7 +11,7 @@ from .config import Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# all logs printed in dev mode regardless of level
+# all logs are printed in dev mode regardless of level
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -43,6 +43,4 @@ def generic_exception_handler(e):
     response.content_type = "application/json"
     return response, e.code
 
-# TODO: handle unexpected api errors
-# TODO: always return beacon format error
-# https://github.com/ga4gh-beacon/beacon-framework-v2/blob/main/responses/beaconErrorResponse.json
+# TODO: normalize exceptions so they all return beacon errors, add handler for InternalServerError
