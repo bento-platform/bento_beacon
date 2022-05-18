@@ -2,7 +2,7 @@ from flask import current_app
 from json import JSONDecodeError
 import requests
 from urllib.parse import urlsplit, urlunsplit
-from ..utils.exceptions import APIException
+from .exceptions import APIException
 
 
 def query_katsu(endpoint, id=None, query=None):

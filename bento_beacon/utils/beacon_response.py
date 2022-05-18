@@ -1,17 +1,6 @@
 from flask import current_app
 from ..service_info import SERVICE_INFO
 
-
-def map_gohan_response_to_beacon_reponse(r):
-    pass
-
-
-def map_katsu_response_to_beacon_response(r):
-
-    # TODO: full mapping
-    return {"response": r}
-
-
 def katsu_not_found(r):
     if "count" in r:
         return r["count"] == 0
@@ -20,16 +9,20 @@ def katsu_not_found(r):
     return "id" not in r
 
 
-def beacon_not_found_response_details():
-    pass
-
-
-def beacon_response(results):
-    return {
+def beacon_response(results, info=None):
+    granularity = current_app.config["BEACON_GRANULARITY"]
+    r = {
         "meta": build_response_meta(),
-        "response": build_response_details(results),
-        "responseSummary": build_response_summary(results)
+        "responseSummary": build_response_summary(results, granularity)
     }
+
+    if granularity == "record":
+        r["response"] = build_response_details(results)
+
+    if info:
+        r["info"] = info
+
+    return r
 
 
 def build_response_meta():
@@ -49,15 +42,21 @@ def build_response_meta():
 
 
 def build_response_details(results):
-    # TODO: parameterize to count and boolean granularity
     return {"resultSets": results}
 
 
-def build_response_summary(results):
-    count = len(results)
-    exists = count > 0
+def build_response_summary(results, granularity):
 
-    # only "exists" is required so count can be masked if necessary to avoid re-identification attack
+    print()
+    print(f"RESULTS: {results}")
+    print()
+
+    count = results.get("count")
+    exists = count > 0 if count else False
+
+    if granularity == "boolean":
+        return {"exists": exists}
+
     return {
         "exists": exists,
         "count": count,
