@@ -1,9 +1,11 @@
-certifi==2021.10.8
+certifi==2022.5.18.1
 charset-normalizer==2.0.12
-click==8.0.3
+click==8.0.4
+dataclasses==0.8
 flake8==4.0.1
-Flask==2.0.2
+Flask==2.0.3
 idna==3.3
+importlib-metadata==4.2.0
 itsdangerous==2.0.1
 Jinja2==3.0.3
 MarkupSafe==2.0.1
@@ -11,6 +13,7 @@ mccabe==0.6.1
 pycodestyle==2.8.0
 pyflakes==2.4.0
 requests==2.27.1
-toml==0.10.2
-urllib3==1.26.8
+typing-extensions==4.1.1
+urllib3==1.26.9
 Werkzeug==2.0.3
+zipp==3.6.0
