@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, current_app, request
 
 from ..utils.beacon_response import beacon_response
 from ..utils.gohan_utils import gohan_results
-from ..utils.exceptions import InvalidQuery, NotImplemented
+from ..utils.exceptions import NotImplemented
 
 variants = Blueprint("variants", __name__, url_prefix="/api")
 
@@ -11,20 +11,12 @@ variants = Blueprint("variants", __name__, url_prefix="/api")
 @variants.route("/g_variants", methods=['GET', 'POST'])
 def get_variants():
     granularity = current_app.config["BEACON_GRANULARITY"]
-
-    if request.method == "GET":
-        beacon_args = request.args.to_dict()
-    else:
-        beacon_args = request.get_json()
-
-    # print(f"REQUEST VALUES: {request.values}")
-    # print(f"PARSED ARGS: {beacon_args}")
-    # print(f"REQUEST DATA: {request.get_data()}")
-    # print(f"FORM DATA: {request.form.to_dict(flat=False)}")
+    beacon_args = request.get_json() or {}
+    
+    variants_query = beacon_args.get("query", {}).get("requestParameters", {}).get("g_variant") or {}
 
     # TODO: if filtering terms present, call katsu and join
-
-    results = gohan_results(beacon_args, granularity)
+    results = gohan_results(variants_query, granularity)
 
     return beacon_response(results)
 
