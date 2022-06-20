@@ -1,8 +1,8 @@
-from urllib.parse import _NetlocResultMixinStr
 from flask import request, current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from json import JSONDecodeError
 import requests
+from urllib.parse import urljoin
 
 gohan_beacon_variant_query_mapped_fields = {
     "referenceBases":  "reference",
@@ -25,7 +25,6 @@ beacon_variant_query_not_implemented_params = [
 
 
 def beacon_to_gohan_generic_mapping(obj):
-    obj_keys = obj.keys()
     gohan_query = {}
 
     for beacon_key, beacon_value in obj.items():
@@ -51,11 +50,10 @@ def one_to_zero(start, end):
 
 # ------------------------------------------------
 
+# TODO: validate query against spec
+def gohan_results(beacon_args, granularity, ids_only=False):
 
-def gohan_results(beacon_args, granularity):
-
-    referenceName = beacon_args.get("referenceName")
-    if referenceName is None:
+    if beacon_args.get("referenceName") is None:
         raise InvalidQuery(message="referenceName parameter required")
 
     # control flow for beacon variant query types
@@ -76,19 +74,19 @@ def gohan_results(beacon_args, granularity):
         raise InvalidQuery()
 
     if bracket_query:
-        return bracket_query_to_gohan(beacon_args, granularity)
+        return bracket_query_to_gohan(beacon_args, granularity, ids_only)
 
     if sequence_query:
-        return sequence_query_to_gohan(beacon_args, granularity)
+        return sequence_query_to_gohan(beacon_args, granularity, ids_only)
 
     if geneId_query:
-        return geneId_query_to_gohan(beacon_args, granularity)
+        return geneId_query_to_gohan(beacon_args, granularity, ids_only)
 
     # else range query, no other cases
-    return range_query_to_gohan(beacon_args, granularity)
+    return range_query_to_gohan(beacon_args, granularity, ids_only)
 
 
-def sequence_query_to_gohan(beacon_args, granularity):
+def sequence_query_to_gohan(beacon_args, granularity, ids_only):
     print("SEQUENCE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
@@ -104,85 +102,93 @@ def sequence_query_to_gohan(beacon_args, granularity):
 
     gohan_args["lowerBound"] = zero_to_one(beacon_args["start"][0])
     gohan_args["upperBound"] = gohan_args["lowerBound"]
+    gohan_args["getSampleIdsOnly"] = ids_only
 
-    return generic_gohan_query(gohan_args, granularity)
+    return generic_gohan_query(gohan_args, granularity, ids_only)
 
 
 # optional params
 # variantType OR alternateBases OR aminoacidChange
 # variantMinLength
 # variantMaxLength
-def range_query_to_gohan(beacon_args, granularity):
+def range_query_to_gohan(beacon_args, granularity, ids_only):
     print("RANGE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
     gohan_args["lowerBound"] = zero_to_one(beacon_args["start"][0])
     gohan_args["upperBound"] = zero_to_one(beacon_args["end"][0])
-    return generic_gohan_query(gohan_args, granularity)
+    gohan_args["getSampleIdsOnly"] = ids_only
+    return generic_gohan_query(gohan_args, granularity, ids_only)
 
 
-def bracket_query_to_gohan(beacon_args, granularity):
+def bracket_query_to_gohan(beacon_args, granularity, ids_only):
     print("BRACKET QUERY")
     # TODO
     # either implement here by filtering full results, or implement directly in gohan
     raise NotImplemented(message="variant bracket query not implemented")
 
 
-def geneId_query_to_gohan(beacon_args, granularity):
+def geneId_query_to_gohan(beacon_args, granularity, ids_only):
     print("GENE ID QUERY")
     # TODO
     # determine assembly, call gohan for gene coordinates, launch search
     raise NotImplemented(message="variant geneId query not implemented")
 
 
-# TODO: if filtering terms present, call katsu and join
-def generic_gohan_query(gohan_args, granularity):
+def generic_gohan_query(gohan_args, granularity, ids_only):
+    if (ids_only):
+        return gohan_ids_only_query(gohan_args, granularity)
+
     if granularity == "record":
         return gohan_full_record_query(gohan_args)
 
     # count or boolean query follows
     config = current_app.config
-
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_COUNT_ENDPOINT"]
-    verify_certificates = not config["BENTO_DEBUG"]
-    timeout = config["GOHAN_TIMEOUT"]
-
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
+    results = call_gohan(query_url, gohan_args)
+    count = results.get("count") if results else None
+    return {"count": count}
 
-    print("launching gohan query")
-    print(f"query_url: {query_url}")
-    print(f"verify_certificates: {verify_certificates}")
-    print(f"timeout: {timeout}")
 
+def gohan_ids_only_query(gohan_args, granularity):
+    config = current_app.config
+    query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
+    current_app.logger.debug(f"launching gohan query: {gohan_args}")
+    results = call_gohan(query_url, gohan_args)
+    return unpackage_sample_ids(results)
+
+
+def unpackage_sample_ids(results):
+    calls = results.get("calls") if results else []
+    return list(map(lambda r: r.get("sample_id"), calls))
+
+
+def call_gohan(url, gohan_args):
+    c = current_app.config
     try:
         r = requests.get(
-            query_url,
-            verify=verify_certificates,
-            timeout=timeout,
+            url,
+            verify=not c["BENTO_DEBUG"],
+            timeout=c["GOHAN_TIMEOUT"],
             params=gohan_args
         )
 
         gohan_response = r.json()
-        status = gohan_response.get("status")
-        results = gohan_response.get("results")
-        count = results[0].get("count") if results else None
-
-        print(f"gohan count is {count}")
+        results_array = gohan_response.get("results")
+        results = results_array[0] if results_array else None
 
         # handle gohan errors or any bad responses
-        if status != 200 or count is None:
+        if not r.ok:
             current_app.logger.warning(
-                f"gohan error, status: {status}, message: {gohan_response.get('message')}")
+                f"gohan error, status: {r.status_code}, message: {gohan_response.get('message')}")
             raise APIException(
                 message=f"error searching gohan variants service: {gohan_response.get('message')}")
-
-        print("gohan response")
-        print(gohan_response)
 
     except JSONDecodeError as e:
         current_app.logger.debug(f"gohan error: {e.msg}")
         raise APIException()
 
-    return {"count": count}
+    return results
 
 
 def gohan_full_record_query(gohan_args):
