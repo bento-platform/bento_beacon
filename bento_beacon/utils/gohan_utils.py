@@ -145,7 +145,7 @@ def generic_gohan_query(gohan_args, granularity, ids_only):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_COUNT_ENDPOINT"]
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
-    results = call_gohan(query_url, gohan_args)
+    results = gohan_network_call(query_url, gohan_args)
     count = results.get("count") if results else None
     return {"count": count}
 
@@ -154,7 +154,7 @@ def gohan_ids_only_query(gohan_args, granularity):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
-    results = call_gohan(query_url, gohan_args)
+    results = gohan_network_call(query_url, gohan_args)
     return unpackage_sample_ids(results)
 
 
@@ -163,7 +163,7 @@ def unpackage_sample_ids(results):
     return list(map(lambda r: r.get("sample_id"), calls))
 
 
-def call_gohan(url, gohan_args):
+def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
         r = requests.get(
