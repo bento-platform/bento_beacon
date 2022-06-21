@@ -1,24 +1,37 @@
 from flask import Blueprint, current_app, request
 
+from ..utils.beacon_response import beacon_response
+from ..utils.katsu_utils import katsu_filters_query
+from ..utils.gohan_utils import gohan_results
+
 individuals = Blueprint("individuals", __name__, url_prefix="/api")
 
 
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
+    granularity = current_app.config["BEACON_GRANULARITY"]
+    beacon_args = request.get_json() or {}
 
-    # check if valid query
-    # check auth
+    variants_query = beacon_args.get("query", {}).get("requestParameters", {}).get("g_variant") or {} 
+    filters = beacon_args.get("query", {}).get("requestParameters", {}).get("filters") or {} 
+    results = {}
 
-    # call kastsu with dict in request payload
-    # call katsu with GET, post is for creating a new individual
+    # if variants query, retrieve sample ids from gohan
+    # then call katsu with filters (if any) and sample ids (if any)
+    # this approach requires changes to bento_lib sql generation, but eliminates joins and 
+    # makes pagination easier
 
-    # what endpoint to call with filtering terms? /individuals/search?
+    if variants_query: 
+        sample_ids = gohan_results(variants_query, granularity, ids_only=True)
+        print(f"gohan sample ids: {sample_ids}")
+  
+    if filters:
+        results = katsu_filters_query(filters)
 
-    # process katsu repsonse into beacon format
-    # return beacon response (or beacon error )
+    # TODO: variants_query AND filters
 
-    return {"individuals": "TODO"}
+    return beacon_response(results)
 
 
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
