@@ -16,8 +16,9 @@ class Config:
 # -------------------
 
     KATSU_BASE_URL = os.environ.get(
-        "KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata/api")
-    KATSU_BIOSAMPLES_ENDPOINT = "/biosamples"
+        "KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata/")
+    KATSU_BIOSAMPLES_ENDPOINT = "api/biosamples"
+    KATSU_SEARCH_ENDPOINT = "open/search"
     KATSU_TIMEOUT = os.environ.get("KATSU_TIMEOUT", 60)
 
 # -------------------
