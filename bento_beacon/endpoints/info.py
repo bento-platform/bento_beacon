@@ -1,9 +1,25 @@
-from flask import Blueprint, jsonify, current_app
+import os
+import json
+from flask import Blueprint, current_app, request
+from ..utils.beacon_response import beacon_info_response
+
 
 # TODO: return real service info
 
 
 info = Blueprint("info", __name__, url_prefix="/api")
+
+
+def load_config_file(filename):
+    rel_path = "../configuration_files"
+    path_to_map = os.path.join(os.path.dirname(__file__), rel_path, filename)
+
+    # file error handling TODO
+    with open(path_to_map, "r") as map_json:
+        map_dict = json.load(map_json)
+
+    return map_dict
+
 
 # ga4gh service-info
 
@@ -41,11 +57,8 @@ def filtering_terms():
 
 
 @info.route("/configuration")
-def beacon_configuation():
-
-    # bento_beacon/beacon-framework-v2/responses/beaconConfigurationResponse.json
-    # bento_beacon/beacon-framework-v2/configuration/beaconConfigurationSchema.json
-    return {"configuration": "TODO"}
+def beacon_configuration():
+    return beacon_info_response(load_config_file("beaconConfiguration.json"))
 
 
 @info.route("/entry_types")
@@ -58,7 +71,4 @@ def entry_types():
 
 @info.route("/map")
 def beacon_map():
-
-    # bento_beacon/beacon-framework-v2/responses/beaconMapResponse.json
-    # bento_beacon/beacon-framework-v2/configuration/beaconMapSchema.json
-    return {"beacon map": "TODO"}
+    return beacon_info_response(load_config_file("beaconMap.json"))
