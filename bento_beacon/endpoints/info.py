@@ -10,17 +10,6 @@ from ..utils.beacon_response import beacon_info_response
 info = Blueprint("info", __name__, url_prefix="/api")
 
 
-def load_config_file(filename):
-    rel_path = "../configuration_files"
-    path_to_map = os.path.join(os.path.dirname(__file__), rel_path, filename)
-
-    # file error handling TODO
-    with open(path_to_map, "r") as map_json:
-        map_dict = json.load(map_json)
-
-    return map_dict
-
-
 # ga4gh service-info
 
 
