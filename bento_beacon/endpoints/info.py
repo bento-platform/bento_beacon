@@ -2,7 +2,7 @@ import os
 import json
 from flask import Blueprint, current_app, request
 from ..utils.beacon_response import beacon_info_response
-
+from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources
 
 # TODO: return real service info
 
@@ -35,13 +35,9 @@ def beacon_info():
 
 @info.route("/filtering_terms")
 def filtering_terms():
-
-    # bento_beacon/beacon-framework-v2/responses/beaconFilteringTermsResponse.json
-    # beacon-framework-v2/responses/sections/beaconFilteringTermsResults.json
-
-    # see also:
-    # bento_beacon/beacon-framework-v2/requests/validation/filteringTerms.json
-    return {"filtering terms": "TODO"}
+    resources = get_filtering_term_resources()
+    filtering_terms = get_filtering_terms()
+    return beacon_info_response({"resources": resources, "filtering_terms": filtering_terms})
 # "list of filtering terms"
 
 
@@ -52,10 +48,8 @@ def beacon_configuration():
 
 @info.route("/entry_types")
 def entry_types():
-
-    # bento_beacon/beacon-framework-v2/responses/beaconEntryTypesResponse.json
-    # bento_beacon/beacon-framework-v2/configuration/entryTypesSchema.json
-    return {"entry types": "TODO"}
+    entry_types = current_app.config["BEACON_CONFIGURATION"].get("entryTypes")
+    return beacon_info_response({"entry_types": entry_types})
 
 
 @info.route("/map")
