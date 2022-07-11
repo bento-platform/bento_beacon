@@ -58,7 +58,8 @@ def filtering_terms():
 
 @info.route("/configuration")
 def beacon_configuration():
-    return beacon_info_response(load_config_file("beaconConfiguration.json"))
+    c = current_app.config
+    return beacon_info_response(c["BEACON_CONFIGURATION"])
 
 
 @info.route("/entry_types")
@@ -71,4 +72,5 @@ def entry_types():
 
 @info.route("/map")
 def beacon_map():
-    return beacon_info_response(load_config_file("beaconMap.json"))
+    c = current_app.config
+    return beacon_info_response(c["BEACON_MAP"])
