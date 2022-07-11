@@ -11,7 +11,7 @@ class Config:
     BEACON_GRANULARITY = os.environ.get("BEACON_GRANULARITY", "count")
 
 # -------------------
-# katsu 
+# katsu
 
     KATSU_BASE_URL = os.environ.get(
         "KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata/")
@@ -23,7 +23,7 @@ class Config:
         "MAP_EXTRA_PROPERTIES_TO_INFO", True)
 
 # -------------------
-# gohan 
+# gohan
 
     GOHAN_BASE_URL = os.environ.get(
         "GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
