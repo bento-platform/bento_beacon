@@ -28,7 +28,7 @@ def beacon_info():
 def filtering_terms():
     resources = get_filtering_term_resources()
     filtering_terms = get_filtering_terms()
-    return beacon_info_response({"resources": resources, "filtering_terms": filtering_terms})
+    return beacon_info_response({"resources": resources, "filteringTerms": filtering_terms})
 
 
 @info.route("/configuration")
