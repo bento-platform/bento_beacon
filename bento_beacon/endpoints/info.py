@@ -1,10 +1,6 @@
-import os
-import json
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources
-
-# TODO: return real service info
 
 
 info = Blueprint("info", __name__, url_prefix="/api")
@@ -13,7 +9,6 @@ info = Blueprint("info", __name__, url_prefix="/api")
 # service-info in ga4gh format
 @info.route("/service-info")
 def service_info():
-    config = current_app.config
     return beacon_info_response(current_app.config["BEACON_GA4GH_SERVICE_INFO"], build_meta=False)
 
 
