@@ -1,6 +1,7 @@
 from flask import current_app
 from ..service_info import SERVICE_INFO
 
+
 def katsu_not_found(r):
     if "count" in r:
         return r["count"] == 0
@@ -9,7 +10,7 @@ def katsu_not_found(r):
     return "id" not in r
 
 
-def beacon_response(results, info=None):
+def beacon_response(results, info_message=None):
     granularity = current_app.config["BEACON_GRANULARITY"]
     r = {
         "meta": build_response_meta(),
@@ -19,8 +20,16 @@ def beacon_response(results, info=None):
     if granularity == "record":
         r["response"] = build_response_details(results)
 
-    if info:
-        r["info"] = info
+    if info_message:
+        r["info"] = info_message
+
+    return r
+
+
+def beacon_info_response(info, build_meta=True):
+    r = {"response": info}
+    if build_meta:
+        r["meta"] = build_response_meta()
 
     return r
 
@@ -28,7 +37,7 @@ def beacon_response(results, info=None):
 def build_response_meta():
     # -------------------
     # TODO, parameterize all
-    returned_schemas = {}
+    returned_schemas = []
     returned_granularity = current_app.config["BEACON_GRANULARITY"]
     received_request_summary = {}
     # --------------------

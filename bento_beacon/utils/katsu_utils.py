@@ -117,3 +117,18 @@ def katsu_json_payload(filters):
         "data_type": "phenopacket",
         "query": bento_expression_tree(filters)
     }
+
+
+# -------------------------------------------------------
+#       filtering terms
+# -------------------------------------------------------
+
+
+def get_filtering_terms():
+    # TODO
+    return []
+
+
+def get_filtering_term_resources():
+    # TODO
+    return []
