@@ -26,17 +26,18 @@ def beacon_response(results, info_message=None):
     return r
 
 
-def beacon_info_response(info):
-    return {
-        "meta": build_response_meta(),
-        "response": info
-    }
+def beacon_info_response(info, build_meta=True):
+    r = {"response": info}
+    if build_meta:
+        r["meta"] = build_response_meta()
+
+    return r
 
 
 def build_response_meta():
     # -------------------
     # TODO, parameterize all
-    returned_schemas = {}
+    returned_schemas = []
     returned_granularity = current_app.config["BEACON_GRANULARITY"]
     received_request_summary = {}
     # --------------------

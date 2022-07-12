@@ -32,7 +32,7 @@ class Config:
     GOHAN_TIMEOUT = os.environ.get("GOHAN_TIMEOUT", 60)
 
 # -------------------
-# beacon config jsons
+# mandatory beacon config jsons
 
     BEACON_CONFIGURATION = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -81,6 +81,7 @@ class Config:
         }
     }
 
+    # TODO: correct paths with BENTO_URL
     BEACON_MAP = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "endpointSets": {
@@ -92,7 +93,6 @@ class Config:
                     }
                 },
                 "entryType": "genomicVariant",
-                "openAPIEndpointsDefinition": "https://exampleBeacons.org/genomicVariations/endpoints.json",
                 "rootUrl": "https://exampleBeacons.org/g_variants",
                 "singleEntryUrl": "https://exampleBeacons.org/g_variants/{id}"
             },
@@ -100,11 +100,40 @@ class Config:
                 "endpoints": {},
                 "entryType": "individual",
                 "filteringTermsUrl": "https://exampleBeacons.org/individuals/{id}/filtering_terms",
-                "openAPIEndpointsDefinition": "https://exampleBeacons.org/individuals/endpoints.json",
                 "rootUrl": "https://exampleBeacons.org/individuals",
                 "singleEntryUrl": "https://exampleBeacons.org/individuals/{id}"
             }
         }
+    }
+
+    # TODO: parameterize
+    BEACON_SERVICE_INFO = {
+        "id": "c3g.bento.beacon",
+        "name": "Bento Beacon test instance",
+        "apiVersion": "v2.0.0",
+        "environment": "dev",
+        "organization": {
+            "id": "c3g",
+            "name": "Canadian Centre for Computational Genomics"
+        }
+    }
+
+    # TODO: parameterize
+    BEACON_GA4GH_SERVICE_INFO = {
+        "contactUrl": "mailto:info@computationalgenomics.ca",
+        "id": "c3g.bento.beacon",
+        "name": "Bento Beacon test instance",
+        "organization": {
+            "logoUrl": "https://computationalgenomics.ca/wp-content/uploads/2021/12/c3g_source_logo_small.png",
+            "name": "Canadian Centre for Computational Genomics",
+            "url": "https://computationalgenomics.ca/"
+        },
+        "type": {
+            "artifact": "Beacon v2",
+            "group": "org.ga4gh",
+            "version": "v2.0.0"
+        },
+        "version": "v2.0.0"
     }
 
     BEACON_ENDPOINTS = {
