@@ -12,6 +12,9 @@ def katsu_filters_query(beacon_filters, sample_ids):
     results = response.get("results")
     match_list = []
 
+    if not results:
+        raise APIException("error calling metadata service")
+
     # possibly multiple phenopackets tables, combine results
     for value in results.values():
         if value.get("data_type") == "phenopacket":
@@ -113,7 +116,7 @@ def expression_array(terms):
 
 
 def bento_expression_tree(terms):
-    return reduce(lambda x, y: ["#and", x, y], expression_array(terms))
+    return {} if not terms else reduce(lambda x, y: ["#and", x, y], expression_array(terms))
 
 
 # TODO: will need to be parameterized for experiments searches
