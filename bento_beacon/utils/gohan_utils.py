@@ -42,11 +42,11 @@ def beacon_to_gohan_generic_mapping(obj):
 # TODO: INS issues, see notes
 
 def zero_to_one(start, end=None):
-    return start+1 if end is None else (start+1, end)
+    return int(start)+1 if end is None else (int(start)+1, end)
 
 
 def one_to_zero(start, end):
-    return (start-1, end)
+    return (int(start)-1, end)
 
 # ------------------------------------------------
 

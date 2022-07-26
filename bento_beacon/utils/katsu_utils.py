@@ -6,11 +6,14 @@ from .exceptions import APIException
 from functools import reduce
 
 
-def katsu_filters_query(beacon_filters):
-    payload = katsu_json_payload(beacon_filters)
+def katsu_filters_query(beacon_filters, sample_ids):
+    payload = katsu_json_payload(beacon_filters, sample_ids)
     response = katsu_network_call(payload)
     results = response.get("results")
     match_list = []
+
+    if not results:
+        raise APIException("error calling metadata service")
 
     # possibly multiple phenopackets tables, combine results
     for value in results.values():
@@ -31,7 +34,11 @@ def katsu_network_call(payload):
             timeout=c["KATSU_TIMEOUT"],
             json=payload
         )
+
         katsu_response = r.json()
+        if not r.ok:
+            current_app.logger.warning(f"katsu error, status: {r.status_code}, message: {katsu_response.get('message')}")
+            raise APIException(message=f"error searching katsu metadata service: {katsu_response.get('message')}")
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
@@ -109,13 +116,15 @@ def expression_array(terms):
 
 
 def bento_expression_tree(terms):
-    return reduce(lambda x, y: ["#and", x, y], expression_array(terms))
+    return {} if not terms else reduce(lambda x, y: ["#and", x, y], expression_array(terms))
 
 
-def katsu_json_payload(filters):
+# TODO: will need to be parameterized for experiments searches
+def katsu_json_payload(filters, sample_ids):
     return {
         "data_type": "phenopacket",
-        "query": bento_expression_tree(filters)
+        "query": bento_expression_tree(filters),
+        "linked_field_ids": sample_ids
     }
 
 

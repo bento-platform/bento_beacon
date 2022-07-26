@@ -7,29 +7,26 @@ from ..utils.gohan_utils import gohan_results
 individuals = Blueprint("individuals", __name__, url_prefix="/api")
 
 
-
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
     granularity = current_app.config["BEACON_GRANULARITY"]
     beacon_args = request.get_json() or {}
 
-    variants_query = beacon_args.get("query", {}).get("requestParameters", {}).get("g_variant") or {} 
-    filters = beacon_args.get("query", {}).get("requestParameters", {}).get("filters") or {} 
+    variants_query = beacon_args.get("query", {}).get(
+        "requestParameters", {}).get("g_variant") or {}
+    filters = beacon_args.get("query", {}).get("filters") or {}
     results = {}
+    sample_ids = []
 
-    # if variants query, retrieve sample ids from gohan
-    # then call katsu with filters (if any) and sample ids (if any)
-    # this approach requires changes to bento_lib sql generation, but eliminates joins and 
-    # makes pagination easier
-
-    if variants_query: 
+    if variants_query:
         sample_ids = gohan_results(variants_query, granularity, ids_only=True)
         print(f"gohan sample ids: {sample_ids}")
-  
-    if filters:
-        results = katsu_filters_query(filters)
+        # skip katsu call if no results
+        if not sample_ids:
+            return beacon_response({"count": 0, "results": []})
 
-    # TODO: variants_query AND filters
+    results = katsu_filters_query(filters, sample_ids)
+    print(results)
 
     return beacon_response(results)
 
