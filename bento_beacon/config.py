@@ -17,7 +17,7 @@ class Config:
         "KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata/")
     KATSU_BIOSAMPLES_ENDPOINT = "api/biosamples"
     KATSU_SEARCH_ENDPOINT = "open/search"
-    KATSU_TIMEOUT = os.environ.get("KATSU_TIMEOUT", 60)
+    KATSU_TIMEOUT = os.environ.get("KATSU_TIMEOUT", 180)
 
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
         "MAP_EXTRA_PROPERTIES_TO_INFO", True)
