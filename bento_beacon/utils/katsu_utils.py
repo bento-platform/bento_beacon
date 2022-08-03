@@ -12,8 +12,12 @@ def katsu_filters_query(beacon_filters, sample_ids):
     results = response.get("results")
     match_list = []
 
-    if not results:
+    if results is None:
         raise APIException("error calling metadata service")
+
+    # response correct but nothing found
+    if not results:
+        return {"count": 0, "results": []}
 
     # possibly multiple phenopackets tables, combine results
     for value in results.values():
