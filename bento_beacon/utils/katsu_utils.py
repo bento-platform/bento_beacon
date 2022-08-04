@@ -57,7 +57,7 @@ def katsu_network_call(payload):
 def query_katsu(endpoint, id=None, query=None):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
-    verify_certificates = not c["BENTO_DEBUG"]
+    verify_certificates = not c["DEBUG"]
     timeout = current_app.config["KATSU_TIMEOUT"]
 
     # construct request url 
