@@ -34,7 +34,7 @@ def katsu_network_call(payload):
     try:
         r = requests.post(
             url,
-            verify=not c["BENTO_DEBUG"],
+            verify=not c["DEBUG"],
             timeout=c["KATSU_TIMEOUT"],
             json=payload
         )
