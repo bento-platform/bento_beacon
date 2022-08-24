@@ -17,7 +17,7 @@ class Config:
         "BEACON_KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_SEARCH_ENDPOINT = "/open/search"
-    KATSU_TIMEOUT = os.environ.get("KATSU_TIMEOUT", 180)
+    KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
         "MAP_EXTRA_PROPERTIES_TO_INFO", True)
@@ -29,7 +29,7 @@ class Config:
         "BEACON_GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
-    GOHAN_TIMEOUT = os.environ.get("GOHAN_TIMEOUT", 60)
+    GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
 
 # -------------------
 # mandatory beacon config jsons
