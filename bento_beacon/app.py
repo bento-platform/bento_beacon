@@ -6,7 +6,7 @@ from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
-from .config import Config
+from .config_files.config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
