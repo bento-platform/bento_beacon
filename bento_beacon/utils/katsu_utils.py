@@ -12,8 +12,12 @@ def katsu_filters_query(beacon_filters, sample_ids):
     results = response.get("results")
     match_list = []
 
-    if not results:
+    if results is None:
         raise APIException("error calling metadata service")
+
+    # response correct but nothing found
+    if not results:
+        return {"count": 0, "results": []}
 
     # possibly multiple phenopackets tables, combine results
     for value in results.values():
@@ -30,7 +34,7 @@ def katsu_network_call(payload):
     try:
         r = requests.post(
             url,
-            verify=not c["BENTO_DEBUG"],
+            verify=not c["DEBUG"],
             timeout=c["KATSU_TIMEOUT"],
             json=payload
         )
@@ -53,7 +57,7 @@ def katsu_network_call(payload):
 def query_katsu(endpoint, id=None, query=None):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
-    verify_certificates = not c["BENTO_DEBUG"]
+    verify_certificates = not c["DEBUG"]
     timeout = current_app.config["KATSU_TIMEOUT"]
 
     # construct request url 
