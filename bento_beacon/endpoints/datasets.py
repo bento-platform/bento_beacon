@@ -1,10 +1,10 @@
-
 from flask import Blueprint, jsonify, current_app
 from ..utils.exceptions import APIException, NotImplemented
 from ..utils.beacon_response import beacon_response, katsu_not_found
 from ..utils.katsu_utils import query_katsu
 
 datasets = Blueprint("datasets", __name__, url_prefix="/api")
+
 
 @datasets.route("/datasets", methods=['GET', 'POST'])
 def get_datasets():
@@ -30,6 +30,7 @@ def biosamples_by_dataset(id):
 @datasets.route("/datasets/<id>/individuals", methods=['GET', 'POST'])
 def individuals_by_dataset(id):
     raise NotImplemented()
+
 
 @datasets.route("/datasets/<id>/filtering_terms", methods=['GET', 'POST'])
 def filtering_terms_by_dataset(id):
