@@ -166,7 +166,7 @@ def unpackage_sample_ids(results):
 def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
-        r = requests.get(180
+        r = requests.get(
             url,
             verify=not c["DEBUG"],
             timeout=c["GOHAN_TIMEOUT"],
