@@ -166,9 +166,9 @@ def unpackage_sample_ids(results):
 def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
-        r = requests.get(
+        r = requests.get(180
             url,
-            verify=not c["BENTO_DEBUG"],
+            verify=not c["DEBUG"],
             timeout=c["GOHAN_TIMEOUT"],
             params=gohan_args
         )
