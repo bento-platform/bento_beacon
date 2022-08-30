@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, request
 
 from ..utils.beacon_response import beacon_response
-from ..utils.katsu_utils import katsu_filters_query
+from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query
 from ..utils.gohan_utils import gohan_results
 
 individuals = Blueprint("individuals", __name__, url_prefix="/api")
@@ -14,7 +14,7 @@ def get_individuals():
 
     variants_query = beacon_args.get("query", {}).get(
         "requestParameters", {}).get("g_variant") or {}
-    filters = beacon_args.get("query", {}).get("filters") or {}
+    filters = beacon_args.get("query", {}).get("filters") or []
     results = {}
     sample_ids = []
 
@@ -24,8 +24,10 @@ def get_individuals():
         # skip katsu call if no results
         if not sample_ids:
             return beacon_response({"count": 0, "results": []})
-
-    results = katsu_filters_query(filters, sample_ids)
+        return beacon_response(katsu_filters_and_sample_ids_query(filters, sample_ids))
+        
+    # else filters query only 
+    results = katsu_filters_query(filters)
     print(results)
 
     return beacon_response(results)

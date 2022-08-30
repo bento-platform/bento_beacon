@@ -6,8 +6,8 @@ from .exceptions import APIException
 from functools import reduce
 
 
-def katsu_filters_query(beacon_filters, sample_ids):
-    payload = katsu_json_payload(beacon_filters, sample_ids)
+def katsu_filters_query(beacon_filters):
+    payload = katsu_json_payload(beacon_filters)
     response = katsu_network_call(payload)
     results = response.get("results")
     match_list = []
@@ -25,6 +25,13 @@ def katsu_filters_query(beacon_filters, sample_ids):
             match_list = match_list + value.get("matches")
 
     return {"count": len(match_list), "results": match_list}
+
+
+def katsu_filters_and_sample_ids_query(beacon_filters, sample_ids):
+    # hardcoded phenopackets linked field id, TODO: parameterize
+    in_statement = {"id": "biosamples.[item].id", "operator": "#in", "value": sample_ids}
+    filters_and_in = [*beacon_filters, in_statement]
+    return katsu_filters_query(filters_and_in)
 
 
 def katsu_network_call(payload):
@@ -104,6 +111,7 @@ katsu_operator_mapping = {
 
 
 # assume json query already validated
+# convert an individual beacon filter into bento format
 def bento_query_expression(q):
     # break up phenopackets property name with "#resolve" appended at the front
     katsu_key = ["#resolve", *q["id"].split(".")]
@@ -112,23 +120,30 @@ def bento_query_expression(q):
     if q["operator"] == "!":
         return ["#not", ["#eq", katsu_key, q["value"]]]
 
+    # separate handling for in/list 
+    if q["operator"] == "#in":
+        return ["#in", katsu_key, ["#list", *q["value"]]]
+
     return [katsu_operator_mapping[q["operator"]], katsu_key, q["value"]]
 
 
+# convert an array of beacon filters into an array of bento query terms
 def expression_array(terms):
     return list(map(bento_query_expression, terms))
 
 
+# produce a bento query expression tree from a list of beacon filters
 def bento_expression_tree(terms):
     return {} if not terms else reduce(lambda x, y: ["#and", x, y], expression_array(terms))
 
 
-# TODO: will need to be parameterized for experiments searches
-def katsu_json_payload(filters, sample_ids):
+# TODO: parameterize data_type and field
+def katsu_json_payload(filters):
     return {
         "data_type": "phenopacket",
         "query": bento_expression_tree(filters),
-        "linked_field_ids": sample_ids
+        "output": "values_list",
+        "field": ["subject", "id"]
     }
 
 
