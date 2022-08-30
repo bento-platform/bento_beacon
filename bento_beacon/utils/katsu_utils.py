@@ -137,11 +137,13 @@ def bento_expression_tree(terms):
     return {} if not terms else reduce(lambda x, y: ["#and", x, y], expression_array(terms))
 
 
-# TODO: will need to be parameterized for experiments searches
+# TODO: parameterize data_type and field
 def katsu_json_payload(filters):
     return {
         "data_type": "phenopacket",
-        "query": bento_expression_tree(filters)
+        "query": bento_expression_tree(filters),
+        "output": "values_list",
+        "field": ["subject", "id"]
     }
 
 
