@@ -18,6 +18,7 @@ class Config:
     KATSU_BASE_URL = os.environ.get(
         "BEACON_KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
+    KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_SEARCH_ENDPOINT = "/open/search"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
