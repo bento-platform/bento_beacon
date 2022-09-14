@@ -171,3 +171,16 @@ def katsu_total_individuals_count():
     count_response = katsu_get(endpoint, query="page_size=1")
     count = count_response.get("count")
     return count
+
+
+def katsu_datasets(id=None):
+    c = current_app.config
+    endpoint = c["KATSU_DATASETS_ENDPOINT"]
+    response = katsu_get(endpoint, id, query="format=phenopackets")
+    if "detail" in response and response["detail"] == "Not found.":
+        return {}
+  
+    if "results" in response:
+        return response.get("results")  # collection
+
+    return response  # single dataset

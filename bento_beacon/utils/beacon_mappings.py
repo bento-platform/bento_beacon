@@ -51,3 +51,13 @@ def katsu_biosample_to_beacon_biosample(obj):
 # katsu: https://github.com/bento-platform/katsu/blob/55e7cab78b713202cfc3e6b7a4a2af697098a88a/chord_metadata_service/phenopackets/schemas.py#L238-L286
 # phenopackets schema:
 # https://github.com/phenopackets/phenopacket-schema/blob/master/src/main/proto/phenopackets/schema/v1/base.proto#L235-L305
+
+
+def katsu_to_beacon_dataset_mapping(kd):
+    if kd:
+        return {
+            "id": kd.get("identifier"),
+            "title": kd.get("title"),
+            "description": kd.get("description"),
+            "dataUseConditions": kd.get("dataUse")
+        }
