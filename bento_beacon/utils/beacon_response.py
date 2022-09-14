@@ -1,5 +1,12 @@
-from flask import current_app
+from flask import current_app, jsonify
 from ..service_info import SERVICE_INFO
+
+
+# temp cors wrapper for demo only
+def cors_wrapper_temp(r):
+    response = jsonify(r)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 
 def katsu_not_found(r):
@@ -10,28 +17,27 @@ def katsu_not_found(r):
     return "id" not in r
 
 
-def beacon_response(results, info_message=None):
+def beacon_response(results, info_message=None, collection_response=False):
     granularity = current_app.config["BEACON_GRANULARITY"]
     r = {
         "meta": build_response_meta(),
-        "responseSummary": build_response_summary(results, granularity)
+        "responseSummary": build_response_summary(results, granularity, collection_response)
     }
 
-    if granularity == "record":
-        r["response"] = build_response_details(results)
+    if collection_response:
+        r["response"] = results
 
     if info_message:
         r["info"] = info_message
 
-    return r
+    return cors_wrapper_temp(r)
 
 
 def beacon_info_response(info, build_meta=True):
     r = {"response": info}
     if build_meta:
         r["meta"] = build_response_meta()
-
-    return r
+    return cors_wrapper_temp(r)
 
 
 def build_response_meta():
@@ -54,13 +60,23 @@ def build_response_details(results):
     return {"resultSets": results}
 
 
-def build_response_summary(results, granularity):
+def build_response_summary(results, granularity, collection_response):
 
     print()
     print(f"RESULTS: {results}")
     print()
 
-    count = results.get("count")
+    if not collection_response:
+        count = results.get("count")
+
+    # single collection (cohort or dataset), possibly empty
+    elif isinstance(results, dict):
+        count = 1 if results else 0
+
+    # else array of collections
+    else:
+        count = len(results)
+
     exists = count > 0 if count else False
 
     if granularity == "boolean":
