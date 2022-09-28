@@ -33,6 +33,7 @@ class Config:
         "BEACON_GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
+    GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
 
 # -------------------

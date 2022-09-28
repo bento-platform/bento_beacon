@@ -2,7 +2,7 @@ from flask import Blueprint, current_app, request
 
 from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
-from ..utils.gohan_utils import gohan_results
+from ..utils.gohan_utils import query_gohan
 
 individuals = Blueprint("individuals", __name__, url_prefix="/api")
 
@@ -25,7 +25,7 @@ def get_individuals():
     sample_ids = []
 
     if variants_query:
-        sample_ids = gohan_results(variants_query, granularity, ids_only=True)
+        sample_ids = query_gohan(variants_query, granularity, ids_only=True)
         print(f"gohan sample ids: {sample_ids}")
         # skip katsu call if no results
         if not sample_ids:
