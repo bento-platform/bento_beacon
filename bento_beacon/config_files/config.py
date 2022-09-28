@@ -19,6 +19,7 @@ class Config:
         "BEACON_KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
+    KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/open/search"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
@@ -53,7 +54,7 @@ class Config:
     BEACON_CONFIGURATION = retrieve_config_json("beacon_configuration.json")
 
     # TODO: correct paths with BENTO_URL
-    BEACON_MAP = retrieve_config_json("beacon_mappp.json")
+    BEACON_MAP = retrieve_config_json("beacon_map.json")
 
     # TODO: parameterize, merge with beacon service info
     BEACON_GA4GH_SERVICE_INFO = retrieve_config_json("beacon_ga4gh_service_info.json")
