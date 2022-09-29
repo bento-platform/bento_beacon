@@ -213,14 +213,16 @@ def gohan_full_record_query(gohan_args):
     raise NotImplemented("full record variant query not implemented")
 
 
-def gohan_total_variants_count():
+def gohan_totals_by_sample_id():
     config = current_app.config
     count_url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
     response = gohan_network_call(count_url, {})
+    return response.get("sampleIDs")
 
-    # total variants from all assemblies
-    assembly_counts = response.get("assemblyIDs")
-    return sum(assembly_counts.values())
+
+def gohan_total_variants_count():
+    totals_by_id = gohan_totals_by_sample_id()
+    return sum(totals_by_id.values())
 
 
 # --------------------------------------------
