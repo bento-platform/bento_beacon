@@ -205,12 +205,12 @@ def gohan_network_call(url, gohan_args):
     return gohan_response
 
 
+# used internally only
 def gohan_full_record_query(gohan_args):
-    # TODO
-    # return results wrapped in this shape:
-    # { count: xx, results: [] }
-
-    raise NotImplemented("full record variant query not implemented")
+    config = current_app.config
+    query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
+    response = gohan_results(query_url, gohan_args)
+    return response.get("calls")
 
 
 def gohan_totals_by_sample_id():
