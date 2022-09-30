@@ -60,8 +60,7 @@ def katsu_network_call(payload):
 
 
 # used for GET calls at particular katsu endpoints, eg /biosamples
-# TODO: deprecate
-def query_katsu(endpoint, id=None, query=None):
+def katsu_get(endpoint, id=None, query=None):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
     verify_certificates = not c["DEBUG"]
@@ -74,7 +73,7 @@ def query_katsu(endpoint, id=None, query=None):
         url_components.scheme,
         url_components.netloc,
         url_components.path + endpoint + id_param,
-        url_components.query + "format=phenopackets",
+        url_components.query + query,
         url_components.fragment
         ))
 
@@ -160,3 +159,28 @@ def get_filtering_terms():
 def get_filtering_term_resources():
     # TODO
     return []
+
+# -------------------------------------------------------
+#       utils
+# -------------------------------------------------------
+
+
+def katsu_total_individuals_count():
+    c = current_app.config
+    endpoint = c["KATSU_INDIVIDUALS_ENDPOINT"]
+    count_response = katsu_get(endpoint, query="page_size=1")
+    count = count_response.get("count")
+    return count
+
+
+def katsu_datasets(id=None):
+    c = current_app.config
+    endpoint = c["KATSU_DATASETS_ENDPOINT"]
+    response = katsu_get(endpoint, id, query="format=phenopackets")
+    if "detail" in response and response["detail"] == "Not found.":
+        return {}
+  
+    if "results" in response:
+        return response.get("results")  # collection
+
+    return response  # single dataset

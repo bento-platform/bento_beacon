@@ -4,6 +4,10 @@ from json import JSONDecodeError
 import requests
 from urllib.parse import urljoin
 
+# -------------------------------------------------------
+#       query mapping
+# -------------------------------------------------------
+
 gohan_beacon_variant_query_mapped_fields = {
     "referenceBases":  "reference",
     "alternateBases": "alternative",
@@ -36,9 +40,10 @@ def beacon_to_gohan_generic_mapping(obj):
 
     return gohan_query
 
+# -------------------------------------------------------
+#       coordinate mapping
+# -------------------------------------------------------
 
-# ------------------------------------------------
-# mappings between zero- and one-based coordinates
 # TODO: INS issues, see notes
 
 def zero_to_one(start, end=None):
@@ -48,10 +53,14 @@ def zero_to_one(start, end=None):
 def one_to_zero(start, end):
     return (int(start)-1, end)
 
-# ------------------------------------------------
+
+# -------------------------------------------------------
+#       gohan calls
+# -------------------------------------------------------
+
 
 # TODO: validate query against spec
-def gohan_results(beacon_args, granularity, ids_only=False):
+def query_gohan(beacon_args, granularity, ids_only=False):
 
     if beacon_args.get("referenceName") is None:
         raise InvalidQuery(message="referenceName parameter required")
@@ -145,7 +154,7 @@ def generic_gohan_query(gohan_args, granularity, ids_only):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_COUNT_ENDPOINT"]
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
-    results = gohan_network_call(query_url, gohan_args)
+    results = gohan_results(query_url, gohan_args)
     count = results.get("count") if results else None
     return {"count": count}
 
@@ -154,13 +163,20 @@ def gohan_ids_only_query(gohan_args, granularity):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
-    results = gohan_network_call(query_url, gohan_args)
+    results = gohan_results(query_url, gohan_args)
     return unpackage_sample_ids(results)
 
 
 def unpackage_sample_ids(results):
     calls = results.get("calls") if results else []
     return list(map(lambda r: r.get("sample_id"), calls))
+
+
+def gohan_results(url, gohan_args):
+    response = gohan_network_call(url, gohan_args)
+    results_array = response.get("results")
+    results = results_array[0] if results_array else None
+    return results
 
 
 def gohan_network_call(url, gohan_args):
@@ -173,10 +189,6 @@ def gohan_network_call(url, gohan_args):
             params=gohan_args
         )
 
-        gohan_response = r.json()
-        results_array = gohan_response.get("results")
-        results = results_array[0] if results_array else None
-
         # handle gohan errors or any bad responses
         if not r.ok:
             current_app.logger.warning(
@@ -184,11 +196,13 @@ def gohan_network_call(url, gohan_args):
             raise APIException(
                 message=f"error searching gohan variants service: {gohan_response.get('message')}")
 
+        gohan_response = r.json()
+        
     except JSONDecodeError as e:
         current_app.logger.debug(f"gohan error: {e.msg}")
         raise APIException()
 
-    return results
+    return gohan_response
 
 
 def gohan_full_record_query(gohan_args):
@@ -197,6 +211,18 @@ def gohan_full_record_query(gohan_args):
     # { count: xx, results: [] }
 
     raise NotImplemented("full record variant query not implemented")
+
+
+def gohan_totals_by_sample_id():
+    config = current_app.config
+    count_url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
+    response = gohan_network_call(count_url, {})
+    return response.get("sampleIDs")
+
+
+def gohan_total_variants_count():
+    totals_by_id = gohan_totals_by_sample_id()
+    return sum(totals_by_id.values())
 
 
 # --------------------------------------------
