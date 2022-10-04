@@ -21,6 +21,10 @@ class Config:
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/open/search"
+    KATSU_RESOURCES_ENDPOINT = "/api/resources"
+    KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT = "/api/phenotypic_feature_type_autocomplete"
+    KATSU_DISEASES_TERMS_ENDPOINT = "/api/disease_term_autocomplete"
+    KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT = "/api/biosample_sampled_tissue_autocomplete"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(

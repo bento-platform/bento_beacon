@@ -60,7 +60,7 @@ def katsu_network_call(payload):
 
 
 # used for GET calls at particular katsu endpoints, eg /biosamples
-def katsu_get(endpoint, id=None, query=None):
+def katsu_get(endpoint, id=None, query=""):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
     verify_certificates = not c["DEBUG"]
@@ -151,14 +151,36 @@ def katsu_json_payload(filters):
 # -------------------------------------------------------
 
 
+def katsu_autocomplete_terms(endpoint):
+    return katsu_get(endpoint).get("results", [])
+
+
+def katsu_autocomplete_to_beacon_filter(a):
+    return {"type": "alphanumeric", "id": a.get("id"), "label": a.get("text")}
+
+
+# strip meaningless timestamps from resouce
+def katsu_resources_to_beacon_resource(r):
+    return {key: value for (key, value) in r.items() if key != "created" and key != "updated" }
+
+
+# construct filtering terms collection from katsu autocomplete endpoints
+# note: katsu autocomplete endpoints are paginated
+# TODO: these could be memoized, either at startup or the first time they're requested
 def get_filtering_terms():
-    # TODO
-    return []
+    c = current_app.config
+    pheno_features = katsu_autocomplete_terms(c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
+    disease_terms = katsu_autocomplete_terms(c["KATSU_DISEASES_TERMS_ENDPOINT"])
+    sampled_tissue_terms = katsu_autocomplete_terms(c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
+    filtering_terms = pheno_features + disease_terms + sampled_tissue_terms
+    return list(map(katsu_autocomplete_to_beacon_filter, filtering_terms))
 
 
 def get_filtering_term_resources():
-    # TODO
-    return []
+    r = katsu_get(current_app.config["KATSU_RESOURCES_ENDPOINT"])
+    resources = r.get("results", [])
+    resources = list(map(katsu_resources_to_beacon_resource, resources))
+    return resources
 
 # -------------------------------------------------------
 #       utils
