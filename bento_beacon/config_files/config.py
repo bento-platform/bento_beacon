@@ -16,11 +16,11 @@ class Config:
 # katsu
 
     KATSU_BASE_URL = os.environ.get(
-        "BEACON_KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
+        "KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
-    KATSU_SEARCH_ENDPOINT = "/open/search"
+    KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"
     KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT = "/api/phenotypic_feature_type_autocomplete"
     KATSU_DISEASES_TERMS_ENDPOINT = "/api/disease_term_autocomplete"
