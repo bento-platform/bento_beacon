@@ -4,7 +4,7 @@ from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_t
 from ..utils.katsu_utils import katsu_filters_query
 from ..utils.exceptions import NotImplemented
 
-variants = Blueprint("variants", __name__, url_prefix="/api")
+variants = Blueprint("variants", __name__)
 
 
 @variants.route("/g_variants", methods=['GET', 'POST'])
