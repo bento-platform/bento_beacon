@@ -34,7 +34,7 @@ class Config:
 # gohan
 
     GOHAN_BASE_URL = os.environ.get(
-        "BEACON_GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
+        "GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
