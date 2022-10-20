@@ -4,8 +4,6 @@ from ..utils.exceptions import APIException
 
 
 class Config:
-    BENTO_URL = os.environ.get("BENTOV2_PORTAL_DOMAIN", "http://127.0.0.1")
-
     # TODO: should default to false, not true
     DEBUG = os.environ.get("BEACON_DEBUG", True)
 
