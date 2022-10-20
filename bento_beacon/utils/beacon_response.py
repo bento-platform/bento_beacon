@@ -2,13 +2,6 @@ from flask import current_app, jsonify
 from ..service_info import SERVICE_INFO
 
 
-# temp cors wrapper for demo only
-def cors_wrapper_temp(r):
-    response = jsonify(r)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    return response
-
-
 def katsu_not_found(r):
     if "count" in r:
         return r["count"] == 0
@@ -30,14 +23,14 @@ def beacon_response(results, info_message=None, collection_response=False):
     if info_message:
         r["info"] = info_message
 
-    return cors_wrapper_temp(r)
+    return r
 
 
 def beacon_info_response(info, build_meta=True):
     r = {"response": info}
     if build_meta:
         r["meta"] = build_response_meta()
-    return cors_wrapper_temp(r)
+    return r
 
 
 def build_response_meta():
