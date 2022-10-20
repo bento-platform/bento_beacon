@@ -15,8 +15,7 @@ class Config:
 # -------------------
 # katsu
 
-    KATSU_BASE_URL = os.environ.get(
-        "KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
+    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
@@ -33,8 +32,7 @@ class Config:
 # -------------------
 # gohan
 
-    GOHAN_BASE_URL = os.environ.get(
-        "GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
+    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
