@@ -37,6 +37,7 @@ def katsu_filters_and_sample_ids_query(beacon_filters, sample_ids):
 def katsu_network_call(payload):
     c = current_app.config
     url = c["KATSU_BASE_URL"] + c["KATSU_SEARCH_ENDPOINT"]
+    current_app.logger.debug(f'calling katsu url {url}')
 
     try:
         r = requests.post(

@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, current_app
 from ..utils.exceptions import APIException, NotImplemented
 from ..utils.beacon_response import beacon_response, katsu_not_found
 
-cohorts = Blueprint("cohorts", __name__, url_prefix="/api")
+cohorts = Blueprint("cohorts", __name__)
 
 
 @cohorts.route("/cohorts", methods=['GET', 'POST'])

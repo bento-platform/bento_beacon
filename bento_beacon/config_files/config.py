@@ -4,8 +4,6 @@ from ..utils.exceptions import APIException
 
 
 class Config:
-    BENTO_URL = os.environ.get("BENTOV2_PORTAL_DOMAIN", "http://127.0.0.1")
-
     # TODO: should default to false, not true
     DEBUG = os.environ.get("BEACON_DEBUG", True)
 
@@ -15,12 +13,11 @@ class Config:
 # -------------------
 # katsu
 
-    KATSU_BASE_URL = os.environ.get(
-        "BEACON_KATSU_BASE_URL", "https://portal.bentov2.local/api/metadata")
+    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
-    KATSU_SEARCH_ENDPOINT = "/open/search"
+    KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"
     KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT = "/api/phenotypic_feature_type_autocomplete"
     KATSU_DISEASES_TERMS_ENDPOINT = "/api/disease_term_autocomplete"
@@ -33,8 +30,7 @@ class Config:
 # -------------------
 # gohan
 
-    GOHAN_BASE_URL = os.environ.get(
-        "BEACON_GOHAN_BASE_URL", "https://portal.bentov2.local/api/gohan")
+    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"

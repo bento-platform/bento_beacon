@@ -5,7 +5,7 @@ from ..utils.exceptions import APIException, NotImplemented
 from ..utils.beacon_response import beacon_response, katsu_not_found
 from ..utils.beacon_mappings import katsu_biosample_to_beacon_biosample
 
-biosamples = Blueprint("biosamples", __name__, url_prefix="/api")
+biosamples = Blueprint("biosamples", __name__)
 
 
 # TODO: pass beacon filtering terms as katsu queries 

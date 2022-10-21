@@ -4,7 +4,7 @@ from ..utils.beacon_response import beacon_response, katsu_not_found
 from ..utils.katsu_utils import katsu_datasets
 from ..utils.beacon_mappings import katsu_to_beacon_dataset_mapping
 
-datasets = Blueprint("datasets", __name__, url_prefix="/api")
+datasets = Blueprint("datasets", __name__)
 
 
 @datasets.route("/datasets", methods=['GET', 'POST'])

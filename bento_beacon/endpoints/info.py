@@ -3,7 +3,7 @@ from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources
 
 
-info = Blueprint("info", __name__, url_prefix="/api")
+info = Blueprint("info", __name__)
 
 
 # service-info in ga4gh format

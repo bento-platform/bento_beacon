@@ -4,7 +4,7 @@ from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
 from ..utils.gohan_utils import query_gohan
 
-individuals = Blueprint("individuals", __name__, url_prefix="/api")
+individuals = Blueprint("individuals", __name__)
 
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
