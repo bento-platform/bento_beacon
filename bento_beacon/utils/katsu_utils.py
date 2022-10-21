@@ -6,8 +6,8 @@ from .exceptions import APIException
 from functools import reduce
 
 
-def katsu_filters_query(beacon_filters):
-    payload = katsu_json_payload(beacon_filters)
+def katsu_filters_query(beacon_filters, get_biosample_ids=False):
+    payload = katsu_json_payload(beacon_filters, get_biosample_ids)
     response = katsu_network_call(payload)
     results = response.get("results")
     match_list = []
@@ -138,12 +138,14 @@ def bento_expression_tree(terms):
 
 
 # TODO: parameterize data_type and field
-def katsu_json_payload(filters):
+def katsu_json_payload(filters, get_biosample_ids):
+    id_type = "biosamples" if get_biosample_ids else "subject"
+
     return {
         "data_type": "phenopacket",
         "query": bento_expression_tree(filters),
         "output": "values_list",
-        "field": ["subject", "id"]
+        "field": [id_type, "id"]
     }
 
 

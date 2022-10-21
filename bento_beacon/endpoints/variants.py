@@ -17,7 +17,7 @@ def get_variants():
     katsu_response_ids = []
 
     if filters: 
-        katsu_response_ids = katsu_filters_query(filters).get("results") or []
+        katsu_response_ids = katsu_filters_query(filters, get_biosample_ids=True).get("results") or []
 
     # if no query, return total count of variants
     if not (variants_query or filters):
