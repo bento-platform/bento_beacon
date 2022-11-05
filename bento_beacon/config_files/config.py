@@ -45,6 +45,7 @@ class Config:
     def retrieve_config_json(filename):
         # TODO: abstract out CONFIG_PATH if needed
         CONFIG_PATH = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
+        print(f"Searching for file {filename} in {CONFIG_PATH}")
         file_path = os.path.join(CONFIG_PATH, filename)
         try:
             with open(file_path) as f:
