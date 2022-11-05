@@ -42,8 +42,9 @@ class Config:
 #      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
 #   b) default to using "this file's directory" as the reference to where
 #      configuration files are expected to be located
-    CONFIG_PATH = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
     def retrieve_config_json(filename):
+        # TODO: abstract out CONFIG_PATH if needed
+        CONFIG_PATH = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
         file_path = os.path.join(CONFIG_PATH, filename)
         try:
             with open(file_path) as f:
