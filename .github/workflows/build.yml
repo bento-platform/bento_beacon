@@ -71,9 +71,13 @@ jobs:
             ghcr.io/bento-platform/bento_beacon
           flavor: |
             latest=true
+          # tags: |
+          #   type=semver,pattern={{version}}
+          #   type=semver,pattern={{major}}.{{minor}}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+            type=ref,event=pr
+            type=sha,prefix=sha-
 
       - name: Build and push production image
         uses: docker/build-push-action@v3
