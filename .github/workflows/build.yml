@@ -1,6 +1,9 @@
 name: Build and push bento_beacon
 on:
-  workflow_dispatch:
+  # TEMP:
+  push:
+    branches:
+      - "patches/dockerfiles"
 # on:
 #   release:
 #     types: [ published ]
