@@ -3,7 +3,7 @@ on:
   # TEMP:
   push:
     branches:
-      - "patches/dockerfiles"
+      - "qa/v0.1"
 # on:
 #   release:
 #     types: [ published ]
