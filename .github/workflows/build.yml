@@ -1,9 +1,5 @@
 name: Build and push bento_beacon
-on:
-  # TEMP:
-  push:
-    branches:
-      - "qa/v0.1"
+# -- TEMP:
 # on:
 #   release:
 #     types: [ published ]
@@ -13,6 +9,9 @@ on:
 #   push:
 #     branches:
 #       - master
+on:
+  workflow_dispatch:
+# --
 
 jobs:
   build-push:
@@ -65,15 +64,15 @@ jobs:
       - name: Set up production image metadata
         id: meta
         uses: docker/metadata-action@v4
-        # if: ${{ github.event_name == 'release' }}
+        if: ${{ github.event_name == 'release' }}
         with:
           images: |
             ghcr.io/bento-platform/bento_beacon
           flavor: |
             latest=true
-          # tags: |
-          #   type=semver,pattern={{version}}
-          #   type=semver,pattern={{major}}.{{minor}}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
           tags: |
             type=raw,value=latest
             type=ref,event=pr
@@ -81,7 +80,7 @@ jobs:
 
       - name: Build and push production image
         uses: docker/build-push-action@v3
-        # if: ${{ github.event_name == 'release' }}
+        if: ${{ github.event_name == 'release' }}
         with:
           context: .
           file: Dockerfile
