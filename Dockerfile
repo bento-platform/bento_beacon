@@ -1,6 +1,6 @@
 FROM ghcr.io/bento-platform/bento_base_image:python-debian-latest
 
-RUN mkdir /beacon
+RUN mkdir -p /beacon/config
 WORKDIR /beacon
 
 # Copy whole project directory
