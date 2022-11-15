@@ -5,10 +5,9 @@
 # FROM python:3.8-slim-bullseye
 FROM ghcr.io/bento-platform/bento_base_image:python-debian-latest
 
-RUN mkdir /beacon
+WORKDIR /beacon
 
-COPY ./entrypoint.dev.sh /beacon/bento_beacon/entrypoint.dev.sh
-COPY ./requirements.txt /beacon/bento_beacon/requirements.txt
+COPY ./entrypoint.dev.sh ./requirements.txt /beacon/bento_beacon/
 
 # shared volume with local repo, see docker.compose.dev.yaml
 WORKDIR /beacon/bento_beacon
