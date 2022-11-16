@@ -70,10 +70,6 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-          tags: |
-            type=raw,value=latest
-            type=ref,event=pr
-            type=sha,prefix=sha-
 
       - name: Build and push production image
         uses: docker/build-push-action@v3
