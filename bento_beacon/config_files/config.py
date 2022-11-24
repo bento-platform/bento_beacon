@@ -38,9 +38,14 @@ class Config:
 
 # -------------------
 # handle injected config files
-
+#   a) obtain reference to the expected configuration files' location by
+#      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
+#   b) default to using "this file's directory" as the reference to where
+#      configuration files are expected to be located
     def retrieve_config_json(filename):
-        config_path = os.path.dirname(os.path.abspath(__file__))
+        # TODO: abstract out CONFIG_PATH if needed
+        config_path = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
+        print(f"Searching for file {filename} in {config_path}")
         file_path = os.path.join(config_path, filename)
         try:
             with open(file_path) as f:
