@@ -79,3 +79,13 @@ def build_response_summary(results, granularity, collection_response):
         "exists": exists,
         "count": count,
     }
+
+
+def beacon_error_response(message, status_code):
+    return {
+        "meta": build_response_meta(),
+        "error": {
+            "errorCode": status_code,
+            "errorMessage": message
+        }
+    }
