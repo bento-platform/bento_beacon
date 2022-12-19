@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, json
+from flask import Flask
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
@@ -9,6 +9,7 @@ from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
+from .utils.beacon_response import beacon_error_response
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -31,20 +32,10 @@ app.register_blueprint(cohorts)
 app.register_blueprint(datasets)
 
 
-@app.errorhandler(APIException)
-def beacon_exception(e):
-    return e.beacon_exception(), e.status_code
-
-
-@app.errorhandler(HTTPException)
+@app.errorhandler(Exception)
 def generic_exception_handler(e):
-    response = e.get_response()
-    response.data = json.dumps({
-        "code": e.code,
-        "name": e.name,
-        "description": e.description,
-    })
-    response.content_type = "application/json"
-    return response, e.code
-
-# TODO: normalize exceptions so they all return beacon errors, add handler for InternalServerError
+    if isinstance(e, APIException):
+        return beacon_error_response(e.message, e.status_code)
+    if isinstance(e, HTTPException):
+        return beacon_error_response(e.name, e.code)
+    return beacon_error_response("Server Error", 500)

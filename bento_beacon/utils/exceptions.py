@@ -1,4 +1,3 @@
-from ..utils.beacon_response import build_response_meta
 
 
 class APIException(Exception):
@@ -7,15 +6,6 @@ class APIException(Exception):
         self.message = message
         self.status_code = status_code
         self.payload = payload
-
-    def beacon_exception(self):
-        return {
-            "meta": build_response_meta(),
-            "error": {
-                "errorCode": self.status_code,
-                "errorMessage": self.message
-            }
-        }
 
 
 class NotImplemented(APIException):
