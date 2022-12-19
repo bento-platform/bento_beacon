@@ -10,6 +10,7 @@ from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
+from .utils.beacon_request import save_request_data
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -39,3 +40,8 @@ def generic_exception_handler(e):
     if isinstance(e, HTTPException):
         return beacon_error_response(e.name, e.code)
     return beacon_error_response("Server Error", 500)
+
+
+@app.before_request
+def before_request():
+    save_request_data()
