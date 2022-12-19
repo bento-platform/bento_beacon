@@ -1,4 +1,4 @@
-from flask import current_app, jsonify
+from flask import current_app, g, request
 from ..service_info import SERVICE_INFO
 
 
@@ -34,12 +34,19 @@ def beacon_info_response(info, build_meta=True):
 
 
 def build_response_meta():
-    # -------------------
-    # TODO, parameterize all
     returned_schemas = []
     returned_granularity = current_app.config["BEACON_GRANULARITY"]
-    received_request_summary = {}
-    # --------------------
+    if request.method == "POST":
+        received_request_summary = {
+            "apiVersion": g.requested_api_version,
+            "requestedSchemas": g.requested_schemas,
+            "pagination": g.requested_pagination,
+            "requestedGranularity": g.requested_granularity
+        }
+    else:
+        received_request_summary = {
+            "apiVersion": g.requested_api_version,
+        }
     return {
         "beaconId": SERVICE_INFO["id"],
         "apiVersion": SERVICE_INFO["version"],
