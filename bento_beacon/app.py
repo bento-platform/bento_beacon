@@ -32,11 +32,10 @@ app.register_blueprint(cohorts)
 app.register_blueprint(datasets)
 
 
-@app.errorhandler(APIException)
-def beacon_exception(e):
-    return beacon_error_response(e.message, e.status_code)
-
-
-@app.errorhandler(HTTPException)
+@app.errorhandler(Exception)
 def generic_exception_handler(e):
-    return beacon_error_response(e.name, e.code)
+    if isinstance(e, APIException):
+        return beacon_error_response(e.message, e.status_code)
+    if isinstance(e, HTTPException):
+        return beacon_error_response(e.name, e.code)
+    return beacon_error_response("Server Error", 500)
