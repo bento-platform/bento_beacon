@@ -10,6 +10,9 @@ class Config:
     # can be "boolean", "count", or "record"
     BEACON_GRANULARITY = os.environ.get("BEACON_GRANULARITY", "count")
 
+    # version of ga4gh beacon spec, not version of this implementation
+    BEACON_API_VERSION = "v2.0.0"
+
 # -------------------
 # katsu
 
