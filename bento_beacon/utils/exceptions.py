@@ -1,4 +1,3 @@
-from ..utils.beacon_response import build_response_meta
 
 
 class APIException(Exception):
