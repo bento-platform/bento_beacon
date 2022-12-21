@@ -29,30 +29,40 @@ def beacon_response(results, info_message=None, collection_response=False):
 def beacon_info_response(info, build_meta=True):
     r = {"response": info}
     if build_meta:
-        r["meta"] = build_response_meta()
+        r["meta"] = build_info_response_meta()
     return r
+
+
+def received_request():
+    try:
+        r = {**g.request_data}
+    except AttributeError:
+        # don't rethrow, you'll just loop back here again
+        r = {}
+    finally:
+        return r
 
 
 def build_response_meta():
     returned_schemas = []
     returned_granularity = current_app.config["BEACON_GRANULARITY"]
+    received_request_summary = {}
     if request.method == "POST":
-        received_request_summary = {
-            "apiVersion": g.requested_api_version,
-            "requestedSchemas": g.requested_schemas,
-            "pagination": g.requested_pagination,
-            "requestedGranularity": g.requested_granularity
-        }
-    else:
-        received_request_summary = {
-            "apiVersion": g.requested_api_version,
-        }
+        received_request_summary = received_request()
     return {
         "beaconId": SERVICE_INFO["id"],
         "apiVersion": SERVICE_INFO["version"],
         "returnedSchemas": returned_schemas,
         "returnedGranularity": returned_granularity,
         "receivedRequestSummary": received_request_summary
+    }
+
+
+def build_info_response_meta():
+    return {
+        "beaconId": SERVICE_INFO["id"],
+        "apiVersion": SERVICE_INFO["version"],
+        "returned_schemas": []
     }
 
 

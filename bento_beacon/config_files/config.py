@@ -1,6 +1,5 @@
 import json
 import os
-from ..utils.exceptions import APIException
 
 
 class Config:

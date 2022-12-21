@@ -1,8 +1,8 @@
 from flask import current_app, request, g
 
 
-def save_request_data():
-    defaults = {
+def request_defaults():
+    return {
         "apiVersion": current_app.config["BEACON_API_VERSION"],
         "granularity": current_app.config["BEACON_GRANULARITY"],
         "includeResultsetResponses": "ALL",
@@ -13,8 +13,12 @@ def save_request_data():
         "requestedSchemas": []
     }
 
+
+def save_request_data():
+    defaults = request_defaults()
+
     # queries only use POST for now
-    # if GET, it's a call to an info endpoint, so just use default values
+    # if GET, it's a call to an info endpoint, can ignore anything here for now
     if request.method == "POST":
         request_args = request.get_json() or {}
     else:
@@ -23,9 +27,11 @@ def save_request_data():
     request_meta = request_args.get("meta", {})
     request_query = request_args.get("query", {})
 
-    # save values to flask global per-request dict
-    g.requested_api_version = request_meta.get("apiVersion", defaults["apiVersion"])
-    g.requested_schemas = request_meta.get("requestedSchemas", defaults["requestedSchemas"])
-    g.requested_pagination = {**defaults["pagination"], **request_query.get("pagination", {})}
-    g.requested_granularity = request_query.get("requestedGranularity", defaults["granularity"])
+    request_data = {
+        "requested_api_version": request_meta.get("apiVersion", defaults["apiVersion"]),
+        "requested_schemas": request_meta.get("requestedSchemas", defaults["requestedSchemas"]),
+        "requested_pagination": {**defaults["pagination"], **request_query.get("pagination", {})},
+        "requested_granularity": request_query.get("requestedGranularity", defaults["granularity"])
+    }
 
+    g.request_data = request_data
