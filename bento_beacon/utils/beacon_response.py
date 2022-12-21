@@ -1,5 +1,4 @@
 from flask import current_app, g, request
-from ..service_info import SERVICE_INFO
 
 
 def katsu_not_found(r):
@@ -46,12 +45,13 @@ def received_request():
 def build_response_meta():
     returned_schemas = []
     returned_granularity = current_app.config["BEACON_GRANULARITY"]
+    service_info = current_app.config["BEACON_SERVICE_INFO"] 
     received_request_summary = {}
     if request.method == "POST":
         received_request_summary = received_request()
     return {
-        "beaconId": SERVICE_INFO["id"],
-        "apiVersion": SERVICE_INFO["version"],
+        "beaconId": service_info.get("id"),
+        "apiVersion": service_info.get("apiVersion"),
         "returnedSchemas": returned_schemas,
         "returnedGranularity": returned_granularity,
         "receivedRequestSummary": received_request_summary
@@ -59,9 +59,10 @@ def build_response_meta():
 
 
 def build_info_response_meta():
+    service_info = current_app.config["BEACON_SERVICE_INFO"] 
     return {
-        "beaconId": SERVICE_INFO["id"],
-        "apiVersion": SERVICE_INFO["version"],
+        "beaconId": service_info.get("id"),
+        "apiVersion": service_info.get("apiVersion"),
         "returned_schemas": []
     }
 
