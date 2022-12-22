@@ -36,10 +36,10 @@ app.register_blueprint(datasets)
 @app.errorhandler(Exception)
 def generic_exception_handler(e):
     if isinstance(e, APIException):
-        return beacon_error_response(e.message, e.status_code)
+        return beacon_error_response(e.message, e.status_code), e.status_code
     if isinstance(e, HTTPException):
-        return beacon_error_response(e.name, e.code)
-    return beacon_error_response("Server Error", 500)
+        return beacon_error_response(e.name, e.code), e.code
+    return beacon_error_response("Server Error", 500), 500
 
 
 @app.before_request
