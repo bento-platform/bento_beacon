@@ -12,6 +12,8 @@ class Config:
     # version of ga4gh beacon spec, not version of this implementation
     BEACON_API_VERSION = "v2.0.0"
 
+    SMALL_CELL_COUNT_THRESHOLD = os.environ.get("BEACON_SMALL_CELL_COUNT_THRESHOLD", 0)
+
 # -------------------
 # katsu
 
