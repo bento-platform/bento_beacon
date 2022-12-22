@@ -72,13 +72,14 @@ def build_response_details(results):
 
 
 def build_response_summary(results, granularity, collection_response):
-
+    small_cell_count_threshold = current_app.config["SMALL_CELL_COUNT_THRESHOLD"]
     print()
     print(f"RESULTS: {results}")
     print()
 
     if not collection_response:
         count = results.get("count")
+        count = 0 if count <= small_cell_count_threshold else count
 
     # single collection (cohort or dataset), possibly empty
     elif isinstance(results, dict):
