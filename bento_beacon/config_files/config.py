@@ -12,12 +12,12 @@ class Config:
     # version of ga4gh beacon spec, not version of this implementation
     BEACON_API_VERSION = "v2.0.0"
 
-    SMALL_CELL_COUNT_THRESHOLD = os.environ.get("BEACON_SMALL_CELL_COUNT_THRESHOLD", 0)
+    SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get("BEACON_SMALL_CELL_COUNT_THRESHOLD", 0))
 
 # -------------------
 # katsu
 
-    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
+    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL", "http://bentov2-katsu:8000")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
@@ -34,7 +34,7 @@ class Config:
 # -------------------
 # gohan
 
-    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
+    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL", "http://bentov2-gohan-api:5000")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
