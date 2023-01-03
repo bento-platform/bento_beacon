@@ -2,11 +2,17 @@ from flask import current_app
 from json import JSONDecodeError
 import requests
 from urllib.parse import urljoin, urlsplit, urlunsplit
-from .exceptions import APIException
+from .exceptions import APIException, InvalidQuery
 from functools import reduce
 
 
 def katsu_filters_query(beacon_filters, get_biosample_ids=False):
+
+    # reject if too many filters
+    max_filters = current_app.config["MAX_FILTERS"]
+    if max_filters > 0 and len(beacon_filters) > max_filters:
+        raise InvalidQuery(f"too many filters in request, maximum of {max_filters} permitted")
+
     payload = katsu_json_payload(beacon_filters, get_biosample_ids)
     response = katsu_network_call(payload)
     results = response.get("results")
