@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from json import JSONDecodeError
 import requests

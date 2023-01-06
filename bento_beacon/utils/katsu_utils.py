@@ -1,7 +1,7 @@
 from flask import current_app
 from json import JSONDecodeError
 import requests
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit
 from .exceptions import APIException, InvalidQuery
 from functools import reduce
 

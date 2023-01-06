@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, current_app
-from ..utils.exceptions import APIException, NotImplemented
-from ..utils.beacon_response import beacon_response, katsu_not_found
+from flask import Blueprint, current_app
+from ..utils.exceptions import NotImplemented
+from ..utils.beacon_response import beacon_response
 
 cohorts = Blueprint("cohorts", __name__)
 
