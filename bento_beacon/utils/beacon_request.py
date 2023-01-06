@@ -1,4 +1,6 @@
 from flask import current_app, request, g
+import jsonschema
+from .exceptions import InvalidQuery
 
 
 def request_defaults():
@@ -35,3 +37,29 @@ def save_request_data():
     }
 
     g.request_data = request_data
+
+
+def validate_request(): 
+    if request.method == "POST":
+        request_args = request.get_json() or {}
+    else:
+        # GET currently used for info endpoints only, so no request payload
+        return
+    
+    # file path resolver for local json schema
+    resolver = jsonschema.validators.RefResolver(
+        base_uri=current_app.config["REQUEST_SCHEMA_URI"],
+        referrer=True,
+    )
+
+    try:
+        jsonschema.validate(
+            instance=request_args,
+            schema={"$ref": "beaconRequestBody.json"},
+            resolver=resolver,
+        )
+
+    except jsonschema.exceptions.ValidationError as e:
+        raise InvalidQuery(message=f"Bad Request: {e.message}")
+
+    return

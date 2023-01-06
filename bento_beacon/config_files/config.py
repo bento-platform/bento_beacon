@@ -15,6 +15,8 @@ class Config:
 
     MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
 
+    REQUEST_SCHEMA_URI="file:///beacon/bento_beacon/beacon-v2/framework/json/requests/"
+
 # -------------------
 # katsu
 
