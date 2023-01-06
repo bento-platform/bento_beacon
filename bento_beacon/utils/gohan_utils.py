@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from json import JSONDecodeError
 import requests
@@ -59,7 +59,6 @@ def one_to_zero(start, end):
 # -------------------------------------------------------
 
 
-# TODO: validate query against spec
 def query_gohan(beacon_args, granularity, ids_only=False):
 
     if beacon_args.get("referenceName") is None:

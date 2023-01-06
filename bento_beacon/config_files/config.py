@@ -15,6 +15,8 @@ class Config:
 
     MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
 
+    REQUEST_SCHEMA_URI="file:///beacon/bento_beacon/beacon-v2/framework/json/requests/"
+
 # -------------------
 # katsu
 
@@ -69,7 +71,5 @@ class Config:
 
     # TODO: parameterize, merge with beacon service info
     BEACON_GA4GH_SERVICE_INFO = retrieve_config_json("beacon_ga4gh_service_info.json")
-
-    BEACON_ENDPOINTS = retrieve_config_json("beacon_endpoints.json")
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")
