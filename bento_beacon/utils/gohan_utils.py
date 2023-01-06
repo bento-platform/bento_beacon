@@ -59,7 +59,6 @@ def one_to_zero(start, end):
 # -------------------------------------------------------
 
 
-# TODO: validate query against spec
 def query_gohan(beacon_args, granularity, ids_only=False):
 
     if beacon_args.get("referenceName") is None:
