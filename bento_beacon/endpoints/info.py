@@ -9,7 +9,7 @@ info = Blueprint("info", __name__)
 # service-info in ga4gh format
 @info.route("/service-info")
 def service_info():
-    return beacon_info_response(current_app.config["BEACON_GA4GH_SERVICE_INFO"], build_meta=False)
+    return current_app.config["BEACON_GA4GH_SERVICE_INFO"]
 
 
 # service info in beacon format
