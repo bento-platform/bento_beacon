@@ -46,9 +46,7 @@ def build_response_meta():
     returned_schemas = []
     returned_granularity = current_app.config["BEACON_GRANULARITY"]
     service_info = current_app.config["BEACON_SERVICE_INFO"] 
-    received_request_summary = {}
-    if request.method == "POST":
-        received_request_summary = received_request()
+    received_request_summary = received_request()
     return {
         "beaconId": service_info.get("id"),
         "apiVersion": service_info.get("apiVersion"),
