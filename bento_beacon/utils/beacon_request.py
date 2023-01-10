@@ -30,10 +30,10 @@ def save_request_data():
     request_query = request_args.get("query", {})
 
     request_data = {
-        "requested_api_version": request_meta.get("apiVersion", defaults["apiVersion"]),
-        "requested_schemas": request_meta.get("requestedSchemas", defaults["requestedSchemas"]),
-        "requested_pagination": {**defaults["pagination"], **request_query.get("pagination", {})},
-        "requested_granularity": request_query.get("requestedGranularity", defaults["granularity"])
+        "apiVersion": request_meta.get("apiVersion", defaults["apiVersion"]),
+        "requestedSchemas": request_meta.get("requestedSchemas", defaults["requestedSchemas"]),
+        "pagination": {**defaults["pagination"], **request_query.get("pagination", {})},
+        "requestedGranularity": request_query.get("requestedGranularity", defaults["granularity"])
     }
 
     g.request_data = request_data
