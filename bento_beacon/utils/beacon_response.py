@@ -63,7 +63,7 @@ def build_info_response_meta():
     return {
         "beaconId": service_info.get("id"),
         "apiVersion": service_info.get("apiVersion"),
-        "returned_schemas": []
+        "returnedSchemas": []
     }
 
 
