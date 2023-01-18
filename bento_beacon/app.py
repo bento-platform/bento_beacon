@@ -1,5 +1,5 @@
 import logging
-from flask import Flask
+from flask import Flask, current_app
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
@@ -36,9 +36,13 @@ app.register_blueprint(datasets)
 @app.errorhandler(Exception)
 def generic_exception_handler(e):
     if isinstance(e, APIException):
+        current_app.logger.error(f"API Exception: {e}")
         return beacon_error_response(e.message, e.status_code), e.status_code
     if isinstance(e, HTTPException):
+        current_app.logger.error(f"HTTP Exception: {e}")
         return beacon_error_response(e.name, e.code), e.code
+
+    current_app.logger.error(f"Server Error: {e}")
     return beacon_error_response("Server Error", 500), 500
 
 
