@@ -1,6 +1,6 @@
 import json
 import os
-
+from flask import Flask
 
 class Config:
     DEBUG = os.environ.get("BEACON_DEBUG", False)
@@ -14,8 +14,6 @@ class Config:
     SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get("BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
 
     MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
-
-    REQUEST_SCHEMA_URI="file:///beacon/bento_beacon/beacon-v2/framework/json/requests/"
 
 # -------------------
 # katsu

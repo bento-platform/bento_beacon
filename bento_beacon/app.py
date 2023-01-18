@@ -13,6 +13,9 @@ from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
 
 app = Flask(__name__)
+app.config.from_mapping(
+    ROOT_PATH=app.root_path
+)
 app.config.from_object(Config)
 
 # all logs are printed in dev mode regardless of level
