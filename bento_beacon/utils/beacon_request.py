@@ -48,7 +48,7 @@ def validate_request():
     
     # file path resolver for local json schema
     resolver = jsonschema.validators.RefResolver(
-        base_uri=current_app.config["REQUEST_SCHEMA_URI"],
+        base_uri=current_app.config["BEACON_REQUEST_SPEC_URI"],
         referrer=True,
     )
 

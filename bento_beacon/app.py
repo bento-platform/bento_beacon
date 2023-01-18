@@ -1,5 +1,7 @@
 import logging
+import os
 from flask import Flask, current_app
+from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
@@ -12,10 +14,18 @@ from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
 
+REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
+
 app = Flask(__name__)
+
+# find path for beacon-v2 spec 
+app_parent_dir = os.path.dirname(app.root_path)
+beacon_request_spec_uri = urlunsplit(
+    ("file", app_parent_dir, REQUEST_SPEC_RELATIVE_PATH, "", ""))
 app.config.from_mapping(
-    ROOT_PATH=app.root_path
+    BEACON_REQUEST_SPEC_URI=beacon_request_spec_uri
 )
+
 app.config.from_object(Config)
 
 # all logs are printed in dev mode regardless of level
