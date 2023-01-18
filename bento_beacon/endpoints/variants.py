@@ -10,8 +10,12 @@ variants = Blueprint("variants", __name__)
 @variants.route("/g_variants", methods=['GET', 'POST'])
 def get_variants():
     granularity = current_app.config["BEACON_GRANULARITY"]
-    beacon_args = request.get_json() or {}
     
+    if request.method == "POST":
+        beacon_args = request.get_json() or {}
+    else:
+        beacon_args = {}
+
     variants_query = beacon_args.get("query", {}).get("requestParameters", {}).get("g_variant") or {}
     filters = beacon_args.get("query", {}).get("filters") or []
     katsu_response_ids = []

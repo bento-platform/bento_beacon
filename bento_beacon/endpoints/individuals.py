@@ -10,7 +10,11 @@ individuals = Blueprint("individuals", __name__)
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
     granularity = current_app.config["BEACON_GRANULARITY"]
-    beacon_args = request.get_json() or {}
+
+    if request.method == "POST":
+        beacon_args = request.get_json() or {}
+    else:
+        beacon_args = {}
 
     variants_query = beacon_args.get("query", {}).get(
         "requestParameters", {}).get("g_variant") or {}
