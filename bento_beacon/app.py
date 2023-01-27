@@ -8,6 +8,7 @@ from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
+from .endpoints.analyses import analyses
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
@@ -44,6 +45,7 @@ app.register_blueprint(variants)
 app.register_blueprint(biosamples)
 app.register_blueprint(cohorts)
 app.register_blueprint(datasets)
+app.register_blueprint(analyses)
 
 
 @app.errorhandler(Exception)
