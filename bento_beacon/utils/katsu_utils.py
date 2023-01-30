@@ -196,12 +196,19 @@ def get_filtering_term_resources():
 # -------------------------------------------------------
 
 
-def katsu_total_individuals_count():
-    c = current_app.config
-    endpoint = c["KATSU_INDIVIDUALS_ENDPOINT"]
+def katsu_counts_from_endpoint(endpoint):
     count_response = katsu_get(endpoint, query="page_size=1")
-    count = count_response.get("count")
-    return count
+    return count_response.get("count")
+
+
+def katsu_total_individuals_count():
+    endpoint = current_app.config["KATSU_INDIVIDUALS_ENDPOINT"]
+    return katsu_counts_from_endpoint(endpoint)
+
+
+def katsu_total_biosamples_count():
+    endpoint = current_app.config["KATSU_BIOSAMPLES_ENDPOINT"]
+    return katsu_counts_from_endpoint(endpoint)
 
 
 def katsu_datasets(id=None):
