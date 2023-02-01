@@ -44,8 +44,8 @@ def beacon_to_gohan_generic_mapping(obj):
 #       coordinate mapping
 # -------------------------------------------------------
 
-# TODO: INS issues, see notes
 
+# TODO: INS issues, see notes
 def zero_to_one(start, end=None):
     return int(start)+1 if end is None else (int(start)+1, end)
 
@@ -196,7 +196,7 @@ def gohan_network_call(url, gohan_args):
                 message=f"error searching gohan variants service: {gohan_response.get('message')}")
 
         gohan_response = r.json()
-        
+
     except JSONDecodeError as e:
         current_app.logger.debug(f"gohan error: {e.msg}")
         raise APIException()

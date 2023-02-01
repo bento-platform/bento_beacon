@@ -16,6 +16,19 @@ def request_defaults():
     }
 
 
+# request read from flask request context
+def query_parameters_from_request():
+    if request.method == "POST":
+        beacon_args = request.get_json() or {}
+    else:
+        beacon_args = {}
+
+    variants_query = beacon_args.get("query", {}).get(
+        "requestParameters", {}).get("g_variant") or {}
+    filters = beacon_args.get("query", {}).get("filters") or []
+    return variants_query, filters
+
+
 def save_request_data():
     defaults = request_defaults()
 
@@ -45,7 +58,7 @@ def validate_request():
     else:
         # GET currently used for info endpoints only, so no request payload
         return
-    
+
     # file path resolver for local json schema
     resolver = jsonschema.validators.RefResolver(
         base_uri=current_app.config["BEACON_REQUEST_SPEC_URI"],

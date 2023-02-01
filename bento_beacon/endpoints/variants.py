@@ -1,4 +1,5 @@
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app
+from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response
 from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_totals_by_sample_id
 from ..utils.katsu_utils import katsu_filters_query
@@ -10,14 +11,9 @@ variants = Blueprint("variants", __name__)
 @variants.route("/g_variants", methods=['GET', 'POST'])
 def get_variants():
     granularity = current_app.config["BEACON_GRANULARITY"]
-    
-    if request.method == "POST":
-        beacon_args = request.get_json() or {}
-    else:
-        beacon_args = {}
 
-    variants_query = beacon_args.get("query", {}).get("requestParameters", {}).get("g_variant") or {}
-    filters = beacon_args.get("query", {}).get("filters") or []
+    variants_query, filters = query_parameters_from_request()
+
     katsu_response_ids = []
 
     if filters: 
@@ -28,7 +24,7 @@ def get_variants():
         total_count = gohan_total_variants_count()
         return beacon_response({"count": total_count})
 
-    # filters only, use sum total counts for ids 
+    # filters only, use sum total counts for ids
     if (filters and not variants_query):
         totals_by_id = gohan_totals_by_sample_id()
 
@@ -52,9 +48,9 @@ def get_variants():
 
 
 # -------------------------------------------------------
-#       "by id" endpoints 
+#       "by id" endpoints
 # -------------------------------------------------------
-# 
+#
 # These aren't useful for a counts-only beacon (you will never know any ids)
 
 @variants.route("/g_variants/<id>", methods=['GET', 'POST'])
