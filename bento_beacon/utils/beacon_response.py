@@ -1,4 +1,4 @@
-from flask import current_app, g, request
+from flask import current_app, g
 
 
 def katsu_not_found(r):

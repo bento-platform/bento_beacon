@@ -44,8 +44,8 @@ def beacon_to_gohan_generic_mapping(obj):
 #       coordinate mapping
 # -------------------------------------------------------
 
-# TODO: INS issues, see notes
 
+# TODO: INS issues, see notes
 def zero_to_one(start, end=None):
     return int(start)+1 if end is None else (int(start)+1, end)
 

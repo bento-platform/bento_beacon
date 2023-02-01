@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask
+
 
 class Config:
     DEBUG = os.environ.get("BEACON_DEBUG", False)
