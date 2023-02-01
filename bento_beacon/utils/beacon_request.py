@@ -58,7 +58,7 @@ def validate_request():
     else:
         # GET currently used for info endpoints only, so no request payload
         return
-    
+
     # file path resolver for local json schema
     resolver = jsonschema.validators.RefResolver(
         base_uri=current_app.config["BEACON_REQUEST_SPEC_URI"],

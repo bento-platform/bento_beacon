@@ -196,7 +196,7 @@ def gohan_network_call(url, gohan_args):
                 message=f"error searching gohan variants service: {gohan_response.get('message')}")
 
         gohan_response = r.json()
-        
+
     except JSONDecodeError as e:
         current_app.logger.debug(f"gohan error: {e.msg}")
         raise APIException()

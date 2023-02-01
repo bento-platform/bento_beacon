@@ -11,7 +11,7 @@ variants = Blueprint("variants", __name__)
 @variants.route("/g_variants", methods=['GET', 'POST'])
 def get_variants():
     granularity = current_app.config["BEACON_GRANULARITY"]
-    
+
     variants_query, filters = query_parameters_from_request()
 
     katsu_response_ids = []
@@ -24,7 +24,7 @@ def get_variants():
         total_count = gohan_total_variants_count()
         return beacon_response({"count": total_count})
 
-    # filters only, use sum total counts for ids 
+    # filters only, use sum total counts for ids
     if (filters and not variants_query):
         totals_by_id = gohan_totals_by_sample_id()
 
@@ -48,9 +48,9 @@ def get_variants():
 
 
 # -------------------------------------------------------
-#       "by id" endpoints 
+#       "by id" endpoints
 # -------------------------------------------------------
-# 
+#
 # These aren't useful for a counts-only beacon (you will never know any ids)
 
 @variants.route("/g_variants/<id>", methods=['GET', 'POST'])

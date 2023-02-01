@@ -210,7 +210,7 @@ def katsu_datasets(id=None):
     response = katsu_get(endpoint, id, query="format=phenopackets")
     if "detail" in response and response["detail"] == "Not found.":
         return {}
-  
+
     if "results" in response:
         return response.get("results")  # collection
 

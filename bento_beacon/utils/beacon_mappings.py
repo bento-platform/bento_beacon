@@ -19,6 +19,7 @@ katsu_beacon_biosample_mapped_fields = {
     "phenotypicFeatures": "phenotypicFeatures"
 }
 
+
 def katsu_biosample_to_beacon_biosample(obj):
     obj_keys = obj.keys()
     beacon_biosample = {}

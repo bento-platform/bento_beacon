@@ -28,8 +28,8 @@ def get_individuals():
         if not sample_ids:
             return beacon_response({"count": 0, "results": []})
         return beacon_response(katsu_filters_and_sample_ids_query(filters, sample_ids))
-        
-    # else filters query only 
+
+    # else filters query only
     results = katsu_filters_query(filters)
     print(results)
 
