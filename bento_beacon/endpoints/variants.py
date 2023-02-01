@@ -1,4 +1,5 @@
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app
+from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response
 from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_totals_by_sample_id
 from ..utils.katsu_utils import katsu_filters_query
@@ -11,13 +12,8 @@ variants = Blueprint("variants", __name__)
 def get_variants():
     granularity = current_app.config["BEACON_GRANULARITY"]
     
-    if request.method == "POST":
-        beacon_args = request.get_json() or {}
-    else:
-        beacon_args = {}
+    variants_query, filters = query_parameters_from_request()
 
-    variants_query = beacon_args.get("query", {}).get("requestParameters", {}).get("g_variant") or {}
-    filters = beacon_args.get("query", {}).get("filters") or []
     katsu_response_ids = []
 
     if filters: 

@@ -1,5 +1,5 @@
-from flask import Blueprint, current_app, request
-
+from flask import Blueprint, current_app
+from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
 from ..utils.gohan_utils import query_gohan
@@ -11,14 +11,7 @@ individuals = Blueprint("individuals", __name__)
 def get_individuals():
     granularity = current_app.config["BEACON_GRANULARITY"]
 
-    if request.method == "POST":
-        beacon_args = request.get_json() or {}
-    else:
-        beacon_args = {}
-
-    variants_query = beacon_args.get("query", {}).get(
-        "requestParameters", {}).get("g_variant") or {}
-    filters = beacon_args.get("query", {}).get("filters") or []
+    variants_query, filters = query_parameters_from_request()
 
     # if no query, return total count of individuals
     if not (variants_query or filters):
