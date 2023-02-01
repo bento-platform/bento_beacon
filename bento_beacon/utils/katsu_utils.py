@@ -119,18 +119,21 @@ katsu_operator_mapping = {
 # assume json query already validated
 # convert an individual beacon filter into bento format
 def bento_query_expression(q):
+    beacon_op = q["operator"]
+    beacon_value = q["value"]
+
     # break up phenopackets property name with "#resolve" appended at the front
     katsu_key = ["#resolve", *q["id"].split(".")]
 
     # extra handling for negation, "!" is always negated equality
-    if q["operator"] == "!":
-        return ["#not", ["#eq", katsu_key, q["value"]]]
+    if beacon_op == "!":
+        return ["#not", ["#eq", katsu_key, beacon_value]]
 
-    # separate handling for in/list 
-    if q["operator"] == "#in":
-        return ["#in", katsu_key, ["#list", *q["value"]]]
+    # separate handling for in/list
+    if beacon_op == "#in":
+        return ["#in", katsu_key, ["#list", *beacon_value]]
 
-    return [katsu_operator_mapping[q["operator"]], katsu_key, q["value"]]
+    return [katsu_operator_mapping[beacon_op], katsu_key, beacon_value]
 
 
 # convert an array of beacon filters into an array of bento query terms
