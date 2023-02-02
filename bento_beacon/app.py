@@ -12,7 +12,7 @@ from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
-from .utils.beacon_request import save_request_data, validate_request
+from .utils.beacon_request import authx_check, save_request_data, validate_request
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 
@@ -61,5 +61,6 @@ def generic_exception_handler(e):
 
 @app.before_request
 def before_request():
+    authx_check()
     save_request_data()
     validate_request()

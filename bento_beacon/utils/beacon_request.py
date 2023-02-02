@@ -1,7 +1,7 @@
 from flask import current_app, request, g
 import jsonschema
 from .exceptions import InvalidQuery
-
+import jwt
 
 def request_defaults():
     return {
@@ -15,6 +15,18 @@ def request_defaults():
         "requestedSchemas": []
     }
 
+def authx_check():
+    print("authx checkup")
+    if request.headers.get("Authorization"):
+        print("authz header discovered")
+        # Assume is Bearer token
+        authz_str_split=request.headers.get("Authorization").split(' ')
+        if len(authz_str_split) > 1:
+            token_str = authz_str_split[1]
+            print(token_str)
+
+            # TODO: parse out relevant claims/data
+            jwt.decode(token_str, "your-256-bit-secret", algorithms=["HS256"])
 
 # request read from flask request context
 def query_parameters_from_request():
