@@ -112,28 +112,50 @@ katsu_operator_mapping = {
     "<": "#lt",
     "<=": "#le",
     ">": "#gt",
-    ">=": "#ge"
+    ">=": "#ge",
+    "#in": "#in",  # used internally, not a beacon operator
+    "!": "#eq",  # negation added elsewhere
 }
 
 
-# assume json query already validated
+def wildcard_operator_and_value_mapping(value):
+    wild_start = value.startswith("%")
+    wild_end = value.endswith("%")
+
+    # return correct op & string with wildcards removed
+    if wild_start and wild_end and "%" not in value[1:-1]:
+        return "#ico", value[1:-1]
+    if wild_start and "%" not in value[1:]:
+        return "#iew", value[1:]
+    if wild_end and "%" not in value[:-1]:
+        return "#isw", value[:-1]
+    raise InvalidQuery(message="Invalid query: wildcard characters should appear at start or end only")
+
+
 # convert an individual beacon filter into bento format
 def bento_query_expression(q):
     beacon_op = q["operator"]
     beacon_value = q["value"]
 
+    katsu_op = katsu_operator_mapping[beacon_op]
+    katsu_value = beacon_value
+
     # break up phenopackets property name with "#resolve" appended at the front
     katsu_key = ["#resolve", *q["id"].split(".")]
 
-    # extra handling for negation, "!" is always negated equality
-    if beacon_op == "!":
-        return ["#not", ["#eq", katsu_key, beacon_value]]
+    # handle wildcards
+    if beacon_op in ["!", "="] and ("%" in beacon_value):
+        katsu_op, katsu_value = wildcard_operator_and_value_mapping(beacon_value)
 
-    # separate handling for in/list
+    # handle in/list
     if beacon_op == "#in":
-        return ["#in", katsu_key, ["#list", *beacon_value]]
+        katsu_value = ["#list", *beacon_value]
 
-    return [katsu_operator_mapping[beacon_op], katsu_key, beacon_value]
+    # handle negation (negated equality or negated wildcards)
+    if beacon_op == "!":
+        return ["#not", [katsu_op, katsu_key, katsu_value]]
+
+    return [katsu_op, katsu_key, katsu_value]
 
 
 # convert an array of beacon filters into an array of bento query terms
