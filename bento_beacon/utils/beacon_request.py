@@ -2,6 +2,26 @@ from flask import current_app, request, g
 import jsonschema
 from .exceptions import InvalidQuery
 import jwt
+import requests
+import json
+import os
+
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.backends import default_backend
+
+OIDC_ISSUER = os.getenv('OIDC_ISSUER', "https://localhost/auth/realms/realm")
+OIDC_WELLKNOWN_URL = OIDC_ISSUER + "/protocol/openid-connect/certs"
+
+r =requests.get(OIDC_WELLKNOWN_URL, verify=False)
+jwks=r.json()
+
+# TODO: use RS256 ---
+OIDC_ALG="HS256" 
+
+public_keys = jwks["keys"]
+rsa_key = [x for x in public_keys if x["alg"]=="RS256"][0]
+rsa_cert_str = "-----BEGIN CERTIFICATE-----" + rsa_key['x5c'][0] + "-----END CERTIFICATE-----"
+# ---
 
 def request_defaults():
     return {
@@ -25,8 +45,32 @@ def authx_check():
             token_str = authz_str_split[1]
             print(token_str)
 
+            # TODO: use public-key to validate inbound token
+            # jwt.decode(token_str, rsa_cert_str, algorithms=['RS256'])
+
+            # TEMP: validate token manually
+            header=jwt.get_unverified_header(token_str)
+            payload=jwt.decode(token_str, options={"verify_signature": False})
+
+            print(json.dumps(header, indent=4, separators=(',', ': ')))
+            print(json.dumps(payload, indent=4, separators=(',', ': ')))
+            
             # TODO: parse out relevant claims/data
-            jwt.decode(token_str, "your-256-bit-secret", algorithms=["HS256"])
+
+            # Validate 'alg' and 'iss'
+            alg=header["alg"]
+            iss=payload["iss"]
+            if alg != OIDC_ALG:
+                msg='invalid algorithm'
+                print(msg)
+                raise jwt.InvalidAlgorithmError(msg)
+            if iss != OIDC_ISSUER:
+                msg='invalid issuer'
+                print(msg)
+                raise jwt.InvalidIssuerError(msg)
+                
+
+
 
 # request read from flask request context
 def query_parameters_from_request():
