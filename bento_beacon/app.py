@@ -14,6 +14,8 @@ from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import authx_check, save_request_data, validate_request
 
+ENABLE_AUTHX = os.getenv('ENABLE_AUTHX', 'False').lower() in ('true', '1', 't')
+
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 
 app = Flask(__name__)
@@ -49,10 +51,10 @@ app.register_blueprint(datasets)
 @app.errorhandler(Exception)
 def generic_exception_handler(e):
     if isinstance(e, APIException):
-        current_app.logger.error(f"API Exception: {e}")
+        current_app.logger.error(f"API Exception: {e.message}")
         return beacon_error_response(e.message, e.status_code), e.status_code
     if isinstance(e, HTTPException):
-        current_app.logger.error(f"HTTP Exception: {e}")
+        current_app.logger.error(f"HTTP Exception: {e.message}")
         return beacon_error_response(e.name, e.code), e.code
 
     current_app.logger.error(f"Server Error: {e}")
@@ -61,6 +63,7 @@ def generic_exception_handler(e):
 
 @app.before_request
 def before_request():
-    authx_check()
+    if ENABLE_AUTHX:
+        authx_check()
     save_request_data()
     validate_request()
