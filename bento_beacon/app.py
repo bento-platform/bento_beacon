@@ -13,7 +13,8 @@ from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
-from .utils.authx_utils import AuthxMiddleware
+
+from bento_lib.auth.middleware import AuthxFlaskMiddleware, AuthXException
 
 ENABLE_AUTHX = os.getenv('ENABLE_AUTHX', 'False').lower() in ('true', '1', 't')
 
@@ -42,8 +43,12 @@ logging.basicConfig(
 
 # http middleware
 if ENABLE_AUTHX:
-    authxm = AuthxMiddleware()
-    
+    oidc_issuer = os.getenv('OIDC_ISSUER', "https://localhost/auth/realms/realm")
+    client_id = os.getenv('CLIENT_ID', "abc123") 
+
+    authxm = AuthxFlaskMiddleware(oidc_issuer, client_id, oidc_alg="RS256")
+
+
 @app.before_request
 def before_request():
     if ENABLE_AUTHX:
@@ -68,6 +73,10 @@ def generic_exception_handler(e):
     if isinstance(e, HTTPException):
         current_app.logger.error(f"HTTP Exception: {e.message}")
         return beacon_error_response(e.name, e.code), e.code
+    if isinstance(e, AuthXException):
+        current_app.logger.error(f"HTTP Exception: {e.message}")
+        return beacon_error_response(e.message, e.status_code), e.status_code
+     
 
     current_app.logger.error(f"Server Error: {e}")
     return beacon_error_response("Server Error", 500), 500
