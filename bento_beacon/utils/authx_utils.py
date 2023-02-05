@@ -4,7 +4,7 @@ import os
 import jwt
 
 from flask import request
-from jwt.algorithms import RSAAlgorith
+from jwt.algorithms import RSAAlgorithm
 m
 from .exceptions import AuthXException
 
