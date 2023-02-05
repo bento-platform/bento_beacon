@@ -12,7 +12,8 @@ from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
-from .utils.beacon_request import authx_check, save_request_data, validate_request
+from .utils.beacon_request import save_request_data, validate_request
+from .utils.authx_utils import AuthxMiddleware
 
 ENABLE_AUTHX = os.getenv('ENABLE_AUTHX', 'False').lower() in ('true', '1', 't')
 
@@ -39,7 +40,18 @@ logging.basicConfig(
     ]
 )
 
+# http middleware
+if ENABLE_AUTHX:
+    authxm = AuthxMiddleware()
+    
+@app.before_request
+def before_request():
+    if ENABLE_AUTHX:
+        authxm.verify_token()
+    save_request_data()
+    validate_request()
 
+# routes
 app.register_blueprint(info)
 app.register_blueprint(individuals)
 app.register_blueprint(variants)
@@ -59,11 +71,3 @@ def generic_exception_handler(e):
 
     current_app.logger.error(f"Server Error: {e}")
     return beacon_error_response("Server Error", 500), 500
-
-
-@app.before_request
-def before_request():
-    if ENABLE_AUTHX:
-        authx_check()
-    save_request_data()
-    validate_request()
