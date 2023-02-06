@@ -22,7 +22,7 @@ REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 
 app = Flask(__name__)
 
-# find path for beacon-v2 spec 
+# find path for beacon-v2 spec
 app_parent_dir = os.path.dirname(app.root_path)
 beacon_request_spec_uri = urlunsplit(
     ("file", app_parent_dir, REQUEST_SPEC_RELATIVE_PATH, "", ""))
@@ -43,8 +43,9 @@ logging.basicConfig(
 
 # http middleware
 if ENABLE_AUTHX:
-    oidc_issuer = os.getenv('OIDC_ISSUER', "https://localhost/auth/realms/realm")
-    client_id = os.getenv('CLIENT_ID', "abc123") 
+    oidc_issuer = os.getenv(
+        'OIDC_ISSUER', "https://localhost/auth/realms/realm")
+    client_id = os.getenv('CLIENT_ID', "abc123")
 
     authxm = AuthxFlaskMiddleware(oidc_issuer, client_id, oidc_alg="RS256")
 
@@ -55,6 +56,8 @@ def before_request():
         authxm.verify_token()
     save_request_data()
     validate_request()
+
+
 
 # routes
 app.register_blueprint(info)
@@ -74,10 +77,9 @@ def generic_exception_handler(e):
         current_app.logger.error(f"HTTP Exception: {e.message}")
         return beacon_error_response(e.name, e.code), e.code
     if isinstance(e, AuthXException):
-        if request.path != '/': # ignore logging root calls (healthcheck spam)
+        if request.path != '/':  # ignore logging root calls (healthcheck spam)
             current_app.logger.error(f"AuthX Exception: {e.message}")
         return beacon_error_response(e.message, e.status_code), e.status_code
-     
 
     current_app.logger.error(f"Server Error: {e}")
     return beacon_error_response("Server Error", 500), 500

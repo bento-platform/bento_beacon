@@ -16,8 +16,9 @@ def get_variants():
 
     katsu_response_ids = []
 
-    if filters: 
-        katsu_response_ids = katsu_filters_query(filters, get_biosample_ids=True).get("results") or []
+    if filters:
+        katsu_response_ids = katsu_filters_query(
+            filters, get_biosample_ids=True).get("results") or []
 
     # if no query, return total count of variants
     if not (variants_query or filters):
@@ -31,19 +32,22 @@ def get_variants():
         # temp fix for casing issues in gohan
         katsu_response_ids_lower = [id.lower() for id in katsu_response_ids]
 
-        intersection = list(set(totals_by_id.keys()) & set(katsu_response_ids_lower))
+        intersection = list(set(totals_by_id.keys()) &
+                            set(katsu_response_ids_lower))
         total_variants_count = sum(totals_by_id.get(id) for id in intersection)
         return beacon_response({"count": total_variants_count})
 
     # only variants query, use gohan count endpoint
     if (variants_query and not filters):
-        gohan_response = query_gohan(variants_query, granularity, ids_only=False)
+        gohan_response = query_gohan(
+            variants_query, granularity, ids_only=False)
         gohan_response_count = gohan_response.get("count") or 0
         return beacon_response({"count": gohan_response_count})
 
     # else variants query and filters
     gohan_response = query_gohan(variants_query, "record", ids_only=False)
-    filtered_response = list(filter(lambda c: c.get("sample_id") in katsu_response_ids, gohan_response))
+    filtered_response = list(filter(lambda c: c.get(
+        "sample_id") in katsu_response_ids, gohan_response))
     return beacon_response({"count": len(filtered_response)})
 
 

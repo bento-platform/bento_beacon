@@ -55,7 +55,7 @@ def save_request_data():
     g.request_data = request_data
 
 
-def validate_request(): 
+def validate_request():
     if request.method == "POST":
         request_args = request.get_json() or {}
     else:

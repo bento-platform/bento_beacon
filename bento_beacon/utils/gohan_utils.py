@@ -78,7 +78,7 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     bracket_query = numStart == 2 and numEnd == 2
     geneId_query = geneId is not None
 
-    if not(sequence_query or range_query or bracket_query or geneId_query):
+    if not (sequence_query or range_query or bracket_query or geneId_query):
         raise InvalidQuery()
 
     if bracket_query:
