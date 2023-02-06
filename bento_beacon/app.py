@@ -1,6 +1,6 @@
 import logging
 import os
-from flask import Flask, current_app
+from flask import Flask, current_app, request
 from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
@@ -74,7 +74,8 @@ def generic_exception_handler(e):
         current_app.logger.error(f"HTTP Exception: {e.message}")
         return beacon_error_response(e.name, e.code), e.code
     if isinstance(e, AuthXException):
-        current_app.logger.error(f"HTTP Exception: {e.message}")
+        if request.path != '/': # ignore logging root calls (healthcheck spam)
+            current_app.logger.error(f"AuthX Exception: {e.message}")
         return beacon_error_response(e.message, e.status_code), e.status_code
      
 
