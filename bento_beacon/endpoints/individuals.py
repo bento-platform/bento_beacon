@@ -1,16 +1,23 @@
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, g
 from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
 from ..utils.gohan_utils import query_gohan
 
+from bento_lib.auth.wrappers import authn_token_required_flask_wrapper
+
 individuals = Blueprint("individuals", __name__)
 
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
+@authn_token_required_flask_wrapper
 def get_individuals():
     granularity = current_app.config["BEACON_GRANULARITY"]
 
+    # TODO: data access filtering by roles
+    if current_app.authx['enabled'] :
+        print(g.authn['roles'])
+       
     variants_query, filters = query_parameters_from_request()
 
     # if no query, return total count of individuals

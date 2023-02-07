@@ -1,6 +1,6 @@
 import logging
 import os
-from flask import Flask, current_app, request
+from flask import Flask, current_app, request, g
 from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
@@ -48,12 +48,13 @@ if ENABLE_AUTHX:
     client_id = os.getenv('CLIENT_ID', "abc123")
 
     authxm = AuthxFlaskMiddleware(oidc_issuer, client_id, oidc_alg="RS256")
-
+    with app.app_context():
+        current_app.authx = {}
+        current_app.authx['enabled'] = True
+        current_app.authx['middleware'] = authxm
 
 @app.before_request
 def before_request():
-    if ENABLE_AUTHX:
-        authxm.verify_token()
     save_request_data()
     validate_request()
 
