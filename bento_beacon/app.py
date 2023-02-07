@@ -53,11 +53,11 @@ if ENABLE_AUTHX:
         current_app.authx['enabled'] = True
         current_app.authx['middleware'] = authxm
 
+
 @app.before_request
 def before_request():
     save_request_data()
     validate_request()
-
 
 
 # routes

@@ -15,9 +15,9 @@ def get_individuals():
     granularity = current_app.config["BEACON_GRANULARITY"]
 
     # TODO: data access filtering by roles
-    if current_app.authx['enabled'] :
+    if current_app.authx['enabled']:
         print(g.authn['roles'])
-       
+
     variants_query, filters = query_parameters_from_request()
 
     # if no query, return total count of individuals
