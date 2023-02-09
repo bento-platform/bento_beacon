@@ -46,8 +46,9 @@ if ENABLE_AUTHX:
     oidc_issuer = os.getenv(
         'OIDC_ISSUER', "https://localhost/auth/realms/realm")
     client_id = os.getenv('CLIENT_ID', "abc123")
+    wellknown_path = oidc_issuer + "/protocol/openid-connect/certs"
 
-    authxm = AuthxFlaskMiddleware(oidc_issuer, client_id, oidc_alg="RS256")
+    authxm = AuthxFlaskMiddleware(oidc_issuer, wellknown_path, client_id, oidc_alg="RS256")
     with app.app_context():
         current_app.authx = {}
         current_app.authx['enabled'] = True
