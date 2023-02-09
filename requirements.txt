@@ -35,3 +35,4 @@ Werkzeug==2.2.2
 zipp==3.9.0
 pyjwt
 cryptography
+-e /bento_lib
