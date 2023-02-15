@@ -5,23 +5,23 @@ from .katsu_utils import katsu_network_call
 from .exceptions import APIException
 
 # path elements removed by bento gateway
-BEACON_PATH_FRAGMENT = "api/beacon"
+# BEACON_PATH_FRAGMENT = "api/beacon"
 
 DRS_TIMEOUT_SECONDS = 10
 
-
-def get_handover_url():
-    base_url_components = urlsplit(request.url)
-    handover_scheme = "https"
-    handover_path = BEACON_PATH_FRAGMENT + url_for("handover.get_handover")
-    handover_base_url = urlunsplit((
-        handover_scheme,
-        base_url_components.netloc,
-        handover_path,
-        base_url_components.query,
-        base_url_components.fragment
-    ))
-    return handover_base_url
+# may or may not be needed
+# def get_handover_url():
+#     base_url_components = urlsplit(request.url)
+#     handover_scheme = "https"
+#     handover_path = BEACON_PATH_FRAGMENT + url_for("handover.get_handover")
+#     handover_base_url = urlunsplit((
+#         handover_scheme,
+#         base_url_components.netloc,
+#         handover_path,
+#         base_url_components.query,
+#         base_url_components.fragment
+#     ))
+#     return handover_base_url
 
 
 def drs_internal_url_components():
@@ -32,16 +32,16 @@ def drs_external_url_components():
     return urlsplit(current_app.config["DRS_EXTERNAL_URL"])
 
 # TODO: either remove or deduplicate with below
-def drs_internal_file_link_for_id(id):
-    internal_url_components = drs_internal_url_components()
-    path = internal_url_components.path + "/objects/" + id + "/download"
-    return urlunsplit((
-        internal_url_components.scheme,
-        internal_url_components.netloc,
-        path,
-        internal_url_components.query,
-        internal_url_components.fragment
-    ))
+# def drs_internal_file_link_for_id(id):
+#     internal_url_components = drs_internal_url_components()
+#     path = internal_url_components.path + "/objects/" + id + "/download"
+#     return urlunsplit((
+#         internal_url_components.scheme,
+#         internal_url_components.netloc,
+#         path,
+#         internal_url_components.query,
+#         internal_url_components.fragment
+#     ))
 
 
 def drs_external_file_link_for_id(id):
@@ -126,7 +126,7 @@ def drs_link_from_vcf_filename(filename):
     ordered_by_most_recent = sorted(
         obj, key=lambda entry: entry['created_time'], reverse=True)
     most_recent_id = ordered_by_most_recent[1].get("id")
-    internal_url = drs_internal_file_link_for_id(most_recent_id)
+    # internal_url = drs_internal_file_link_for_id(most_recent_id)
     external_url = drs_external_file_link_for_id(most_recent_id)
     return external_url
 
