@@ -31,7 +31,7 @@ def drs_internal_url_components():
 def drs_external_url_components():
     return urlsplit(current_app.config["DRS_EXTERNAL_URL"])
 
-
+# TODO: either remove or deduplicate with below
 def drs_internal_file_link_for_id(id):
     internal_url_components = drs_internal_url_components()
     path = internal_url_components.path + "/objects/" + id + "/download"
@@ -65,7 +65,6 @@ def drs_network_call(path, query):
         query,
         base_url_components.fragment
     ))
-    print(url)
 
     try:
         r = requests.get(
@@ -91,7 +90,7 @@ def drs_object_from_filename(filename):
     return response
 
 
-def vcf_filenames_from_ids(ids):
+def filenames_from_ids(ids):
     if not ids:
         return []
 
@@ -113,8 +112,6 @@ def vcf_filenames_from_ids(ids):
             all_files = all_files + value.get("matches")
 
     # TODO: filter by file type? (vcf, cram, etc) or some other property
-    print(all_files)
-
     return all_files
 
 
@@ -129,13 +126,8 @@ def drs_link_from_vcf_filename(filename):
     ordered_by_most_recent = sorted(
         obj, key=lambda entry: entry['created_time'], reverse=True)
     most_recent_id = ordered_by_most_recent[1].get("id")
-
     internal_url = drs_internal_file_link_for_id(most_recent_id)
     external_url = drs_external_file_link_for_id(most_recent_id)
-
-    print(f"internal url: {internal_url}")
-    print(f"external url: {external_url}")
-
     return external_url
 
 
@@ -152,7 +144,7 @@ def handover_for_ids(ids):
     # ideally we would preserve the mapping between ids and links,
     # but this requires changes in katsu to do well
     handovers = []
-    filenames = vcf_filenames_from_ids(ids)
+    filenames = filenames_from_ids(ids)
     for f in filenames:
         link = drs_link_from_vcf_filename(f)
         if link:
