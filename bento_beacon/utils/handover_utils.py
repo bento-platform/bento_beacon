@@ -1,18 +1,19 @@
 from flask import current_app, request, url_for
 import requests
-from json import JSONDecodeError
 from urllib.parse import urlsplit, urlunsplit
 from .katsu_utils import katsu_network_call
 from .exceptions import APIException
 
-TRUNCATED_BY_GATEWAY = "api/beacon"
+# path elements removed by bento gateway
+BEACON_PATH_FRAGMENT = "api/beacon"
+
 DRS_TIMEOUT_SECONDS = 10
 
 
 def get_handover_url():
     base_url_components = urlsplit(request.url)
     handover_scheme = "https"
-    handover_path = TRUNCATED_BY_GATEWAY + url_for("handover.get_handover")
+    handover_path = BEACON_PATH_FRAGMENT + url_for("handover.get_handover")
     handover_base_url = urlunsplit((
         handover_scheme,
         base_url_components.netloc,
@@ -23,8 +24,40 @@ def get_handover_url():
     return handover_base_url
 
 
+def drs_internal_url_components():
+    return urlsplit(current_app.config["DRS_INTERNAL_URL"])
+
+
+def drs_external_url_components():
+    return urlsplit(current_app.config["DRS_EXTERNAL_URL"])
+
+
+def drs_internal_file_link_for_id(id):
+    internal_url_components = drs_internal_url_components()
+    path = internal_url_components.path + "/objects/" + id
+    return urlunsplit((
+        internal_url_components.scheme,
+        internal_url_components.netloc,
+        path,
+        internal_url_components.query,
+        internal_url_components.fragment
+    ))
+
+
+def drs_external_file_link_for_id(id):
+    external_url_components = drs_external_url_components()
+    path = external_url_components.path + "/objects/" + id
+    return urlunsplit((
+        "https",
+        external_url_components.netloc,
+        path,
+        external_url_components.query,
+        external_url_components.fragment
+    ))
+
+
 def drs_network_call(path, query):
-    base_url_components = urlsplit(current_app.config["DRS_BASE_URL"])
+    base_url_components = drs_internal_url_components()
     url = urlunsplit((
         base_url_components.scheme,
         base_url_components.netloc,
@@ -37,33 +70,39 @@ def drs_network_call(path, query):
     try:
         r = requests.get(
             url,
-            verify=not c["DEBUG"],
+            verify=not current_app.config["DEBUG"],
             timeout=DRS_TIMEOUT_SECONDS,
         )
         drs_response = r.json()
 
-    except (JSONDecodeError, requests.RequestException):
-        current_app.logger.debug("drs error")
-        raise APIException(message="error calling DRS")
+    except requests.exceptions.RequestException as e:
+        current_app.logger.debug(f"drs error: {e.msg}")
+        raise APIException(message="error generating handover links")
 
     return drs_response
 
 
 def drs_object_from_filename(filename):
     response = drs_network_call("/search", f"name={filename}")
+
+    # if nothing return None
+
     print(response)
-    pass
+    return response
 
 
 def vcf_filenames_from_ids(ids):
     if not ids:
         return []
+
+    # payload for bento search that returns all experiment filenames in results
     payload = {
         "data_type": "phenopacket",
         "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]],
         "output": "values_list",
         "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"]
     }
+
     response = katsu_network_call(payload)
     results = response.get("results")
 
@@ -73,13 +112,43 @@ def vcf_filenames_from_ids(ids):
         if value.get("data_type") == "phenopacket":
             all_files = all_files + value.get("matches")
 
-    # TODO: filter by file type? (vcf, cram, etc) or some other property 
+    # TODO: filter by file type? (vcf, cram, etc) or some other property
     print(all_files)
-    
+
     return all_files
 
 
 def drs_link_from_vcf_filename(filename):
-    # generate https link 
-    pass
+    obj = drs_object_from_filename(filename)
+    if not obj:
+        return None
 
+    # even with checksum de-duplication, there may be multiple files with the same filename
+    # (... perhaps you fixed the sample id in the vcf... )
+    # for now, just return the most recent
+    ordered_by_most_recent = sorted(
+        obj, key=lambda entry: entry['created_time'], reverse=True)
+    most_recent_id = ordered_by_most_recent[1].get("id")
+
+    internal_url = drs_internal_file_link_for_id(most_recent_id)
+    external_url = drs_external_file_link_for_id(most_recent_id)
+
+    print(f"internal url: {internal_url}")
+    print(f"external url: {external_url}")
+
+    return external_url
+
+
+def handover_links_for_ids(ids):
+    # return dict so we can preserve the connection between filename and download link
+    # ideally we could preserve link between ids and filenames,
+    # but this needs changes to katsu to do well
+    handovers = {}
+    filenames = vcf_filenames_from_ids(ids)
+
+    for f in filenames:
+        link = drs_link_from_vcf_filename(f)
+        if link:
+            handovers[f] = link
+
+    return handovers
