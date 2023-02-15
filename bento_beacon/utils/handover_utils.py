@@ -124,7 +124,7 @@ def drs_link_from_vcf_filename(filename):
     # for now, just return the most recent
     ordered_by_most_recent = sorted(
         obj, key=lambda entry: entry['created_time'], reverse=True)
-    most_recent_id = ordered_by_most_recent[1].get("id")
+    most_recent_id = ordered_by_most_recent[0].get("id")
     # internal_url = drs_internal_file_link_for_id(most_recent_id)
     external_url = drs_external_file_link_for_id(most_recent_id)
     return external_url
