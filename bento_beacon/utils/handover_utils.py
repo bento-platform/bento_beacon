@@ -74,6 +74,10 @@ def drs_network_call(path, query):
         )
         drs_response = r.json()
 
+    # TODO, ideally after auth merge:
+    # on handover errors, keep returning rest of results instead of throwing api exception
+    # add optional note in g and add to beacon response
+    # return {}
     except requests.exceptions.RequestException as e:
         current_app.logger.debug(f"drs error: {e.msg}")
         raise APIException(message="error generating handover links")
@@ -82,12 +86,7 @@ def drs_network_call(path, query):
 
 
 def drs_object_from_filename(filename):
-    response = drs_network_call("/search", f"name={filename}")
-
-    # if nothing return None
-
-    print(response)
-    return response
+    return drs_network_call("/search", f"name={filename}")
 
 
 def filenames_from_ids(ids):
