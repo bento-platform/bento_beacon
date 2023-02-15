@@ -142,21 +142,19 @@ def drs_link_from_vcf_filename(filename):
 def vcf_handover_entry(url, note=None):
     entry = {"handoverType": {"id": "NCIT:C172216", "label": "VCF file"},
              "url": url}
+    # optional field for extra information about this file
     if note:
         entry["note"] = note
     return entry
 
 
-def handover_links_for_ids(ids):
-    # return dict so we can preserve the connection between filename and download link
-    # ideally we could preserve link between *ids* and links,
-    # but this needs changes to katsu to do well
-    handovers = {}
+def handover_for_ids(ids):
+    # ideally we would preserve the mapping between ids and links,
+    # but this requires changes in katsu to do well
+    handovers = []
     filenames = vcf_filenames_from_ids(ids)
-
     for f in filenames:
         link = drs_link_from_vcf_filename(f)
         if link:
-            handovers[f] = link
-
+            handovers.append(vcf_handover_entry(link))
     return handovers
