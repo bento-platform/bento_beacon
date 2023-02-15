@@ -34,7 +34,7 @@ def drs_external_url_components():
 
 def drs_internal_file_link_for_id(id):
     internal_url_components = drs_internal_url_components()
-    path = internal_url_components.path + "/objects/" + id
+    path = internal_url_components.path + "/objects/" + id + "/download"
     return urlunsplit((
         internal_url_components.scheme,
         internal_url_components.netloc,
@@ -46,7 +46,7 @@ def drs_internal_file_link_for_id(id):
 
 def drs_external_file_link_for_id(id):
     external_url_components = drs_external_url_components()
-    path = external_url_components.path + "/objects/" + id
+    path = external_url_components.path + "/objects/" + id + "/download"
     return urlunsplit((
         "https",
         external_url_components.netloc,
@@ -139,9 +139,17 @@ def drs_link_from_vcf_filename(filename):
     return external_url
 
 
+def vcf_handover_entry(url, note=None):
+    entry = {"handoverType": {"id": "NCIT:C172216", "label": "VCF file"},
+             "url": url}
+    if note:
+        entry["note"] = note
+    return entry
+
+
 def handover_links_for_ids(ids):
     # return dict so we can preserve the connection between filename and download link
-    # ideally we could preserve link between ids and filenames,
+    # ideally we could preserve link between *ids* and links,
     # but this needs changes to katsu to do well
     handovers = {}
     filenames = vcf_filenames_from_ids(ids)
