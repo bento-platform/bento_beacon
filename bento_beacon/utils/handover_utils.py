@@ -111,7 +111,9 @@ def filenames_from_ids(ids):
             all_files = all_files + value.get("matches")
 
     # TODO: filter by file type? (vcf, cram, etc) or some other property
-    return all_files
+
+    # remove any duplicates (possible with multisample vcfs)
+    return list(set(all_files))
 
 
 def drs_link_from_vcf_filename(filename):
