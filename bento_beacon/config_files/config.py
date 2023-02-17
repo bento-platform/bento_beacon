@@ -23,6 +23,7 @@ class Config:
         "KATSU_BASE_URL", "http://bentov2-katsu:8000")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
+    KATSU_BATCH_INDIVIDUALS_ENDPOINT = "/api/batch/individuals"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"
@@ -43,6 +44,13 @@ class Config:
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
+
+# -------------------
+# drs
+
+    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL", "http://bentov2-drs:5000")
+    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL", "https://portal.bentov2.local/api/drs")
+
 
 # -------------------
 # handle injected config files
