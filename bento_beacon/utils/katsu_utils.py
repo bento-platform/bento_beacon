@@ -40,9 +40,12 @@ def katsu_filters_and_sample_ids_query(beacon_filters, sample_ids):
     return katsu_filters_query(filters_and_in)
 
 
-def katsu_network_call(payload):
+def katsu_network_call(payload, endpoint=None):
     c = current_app.config
-    url = c["KATSU_BASE_URL"] + c["KATSU_SEARCH_ENDPOINT"]
+
+    # awkward default since current_app not available in function params
+    endpoint = c["KATSU_SEARCH_ENDPOINT"] if endpoint is None else endpoint
+    url = c["KATSU_BASE_URL"] + endpoint
     current_app.logger.debug(f'calling katsu url {url}')
 
     try:
@@ -215,3 +218,15 @@ def katsu_datasets(id=None):
         return response.get("results")  # collection
 
     return response  # single dataset
+
+
+def phenopackets_for_ids(ids):
+    # call /batch/individuals
+    payload = {
+        "id": [*ids],
+        "format": "phenopackets"
+    }
+    endpoint = current_app.config["KATSU_BATCH_INDIVIDUALS_ENDPOINT"]
+    result = katsu_network_call(payload, endpoint)
+
+    return result
