@@ -69,6 +69,9 @@ def katsu_network_call(payload, endpoint=None):
         # katsu returns html for unhandled exceptions, not json
         current_app.logger.debug("katsu error")
         raise APIException()
+    except requests.exceptions.RequestException as e:
+        current_app.logger.debug(f"katsu error: {e}")
+        raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
 
