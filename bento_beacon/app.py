@@ -76,7 +76,7 @@ def generic_exception_handler(e):
         current_app.logger.error(f"API Exception: {e.message}")
         return beacon_error_response(e.message, e.status_code), e.status_code
     if isinstance(e, HTTPException):
-        current_app.logger.error(f"HTTP Exception: {e.message}")
+        current_app.logger.error(f"HTTP Exception: {e}")
         return beacon_error_response(e.name, e.code), e.code
     if isinstance(e, AuthXException):
         if request.path != '/':  # ignore logging root calls (healthcheck spam)
