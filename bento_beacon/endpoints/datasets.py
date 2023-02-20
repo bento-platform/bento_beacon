@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 from ..utils.exceptions import NotImplemented
 from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_datasets
