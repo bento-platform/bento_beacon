@@ -3,20 +3,28 @@ from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
 from ..utils.gohan_utils import query_gohan
+from werkzeug.exceptions import HTTPException
 
-from bento_lib.auth.wrappers import authn_token_required_flask_wrapper
+from bento_lib.auth.wrappers import authn_token_required_flask_wrapper, authn_token_optional_flask_wrapper
 
 individuals = Blueprint("individuals", __name__)
 
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
-@authn_token_required_flask_wrapper
+@authn_token_optional_flask_wrapper
 def get_individuals():
-    granularity = current_app.config["BEACON_GRANULARITY"]
+    granularity = current_app.config["DEFAULT_GRANULARITY"]["individuals"]
+
+    if current_app.authx['enabled'] and g.authn["has_valid_token"]:
+        print("xxxxxxxxxxxxxxxxx full response xxxxxxxxxxxxxxxxx")
+
+
+
 
     # TODO: data access filtering by roles
-    if current_app.authx['enabled']:
-        print(g.authn['roles'])
+    # if current_app.authx['enabled']:
+    #     print(f"has_valid_token: {g.authn['has_valid_token']}")
+    #     print(g.authn['roles'])
 
     variants_query, filters = query_parameters_from_request()
 
