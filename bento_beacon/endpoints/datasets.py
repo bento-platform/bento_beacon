@@ -9,6 +9,8 @@ datasets = Blueprint("datasets", __name__)
 
 @datasets.route("/datasets", methods=['GET', 'POST'])
 def get_datasets():
+    granularity = current_app.config["DEFAULT_GRANULARITY"]["datasets"]
+
     k_datasets = katsu_datasets()
     datasets_beacon_format = list(
         map(katsu_to_beacon_dataset_mapping, k_datasets))

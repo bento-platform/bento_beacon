@@ -10,7 +10,7 @@ variants = Blueprint("variants", __name__)
 
 @variants.route("/g_variants", methods=['GET', 'POST'])
 def get_variants():
-    granularity = current_app.config["BEACON_GRANULARITY"]
+    granularity = current_app.config["DEFAULT_GRANULARITY"]["variants"]
 
     variants_query, filters = query_parameters_from_request()
 

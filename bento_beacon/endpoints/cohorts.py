@@ -7,6 +7,8 @@ cohorts = Blueprint("cohorts", __name__)
 
 @cohorts.route("/cohorts", methods=['GET', 'POST'])
 def get_cohorts():
+    granularity = current_app.config["DEFAULT_GRANULARITY"]["cohorts"]
+
     # single cohort
     cohort = current_app.config["BEACON_COHORT"]
     results = {"collections": [cohort]}

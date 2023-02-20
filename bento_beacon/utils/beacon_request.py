@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 def request_defaults():
     return {
         "apiVersion": current_app.config["BEACON_API_VERSION"],
-        "granularity": current_app.config["BEACON_GRANULARITY"],
+        "granularity": current_app.config["DEFAULT_GRANULARITY"][request.blueprint],
         "includeResultsetResponses": "ALL",
         "pagination": {
             "skip": 0,
@@ -53,6 +53,7 @@ def save_request_data():
     }
 
     g.request_data = request_data
+
 
 
 def validate_request():

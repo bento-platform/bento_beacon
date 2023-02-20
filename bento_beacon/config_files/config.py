@@ -5,9 +5,6 @@ import os
 class Config:
     DEBUG = os.environ.get("BEACON_DEBUG", False)
 
-    # can be "boolean", "count", or "record"
-    BEACON_GRANULARITY = os.environ.get("BEACON_GRANULARITY", "count")
-
     # version of ga4gh beacon spec, not version of this implementation
     BEACON_API_VERSION = "v2.0.0"
 
@@ -15,6 +12,16 @@ class Config:
         "BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
 
     MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
+
+    # max granularity for unauthorized users
+    DEFAULT_GRANULARITY = {
+        "individuals": "count",
+        "variants": "count",
+        "biosamples": "count",
+        "cohorts": "record",
+        "datasets": "record",
+        "info": "record"
+    }
 
 # -------------------
 # katsu
