@@ -1,6 +1,6 @@
 import logging
 import os
-from flask import Flask, current_app, request, g
+from flask import Flask, current_app, request
 from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
@@ -13,6 +13,7 @@ from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
+from .utils.beacon_response import init_response_data
 
 from bento_lib.auth.middleware import AuthxFlaskMiddleware, AuthXException
 
@@ -57,8 +58,9 @@ if ENABLE_AUTHX:
 
 @app.before_request
 def before_request():
-    save_request_data()
     validate_request()
+    save_request_data()
+    init_response_data()
 
 
 # routes

@@ -1,6 +1,11 @@
 from flask import current_app, g
 
 
+def init_response_data():
+    # init so always available at endpoints
+    g.response_data = {}
+
+
 def katsu_not_found(r):
     if "count" in r:
         return r["count"] == 0
@@ -10,7 +15,7 @@ def katsu_not_found(r):
 
 
 def beacon_response(results, info_message=None, collection_response=False):
-    granularity = current_app.config["BEACON_GRANULARITY"]
+    granularity = g.response_data["returnedGranularity"]
     r = {
         "meta": build_response_meta(),
         "responseSummary": build_response_summary(results, granularity, collection_response)
@@ -44,7 +49,7 @@ def received_request():
 
 def build_response_meta():
     returned_schemas = []
-    returned_granularity = current_app.config["BEACON_GRANULARITY"]
+    returned_granularity = g.response_data["returnedGranularity"]
     service_info = current_app.config["BEACON_SERVICE_INFO"]
     received_request_summary = received_request()
     return {
