@@ -15,10 +15,10 @@ def katsu_not_found(r):
 
 
 def beacon_response(results, info_message=None, collection_response=False):
-    granularity = g.response_data["returnedGranularity"]
+    g.returned_granularity = "record" if collection_response else "count"
     r = {
         "meta": build_response_meta(),
-        "responseSummary": build_response_summary(results, granularity, collection_response)
+        "responseSummary": build_response_summary(results, g.returned_granularity, collection_response)
     }
 
     if collection_response:
@@ -49,7 +49,7 @@ def received_request():
 
 def build_response_meta():
     returned_schemas = []
-    returned_granularity = g.response_data["returnedGranularity"]
+    returned_granularity = g.returned_granularity
     service_info = current_app.config["BEACON_SERVICE_INFO"]
     received_request_summary = received_request()
     return {
