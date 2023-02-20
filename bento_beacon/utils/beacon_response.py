@@ -49,7 +49,7 @@ def received_request():
 
 def build_response_meta():
     returned_schemas = []
-    returned_granularity = g.returned_granularity
+    returned_granularity = g.get("returned_granularity", None)
     service_info = current_app.config["BEACON_SERVICE_INFO"]
     received_request_summary = received_request()
     return {
