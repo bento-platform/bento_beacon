@@ -1,56 +1,79 @@
 from flask import Blueprint, current_app, g
 from ..utils.beacon_request import query_parameters_from_request
-from ..utils.beacon_response import beacon_response
-from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
+from ..utils.beacon_response import beacon_response, add_info_to_response, beacon_response_with_handover
+from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count, phenopackets_for_ids
 from ..utils.gohan_utils import query_gohan
-from werkzeug.exceptions import HTTPException
+from ..utils.handover_utils import handover_for_ids
 
 from bento_lib.auth.wrappers import authn_token_required_flask_wrapper, authn_token_optional_flask_wrapper
 
 individuals = Blueprint("individuals", __name__)
 
+# valid token: full record response
+# no token: count response
+# invalid token: http 401
 
+
+# TODO: pagination
+# total count of responses available at katsu_results.count
+# call and return phenopacket and handover results in batches
+def individuals_full_response(ids):
+
+    # temp
+    if len(ids) > 100:
+        return {"message": "too many ids for full response"}
+
+    phenopackets = phenopackets_for_ids(ids)
+    handover = handover_for_ids(ids)
+    return beacon_response_with_handover(phenopackets, handover)
+
+
+# ugly parallel logic for both count and full-record responses
+# optimised for response time rather than code beauty
 @individuals.route("/individuals", methods=['GET', 'POST'])
 @authn_token_optional_flask_wrapper
 def get_individuals():
-    granularity = current_app.config["DEFAULT_GRANULARITY"]["individuals"]
-
-    if current_app.authx['enabled'] and g.authn["has_valid_token"]:
-        print("xxxxxxxxxxxxxxxxx full response xxxxxxxxxxxxxxxxx")
-
-
-
+    auth_enabled = current_app.authx['enabled']
+    has_valid_token = "authn" in g and g.authn.get("has_valid_token", False)
+    private = auth_enabled and has_valid_token
 
     # TODO: data access filtering by roles
     # if current_app.authx['enabled']:
-    #     print(f"has_valid_token: {g.authn['has_valid_token']}")
     #     print(g.authn['roles'])
 
     variants_query, filters = query_parameters_from_request()
 
     # if no query, return total count of individuals
     if not (variants_query or filters):
+        add_info_to_response("no query found, returning total count")
         total_count = katsu_total_individuals_count()
         return beacon_response({"count": total_count})
 
-    results = {}
-    sample_ids = []
-
     if variants_query:
-        sample_ids = query_gohan(variants_query, granularity, ids_only=True)
-        print(f"gohan sample ids: {sample_ids}")
+        sample_ids = query_gohan(variants_query, "count", ids_only=True)
+
         # skip katsu call if no results
         if not sample_ids:
             return beacon_response({"count": 0, "results": []})
-        return beacon_response(katsu_filters_and_sample_ids_query(filters, sample_ids))
+        
+        katsu_results = katsu_filters_and_sample_ids_query(filters, sample_ids)
+
+        if private:
+            return individuals_full_response(katsu_results["results"])
+        else:
+            return beacon_response(katsu_results)
 
     # else filters query only
-    results = katsu_filters_query(filters)
-    print(results)
+    katsu_results = katsu_filters_query(filters)
+    results_ids = katsu_results["results"]
 
-    return beacon_response(results)
+    if private and results_ids:
+        return individuals_full_response(katsu_results["results"])
+    else:
+        return beacon_response(katsu_results)
 
 
+@authn_token_required_flask_wrapper
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
 def individual_by_id(id):
     # get one individual by id
