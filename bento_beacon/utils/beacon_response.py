@@ -6,6 +6,10 @@ def init_response_data():
     g.response_data = {}
 
 
+def add_info_to_response(info):
+    g.response_info = info
+
+
 def katsu_not_found(r):
     if "count" in r:
         return r["count"] == 0
@@ -14,7 +18,7 @@ def katsu_not_found(r):
     return "id" not in r
 
 
-def beacon_response(results, info_message=None, collection_response=False):
+def beacon_response(results, collection_response=False):
     g.returned_granularity = "record" if collection_response else "count"
     r = {
         "meta": build_response_meta(),
@@ -24,8 +28,9 @@ def beacon_response(results, info_message=None, collection_response=False):
     if collection_response:
         r["response"] = results
 
-    if info_message:
-        r["info"] = info_message
+    info = getattr(g, "response_info", None)
+    if info:
+        r["info"] = info
 
     return r
 
