@@ -9,27 +9,38 @@ from bento_lib.auth.wrappers import authn_token_required_flask_wrapper, authn_to
 
 individuals = Blueprint("individuals", __name__)
 
-# valid token: full record response
-# no token: count response
-# invalid token: http 401
-
-
 # TODO: pagination
 # total count of responses available at katsu_results.count
 # call and return phenopacket and handover results in batches
 def individuals_full_response(ids):
 
     # temp
-    if len(ids) > 100:
-        return {"message": "too many ids for full response"}
+    # if len(ids) > 100:
+    #     return {"message": "too many ids for full response"}
 
-    phenopackets = phenopackets_for_ids(ids)
     handover = handover_for_ids(ids)
-    return beacon_response_with_handover(phenopackets, handover)
+    phenopackets_by_result_set = phenopackets_for_ids(ids).get("results", {})
+    result_ids = list(phenopackets_by_result_set.keys())
+    result_sets = {}
 
+    for r_id in result_ids:
+        results_this_id = phenopackets_by_result_set.get(r_id, {}).get("matches", [])
+        results_count = len(results_this_id)
+        result = {
+            "id": r_id,
+            "setType": "individual",
+            "exists": results_count > 0,
+            "resultsCount": results_count,
+            "results": results_this_id,
+        }
+        handover_this_id = handover.get(r_id, [])
+        if handover_this_id:
+            result["resultsHandovers"] = handover_this_id
+        result_sets[r_id] = result
 
-# ugly parallel logic for both count and full-record responses
-# optimised for response time rather than code beauty
+    return beacon_response_with_handover(result_sets)
+
+# valid token: full response, no token: counts only, invalid token: http 401
 @individuals.route("/individuals", methods=['GET', 'POST'])
 @authn_token_optional_flask_wrapper
 def get_individuals():
