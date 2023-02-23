@@ -19,10 +19,10 @@ def katsu_not_found(r):
 
 
 def beacon_response(results, collection_response=False):
-    g.returned_granularity = "record" if collection_response else "count"
+    g.request_data["requestedGranularity"] = "record" if collection_response else "count"
     r = {
         "meta": build_response_meta(),
-        "responseSummary": build_response_summary(results, g.returned_granularity, collection_response)
+        "responseSummary": build_response_summary(results, collection_response)
     }
 
     if collection_response:
@@ -36,6 +36,7 @@ def beacon_response(results, collection_response=False):
 
 
 def beacon_response_with_handover(result_sets):
+    g.request_data["requestedGranularity"] = "record"
     r = {
         "meta": build_response_meta(),
         "responseSummary": {"exists": True},
@@ -68,7 +69,7 @@ def received_request():
 
 def build_response_meta():
     returned_schemas = []
-    returned_granularity = g.get("returned_granularity", None)
+    returned_granularity = g.get("response_data", {}).get("returnedGranularity", None)
     service_info = current_app.config["BEACON_SERVICE_INFO"]
     received_request_summary = received_request()
     return {
@@ -93,11 +94,8 @@ def build_response_details(results):
     return {"resultSets": results}
 
 
-def build_response_summary(results, granularity, collection_response):
+def build_response_summary(results, collection_response):
     small_cell_count_threshold = current_app.config["SMALL_CELL_COUNT_THRESHOLD"]
-    print()
-    print(f"RESULTS: {results}")
-    print()
 
     if not collection_response:
         count = results.get("count")
@@ -112,9 +110,6 @@ def build_response_summary(results, granularity, collection_response):
         count = len(results)
 
     exists = count > 0 if count else False
-
-    if granularity == "boolean":
-        return {"exists": exists}
 
     return {
         "exists": exists,

@@ -9,6 +9,7 @@ from bento_lib.auth.wrappers import authn_token_required_flask_wrapper, authn_to
 
 individuals = Blueprint("individuals", __name__)
 
+
 # TODO: pagination
 # total count of responses available at katsu_results.count
 # call and return phenopacket and handover results in batches
@@ -70,6 +71,8 @@ def get_individuals():
         katsu_results = katsu_filters_and_sample_ids_query(filters, sample_ids)
 
         if private:
+            g.request_data["requestedGranularity"] = "record"
+            g.response_data["returnedGranularity"] = "record"
             return individuals_full_response(katsu_results["results"])
         else:
             return beacon_response(katsu_results)
