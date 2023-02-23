@@ -73,6 +73,7 @@ def get_individuals():
         if private:
             g.request_data["requestedGranularity"] = "record"
             g.response_data["returnedGranularity"] = "record"
+            g.response_data["returnedSchemas"] = [current_app.config["PHENOPACKETS_SCHEMA_REFERENCE"]]
             return individuals_full_response(katsu_results["results"])
         else:
             return beacon_response(katsu_results)

@@ -42,6 +42,10 @@ class Config:
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
         "MAP_EXTRA_PROPERTIES_TO_INFO", True)
 
+    PHENOPACKETS_SCHEMA_REFERENCE = {
+        "entityType": "individual",
+        "schema": "phenopackets v1"
+    }
 # -------------------
 # gohan
 

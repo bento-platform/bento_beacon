@@ -68,8 +68,8 @@ def received_request():
 
 
 def build_response_meta():
-    returned_schemas = []
-    returned_granularity = g.get("response_data", {}).get("returnedGranularity", None)
+    returned_schemas = g.get("response_data", {}).get("returnedSchemas", [])
+    returned_granularity = g.get("response_data", {}).get("returnedGranularity", "count")
     service_info = current_app.config["BEACON_SERVICE_INFO"]
     received_request_summary = received_request()
     return {
