@@ -35,6 +35,20 @@ def beacon_response(results, collection_response=False):
     return r
 
 
+def beacon_response_with_handover(result_sets):
+    r = {
+        "meta": build_response_meta(),
+        "responseSummary": {"exists": True},
+        "response": {"resultSets": result_sets}
+    }
+
+    info = getattr(g, "response_info", None)
+    if info:
+        r["info"] = info
+
+    return r
+
+
 def beacon_info_response(info, build_meta=True):
     r = {"response": info}
     if build_meta:
