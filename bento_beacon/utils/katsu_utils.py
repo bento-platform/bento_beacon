@@ -231,12 +231,12 @@ def katsu_datasets(id=None):
 
 
 def phenopackets_for_ids(ids):
-    # call /batch/individuals
-    payload = {
-        "id": [*ids],
-        "format": "phenopackets"
-    }
-    endpoint = current_app.config["KATSU_BATCH_INDIVIDUALS_ENDPOINT"]
-    result = katsu_network_call(payload, endpoint)
+    # retrieve from katsu search
 
-    return result
+    payload = {
+        "data_type": "phenopacket",
+        "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]
+    }
+    endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
+    return katsu_network_call(payload, endpoint)
+
