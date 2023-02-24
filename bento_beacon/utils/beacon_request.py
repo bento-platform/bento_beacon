@@ -29,7 +29,10 @@ def query_parameters_from_request():
     variants_query = beacon_args.get("query", {}).get(
         "requestParameters", {}).get("g_variant") or {}
     filters = beacon_args.get("query", {}).get("filters") or []
-    return variants_query, filters
+    phenopacket_filters = list(filter(lambda f: not f["id"].startswith("experiment"), filters))
+    experiment_filters = list(filter(lambda f: f["id"].startswith("experiment"), filters))
+ 
+    return variants_query, phenopacket_filters, experiment_filters
 
 
 def save_request_data():
