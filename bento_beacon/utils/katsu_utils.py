@@ -14,7 +14,7 @@ def katsu_filters_query(beacon_filters, get_biosample_ids=False):
         raise InvalidQuery(
             f"too many filters in request, maximum of {max_filters} permitted")
 
-    payload = katsu_json_payload(beacon_filters, get_biosample_ids)
+    payload = katsu_json_payload(beacon_filters, "phenopacket", get_biosample_ids)
     response = katsu_network_call(payload)
     results = response.get("results")
     match_list = []
@@ -153,12 +153,11 @@ def bento_expression_tree(terms):
     return {} if not terms else reduce(lambda x, y: ["#and", x, y], expression_array(terms))
 
 
-# TODO: parameterize data_type and field
-def katsu_json_payload(filters, get_biosample_ids):
+def katsu_json_payload(filters, datatype, get_biosample_ids):
     id_type = "biosamples" if get_biosample_ids else "subject"
 
     return {
-        "data_type": "phenopacket",
+        "data_type": datatype,
         "query": bento_expression_tree(filters),
         "output": "values_list",
         "field": [id_type, "id"]
@@ -239,4 +238,3 @@ def phenopackets_for_ids(ids):
     }
     endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
     return katsu_network_call(payload, endpoint)
-
