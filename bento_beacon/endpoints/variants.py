@@ -12,7 +12,10 @@ variants = Blueprint("variants", __name__)
 def get_variants():
     granularity = current_app.config["DEFAULT_GRANULARITY"]["variants"]
 
-    variants_query, filters = query_parameters_from_request()
+    variants_query, phenopacket_filters, experiment_filters = query_parameters_from_request()
+
+    # TODO: allow experiment filtering here
+    filters = phenopacket_filters
 
     katsu_response_ids = []
 
