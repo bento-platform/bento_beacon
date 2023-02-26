@@ -41,7 +41,7 @@ def individuals_full_response(ids):
 
     return beacon_response_with_handover(result_sets)
 
-# valid token: full response, no token: counts only, invalid token: http 401
+
 @individuals.route("/individuals", methods=['GET', 'POST'])
 @authn_token_optional_flask_wrapper
 def get_individuals():
@@ -53,39 +53,43 @@ def get_individuals():
     # if current_app.authx['enabled']:
     #     print(g.authn['roles'])
 
-    variants_query, filters = query_parameters_from_request()
+    variants_query, phenopacket_filters, experiment_filters = query_parameters_from_request()
 
     # if no query, return total count of individuals
-    if not (variants_query or filters):
+    if not (variants_query or phenopacket_filters or experiment_filters):
         add_info_to_response("no query found, returning total count")
         total_count = katsu_total_individuals_count()
         return beacon_response({"count": total_count})
 
     if variants_query:
-        sample_ids = query_gohan(variants_query, "count", ids_only=True)
+        variant_sample_ids = query_gohan(variants_query, "count", ids_only=True)
+        if not variant_sample_ids:
+            return beacon_response({"count": 0, "results": []})
+    
+    if experiment_filters:
+        experiment_sample_ids = katsu_filters_query(experiment_filters, "experiment", get_biosample_ids=True)
+        if not experiment_sample_ids:
+            return beacon_response({"count": 0, "results": []})
 
-        # skip katsu call if no results
+    # compute cases for results
+    # some redundant bools for clarity
+    sample_ids = []
+    if variants_query and experiment_filters:
+        sample_ids = list(set(variant_sample_ids) & set(experiment_sample_ids))
         if not sample_ids:
             return beacon_response({"count": 0, "results": []})
-        
-        katsu_results = katsu_filters_and_sample_ids_query(filters, sample_ids)
+    if variants_query and not experiment_filters:
+        sample_ids = variant_sample_ids
+    if experiment_filters and not variants_query:
+        sample_ids = experiment_sample_ids
 
-        if private:
-            g.request_data["requestedGranularity"] = "record"
-            g.response_data["returnedGranularity"] = "record"
-            g.response_data["returnedSchemas"] = [current_app.config["PHENOPACKETS_SCHEMA_REFERENCE"]]
-            return individuals_full_response(katsu_results["results"])
-        else:
-            return beacon_response(katsu_results)
+    # finally, get all matching individuals
+    phenopacket_results = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
 
-    # else filters query only
-    katsu_results = katsu_filters_query(filters)
-    results_ids = katsu_results["results"]
-
-    if private and results_ids:
-        return individuals_full_response(katsu_results["results"])
+    if private and phenopacket_results:
+        return individuals_full_response(phenopacket_results)
     else:
-        return beacon_response(katsu_results)
+        return beacon_response({"count": len(phenopacket_results), "results": phenopacket_results})
 
 
 @authn_token_required_flask_wrapper
