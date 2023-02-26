@@ -6,15 +6,8 @@ from .exceptions import APIException, InvalidQuery
 from functools import reduce
 
 
-def katsu_filters_query(beacon_filters, get_biosample_ids=False):
-
-    # reject if too many filters
-    max_filters = current_app.config["MAX_FILTERS"]
-    if max_filters > 0 and len(beacon_filters) > max_filters:
-        raise InvalidQuery(
-            f"too many filters in request, maximum of {max_filters} permitted")
-
-    payload = katsu_json_payload(beacon_filters, "phenopacket", get_biosample_ids)
+def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
+    payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
     response = katsu_network_call(payload)
     results = response.get("results")
     match_list = []
@@ -24,22 +17,28 @@ def katsu_filters_query(beacon_filters, get_biosample_ids=False):
 
     # response correct but nothing found
     if not results:
-        return {"count": 0, "results": []}
+        return []
+        # return {"count": 0, "results": []}
 
-    # possibly multiple phenopackets tables, combine results
+    # possibly multiple tables tables, combine results
     for value in results.values():
-        if value.get("data_type") == "phenopacket":
+        if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
 
+    return match_list
     return {"count": len(match_list), "results": match_list}
 
 
-def katsu_filters_and_sample_ids_query(beacon_filters, sample_ids):
-    # hardcoded phenopackets linked field id, TODO: parameterize
-    in_statement = {"id": "biosamples.[item].id",
-                    "operator": "#in", "value": sample_ids}
-    filters_and_in = [*beacon_filters, in_statement]
-    return katsu_filters_query(filters_and_in)
+def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
+
+    # okay if sample_ids is empty, just don't add "in statement" if missing
+    # may have to managed katsu_filters_query() below, add get_biosample_ids stuff?
+    filters_copy = beacon_filters[:]
+    if sample_ids:
+        filters_copy.append(
+            {"id": "biosamples.[item].id", "operator": "#in", "value": sample_ids}
+        )
+    return katsu_filters_query(filters_copy, datatype)
 
 
 def katsu_network_call(payload, endpoint=None):
@@ -154,7 +153,7 @@ def bento_expression_tree(terms):
 
 
 def katsu_json_payload(filters, datatype, get_biosample_ids):
-    id_type = "biosamples" if get_biosample_ids else "subject"
+    id_type = "biosample" if get_biosample_ids else "subject"
 
     return {
         "data_type": datatype,
