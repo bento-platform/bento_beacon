@@ -2,9 +2,6 @@ from flask import current_app, request, g
 import jsonschema
 from .exceptions import InvalidQuery
 
-from cryptography.x509 import load_pem_x509_certificate
-from cryptography.hazmat.backends import default_backend
-
 
 def request_defaults():
     return {
@@ -29,9 +26,18 @@ def query_parameters_from_request():
     variants_query = beacon_args.get("query", {}).get(
         "requestParameters", {}).get("g_variant") or {}
     filters = beacon_args.get("query", {}).get("filters") or []
+
+    # reject if too many filters
+    max_filters = current_app.config["MAX_FILTERS"]
+    if max_filters > 0 and len(filters) > max_filters:
+        raise InvalidQuery(
+            f"too many filters in request, maximum of {max_filters} permitted")
+
     phenopacket_filters = list(filter(lambda f: not f["id"].startswith("experiment"), filters))
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment"), filters))
- 
+    
+    # strip "experiment." prefix from experiment filters, no longer needed
+    experiment_filters = list(map(lambda f:  {"id": f["id"][len("experiment."):], "operator": f["operator"], "value": f["value"]}, experiment_filters))
     return variants_query, phenopacket_filters, experiment_filters
 
 
@@ -56,7 +62,6 @@ def save_request_data():
     }
 
     g.request_data = request_data
-
 
 
 def validate_request():
