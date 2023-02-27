@@ -6,6 +6,7 @@ WORKDIR /beacon
 # Copy whole project directory
 COPY . .
 
+RUN pip install gunicorn
 RUN pip install -r requirements.txt
 
 RUN chmod 775 ./entrypoint.sh
