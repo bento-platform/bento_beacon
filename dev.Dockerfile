@@ -1,17 +1,13 @@
-# ARG BASE_IMAGE
-# ARG BASE_IMAGE_VERSION
-
-# debian image
-# FROM python:3.8-slim-bullseye
 FROM ghcr.io/bento-platform/bento_base_image:python-debian-latest
+
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /beacon
 
-COPY ./entrypoint.dev.sh ./requirements.txt /beacon/bento_beacon/
+COPY requirements.txt .
 
-# shared volume with local repo, see docker.compose.dev.yaml
-WORKDIR /beacon/bento_beacon
+RUN source /env/bin/activate && pip install debugpy -r requirements.txt
 
-RUN pip install debugpy -r requirements.txt; 
+# Use base image entrypoint to set up non-root user & drop into run.dev.bash
 
-CMD [ "sh", "./entrypoint.dev.sh" ]
+CMD [ "bash", "./run.dev.bash" ]
