@@ -33,5 +33,4 @@ urllib3==1.26.12
 webcolors==1.12
 Werkzeug==2.2.2
 zipp==3.9.0
-# -e /bento_lib
 -e git+https://github.com/bento-platform/bento_lib.git@features/authx-middleware#egg=bento_lib
