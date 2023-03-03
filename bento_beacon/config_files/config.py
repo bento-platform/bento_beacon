@@ -27,7 +27,7 @@ class Config:
 # katsu
 
     KATSU_BASE_URL = os.environ.get(
-        "KATSU_BASE_URL", "http://bentov2-katsu:8000")
+        "KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_BATCH_INDIVIDUALS_ENDPOINT = "/api/batch/individuals"
@@ -50,7 +50,7 @@ class Config:
 # gohan
 
     GOHAN_BASE_URL = os.environ.get(
-        "GOHAN_BASE_URL", "http://bentov2-gohan-api:5000")
+        "GOHAN_BASE_URL")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
@@ -59,8 +59,8 @@ class Config:
 # -------------------
 # drs
 
-    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL", "http://bentov2-drs:5000")
-    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL", "https://portal.bentov2.local/api/drs")
+    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL")
+    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL")
 
 
 # -------------------
