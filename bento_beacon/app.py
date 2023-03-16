@@ -44,9 +44,8 @@ logging.basicConfig(
 
 # http middleware
 if ENABLE_AUTHX:
-    oidc_issuer = os.getenv(
-        'OIDC_ISSUER', "https://localhost/auth/realms/realm")
-    client_id = os.getenv('CLIENT_ID', "abc123")
+    oidc_issuer = os.getenv('OIDC_ISSUER')
+    client_id = os.getenv('CLIENT_ID')
     wellknown_path = oidc_issuer + "/protocol/openid-connect/certs"
 
     authxm = AuthxFlaskMiddleware(oidc_issuer, wellknown_path, client_id, oidc_alg="RS256")
