@@ -96,8 +96,8 @@ def get_individuals():
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
 @authn_token_required_flask_wrapper
 def individual_by_id(id):
-    # get one individual by id
-    return {"individual by id": "TODO"}
+    # get one individual by id, with handover if available
+    return individuals_full_response([id])
 
 
 @individuals.route("/individuals/<id>/g_variants", methods=['GET', 'POST'])
