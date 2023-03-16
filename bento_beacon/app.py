@@ -53,6 +53,10 @@ if ENABLE_AUTHX:
         current_app.authx = {}
         current_app.authx['enabled'] = True
         current_app.authx['middleware'] = authxm
+else:
+    with app.app_context():
+        current_app.authx = {}
+        current_app.authx['enabled'] = False
 
 
 @app.before_request
