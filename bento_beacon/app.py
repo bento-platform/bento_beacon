@@ -57,6 +57,7 @@ else:
     with app.app_context():
         current_app.authx = {}
         current_app.authx['enabled'] = False
+        current_app.authx['middleware'] = None
 
 
 @app.before_request
