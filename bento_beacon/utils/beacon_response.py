@@ -30,7 +30,7 @@ def beacon_response(results, collection_response=False):
 
     info = getattr(g, "response_info", None)
     if info:
-        r["info"] = info
+        r["info"] = {"message": info}
 
     return r
 
