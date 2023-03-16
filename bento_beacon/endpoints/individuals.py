@@ -92,8 +92,9 @@ def get_individuals():
         return beacon_response({"count": len(phenopacket_results), "results": phenopacket_results})
 
 
-@authn_token_required_flask_wrapper
+
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
+@authn_token_required_flask_wrapper
 def individual_by_id(id):
     # get one individual by id
     return {"individual by id": "TODO"}
