@@ -71,7 +71,7 @@ def before_request():
 app.register_blueprint(info)
 app.register_blueprint(individuals)
 app.register_blueprint(variants)
-app.register_blueprint(biosamples)
+# app.register_blueprint(biosamples)
 app.register_blueprint(cohorts)
 app.register_blueprint(datasets)
 
