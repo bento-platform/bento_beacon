@@ -7,7 +7,7 @@ if [[ -z "${INTERNAL_PORT}" ]]; then
   INTERNAL_PORT=5000
 fi
 
-gunicorn bento_beacon.app:app \
+python -m gunicorn bento_beacon.app:app \
   -w 1 \
   --threads $(( 2 * $(nproc --all) + 1)) \
   -b "0.0.0.0:${INTERNAL_PORT}"
