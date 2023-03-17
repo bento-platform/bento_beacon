@@ -1,4 +1,4 @@
-FROM ghcr.io/bento-platform/bento_base_image:python-debian-latest
+FROM ghcr.io/bento-platform/bento_base_image:python-debian-2023.03.06
 
 SHELL ["/bin/bash", "-c"]
 
@@ -7,7 +7,7 @@ WORKDIR /beacon
 
 # Install dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install "gunicorn==20.1.0" -r requirements.txt
 
 # Copy whole project directory
 COPY . .
