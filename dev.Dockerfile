@@ -8,6 +8,9 @@ COPY requirements.txt .
 
 RUN source /env/bin/activate && pip install debugpy -r requirements.txt
 
+# Copy in run.dev.bash so that we have somewhere to start
+COPY run.dev.bash .
+
 # Use base image entrypoint to set up non-root user & drop into run.dev.bash
 
 CMD [ "bash", "./run.dev.bash" ]
