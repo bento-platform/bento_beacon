@@ -12,7 +12,7 @@ WORKDIR /beacon
 
 COPY requirements.txt .
 
-RUN source /env/bin/activate && pip install debugpy -r requirements.txt
+RUN pip install debugpy -r requirements.txt
 
 # Copy in run.dev.bash so that we have somewhere to start
 COPY run.dev.bash .
