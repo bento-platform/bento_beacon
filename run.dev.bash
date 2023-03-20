@@ -10,12 +10,15 @@ source /env/bin/activate
 
 export FLASK_APP='bento_beacon.app:app'
 
-if [[ -z "${INTERNAL_PORT}" ]]; then
-  # Set default internal port to 5000
-  INTERNAL_PORT=5000
-fi
+# For below command structure, see https://stackoverflow.com/questions/4437573/bash-assign-default-value
 
-python -m debugpy --listen 0.0.0.0:5678 -m flask run \
+# Set default internal port to 5000
+: ${INTERNAL_PORT:=5000}
+
+# Set internal debug port, falling back to debugpy default
+: ${BENTO_BEACON_DEBUGGER_INTERNAL_PORT:=5678}
+
+python -m debugpy --listen "0.0.0.0:${BENTO_BEACON_DEBUGGER_INTERNAL_PORT}" -m flask run \
   --no-debugger \
   --no-reload \
   --host=0.0.0.0 \
