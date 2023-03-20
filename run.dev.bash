@@ -2,6 +2,9 @@
 
 cd /beacon || exit
 
+# Source the development virtualenv
+source /env/bin/activate
+
 # Set .gitconfig for development
 /set_gitconfig.bash
 
