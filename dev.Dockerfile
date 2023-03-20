@@ -1,9 +1,10 @@
 FROM ghcr.io/bento-platform/bento_base_image:python-debian-2023.03.06
 
+LABEL org.opencontainers.image.description="Local development image for the Bento Beacon service."
 LABEL devcontainer.metadata='[{ \
   "containerUser": "bento_user", \
   "workspaceFolder": "/beacon", \
-  "postAttachCommand": "source /env/bin/activate" \
+  "postAttachCommand": ". /env/bin/activate" \
 }]'
 
 SHELL ["/bin/bash", "-c"]
