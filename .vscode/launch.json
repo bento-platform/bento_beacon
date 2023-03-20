@@ -18,7 +18,14 @@
             ],
             "jinja": true,
             "justMyCode": true,
-            "cwd": "/beacon/bento_beacon/bento_beacon"
+            "cwd": "/beacon"
+        },
+        {
+            "name": "Python: Attach Debugger (Bento)",
+            "type": "python",
+            "request": "attach",
+            "port": 5683,
+            "host": "0.0.0.0"
         }
     ]
 }
