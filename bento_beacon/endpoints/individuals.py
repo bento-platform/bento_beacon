@@ -100,19 +100,27 @@ def individual_by_id(id):
     return individuals_full_response([id])
 
 
-@individuals.route("/individuals/<id>/g_variants", methods=['GET', 'POST'])
-def individual_variants(id):
-    # all variants for a particular individual
-    return {"individual variants": "TODO"}
+# -------------------------------------------------------
+#       unimplemented endpoints
+# -------------------------------------------------------
+# these would be appropriate for full-access beacons only
 
 
-@individuals.route("/individuals/<id>/biosamples", methods=['GET', 'POST'])
-def individual_biosamples(id):
-    # all biosamples for a particular individual
-    return {"individual biosamples": "TODO"}
+# @individuals.route("/individuals/<id>/g_variants", methods=['GET', 'POST'])
+# def individual_variants(id):
+#     # all variants for a particular individual
+#     # may never be implemented, bad match for our use case (download vcf instead)
+#     raise NotImplemented()
 
 
-@individuals.route("/individuals/<id>/filtering_terms", methods=['GET', 'POST'])
-def individual_filtering_terms(id):
-    # filtering terms for a particular individual
-    return {"individual filtering terms": "TODO"}
+# @individuals.route("/individuals/<id>/biosamples", methods=['GET', 'POST'])
+# def individual_biosamples(id):
+#     # all biosamples for a particular individual
+#     pass
+
+
+# @individuals.route("/individuals/<id>/filtering_terms", methods=['GET', 'POST'])
+# def individual_filtering_terms(id):
+#     # filtering terms for a particular individual
+#     # note that this involves private data   
+#     pass
