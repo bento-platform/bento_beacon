@@ -1,5 +1,11 @@
 FROM ghcr.io/bento-platform/bento_base_image:python-debian-2023.03.06
 
+LABEL devcontainer.metadata='[{ \
+  "containerUser": "bento_user", \
+  "workspaceFolder": "/beacon", \
+  "postAttachCommand": "source /env/bin/activate" \
+}]'
+
 SHELL ["/bin/bash", "-c"]
 
 WORKDIR /beacon
