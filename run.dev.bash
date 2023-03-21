@@ -13,9 +13,9 @@ export FLASK_APP='bento_beacon.app:app'
 : "${INTERNAL_PORT:=5000}"
 
 # Set internal debug port, falling back to debugpy default
-: "${BENTO_BEACON_DEBUGGER_INTERNAL_PORT:=5683}"
+: "${DEBUGGER_PORT:=5683}"
 
-python -m debugpy --listen "0.0.0.0:${BENTO_BEACON_DEBUGGER_INTERNAL_PORT}" -m flask run \
+python -m debugpy --listen "0.0.0.0:${DEBUGGER_PORT}" -m flask run \
   --no-debugger \
   --host=0.0.0.0 \
   --port="${INTERNAL_PORT}"
