@@ -3,6 +3,12 @@ FROM ghcr.io/bento-platform/bento_base_image:python-debian-2023.03.06
 LABEL org.opencontainers.image.description="Local development image for the Bento Beacon service."
 LABEL devcontainer.metadata='[{ \
   "remoteUser": "bento_user", \
+  "customizations": { \
+    "vscode": { \
+      "extensions": ["ms-python.python"], \
+      "settings": {"workspaceFolder": "/beacon"} \
+    } \
+  }, \
   "workspaceFolder": "/beacon" \
 }]'
 
