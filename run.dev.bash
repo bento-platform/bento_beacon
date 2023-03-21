@@ -17,6 +17,5 @@ export FLASK_APP='bento_beacon.app:app'
 
 python -m debugpy --listen "0.0.0.0:${BENTO_BEACON_DEBUGGER_INTERNAL_PORT}" -m flask run \
   --no-debugger \
-  --no-reload \
   --host=0.0.0.0 \
   --port="${INTERNAL_PORT}"
