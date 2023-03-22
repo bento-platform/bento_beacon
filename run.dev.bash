@@ -1,9 +1,8 @@
 #!/bin/bash
 
-cd /beacon || exit
+# The base image entrypoint takes care of setting up bento_user & running the git config script
 
-# Set .gitconfig for development
-/set_gitconfig.bash
+cd /beacon || exit
 
 export FLASK_APP='bento_beacon.app:app'
 
