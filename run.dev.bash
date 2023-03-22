@@ -6,6 +6,9 @@ cd /beacon || exit
 
 export FLASK_APP='bento_beacon.app:app'
 
+# Update dependencies if necessary
+pip install --user -r requirements.txt
+
 # For below command structure, see https://stackoverflow.com/questions/4437573/bash-assign-default-value
 
 # Set default internal port to 5000
