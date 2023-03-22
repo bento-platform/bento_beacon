@@ -26,7 +26,6 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
             match_list = match_list + value.get("matches")
 
     return match_list
-    return {"count": len(match_list), "results": match_list}
 
 
 def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
