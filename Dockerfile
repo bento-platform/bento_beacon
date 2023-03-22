@@ -7,7 +7,7 @@ WORKDIR /beacon
 
 # Install dependencies
 COPY requirements.txt .
-RUN pip install "gunicorn==20.1.0" -r requirements.txt
+RUN pip install --no-cache-dir "gunicorn==20.1.0" -r requirements.txt
 
 # Copy whole project directory
 COPY . .

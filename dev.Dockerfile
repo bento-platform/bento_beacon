@@ -17,7 +17,7 @@ WORKDIR /beacon
 
 COPY requirements.txt .
 
-RUN pip install debugpy -r requirements.txt
+RUN pip install --no-cache-dir debugpy -r requirements.txt
 
 # Copy in run.dev.bash so that we have somewhere to start
 COPY run.dev.bash .
