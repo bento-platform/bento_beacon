@@ -152,8 +152,15 @@ def bento_expression_tree(terms):
 
 
 def katsu_json_payload(filters, datatype, get_biosample_ids):
-    id_type = "biosample" if get_biosample_ids else "subject"
 
+    id_type = "subject"
+
+    if get_biosample_ids:
+        if datatype == "phenopacket":
+            id_type = "biosamples"  # plural
+        if datatype == "experiment":
+            id_type = "biosample"
+        
     return {
         "data_type": datatype,
         "query": bento_expression_tree(filters),
