@@ -215,14 +215,11 @@ def gohan_full_record_query(gohan_args):
 def gohan_overview():
     config = current_app.config
     url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
-    response = gohan_network_call(url, {})
-    print(response)
-    return response
+    return gohan_network_call(url, {})
 
 
 def gohan_totals_by_sample_id():
-    sample_ids = gohan_overview().get("sampleIDs", {})
-    return sample_ids
+    return gohan_overview().get("sampleIDs", {})
 
 
 def gohan_total_variants_count():
