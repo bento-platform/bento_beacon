@@ -227,6 +227,10 @@ def gohan_total_variants_count():
     return sum(totals_by_id.values())
 
 
+def gohan_assembly_ids():
+    return gohan_overview().get("assemblyIDs", {})
+
+
 # --------------------------------------------
 #     BEACON VARIANT QUERY TYPES
 # --------------------------------------------
