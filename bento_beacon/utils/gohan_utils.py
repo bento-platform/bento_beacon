@@ -228,7 +228,7 @@ def gohan_total_variants_count():
 
 
 def gohan_assembly_ids():
-    return gohan_overview().get("assemblyIDs", {})
+    return list(gohan_overview().get("assemblyIDs", {}))
 
 
 # --------------------------------------------
