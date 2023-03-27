@@ -1,9 +1,21 @@
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources
+from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count
+from ..utils.gohan_utils import gohan_assembly_ids, gohan_total_variants_count
 
 
 info = Blueprint("info", __name__)
+
+
+def overview():
+    return {
+        "assemblyIds": gohan_assembly_ids(),
+        "counts":
+        {
+            "individuals": katsu_total_individuals_count(),
+            "variants": gohan_total_variants_count()
+        }
+    }
 
 
 # service-info in ga4gh format
@@ -14,9 +26,14 @@ def service_info():
 
 # service info in beacon format
 @info.route("/")
-@info.route("/info")
 def beacon_info():
     return beacon_info_response(current_app.config["BEACON_SERVICE_INFO"])
+
+
+# as above but with beacon overview details
+@info.route("/info")
+def beacon_info_with_overview():
+    return beacon_info_response({**current_app.config["BEACON_SERVICE_INFO"], "overview": overview()})
 
 
 @info.route("/filtering_terms")
