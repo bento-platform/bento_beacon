@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count
-from ..utils.gohan_utils import gohan_assembly_ids, gohan_total_variants_count
+from ..utils.gohan_utils import gohan_counts_by_assembly_id
 
 
 info = Blueprint("info", __name__)
@@ -9,11 +9,9 @@ info = Blueprint("info", __name__)
 
 def overview():
     return {
-        "assemblyIds": gohan_assembly_ids(),
-        "counts":
-        {
+        "counts": {
             "individuals": katsu_total_individuals_count(),
-            "variants": gohan_total_variants_count()
+            "variants": gohan_counts_by_assembly_id()
         }
     }
 
