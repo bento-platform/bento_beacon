@@ -8,10 +8,15 @@ info = Blueprint("info", __name__)
 
 
 def overview():
+    if current_app.config("USE_GOHAN"):
+        variants_count = gohan_counts_by_assembly_id()
+    else:
+        variants_count = {}
+
     return {
         "counts": {
             "individuals": katsu_total_individuals_count(),
-            "variants": gohan_counts_by_assembly_id()
+            "variants": variants_count
         }
     }
 
