@@ -49,8 +49,7 @@ class Config:
 # -------------------
 # gohan
 
-    GOHAN_BASE_URL = os.environ.get(
-        "GOHAN_BASE_URL")
+    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
