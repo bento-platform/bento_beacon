@@ -6,6 +6,10 @@ from .exceptions import APIException
 from functools import reduce
 
 
+DISEASE_TERM_SEARCH_PATH = "diseases.[item].term.label"
+PHENOTYPIC_FEATURE_SEARCH_PATH = "phenotypic_features.[item].type.label"
+
+
 def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
     payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
     response = katsu_network_call(payload)
@@ -180,6 +184,21 @@ def katsu_autocomplete_terms(endpoint):
 
 def katsu_autocomplete_to_beacon_filter(a):
     return {"type": "alphanumeric", "id": a.get("id"), "label": a.get("text")}
+
+
+def katsu_filters_to_beacon_filters(f):
+    print(f)
+    pass
+
+
+
+# beacon filter should look like this: 
+# {
+# "type": "alphanumeric", 
+# "id": the phenopacket path in bento format
+# "label": the text label from the filter
+
+
 
 
 # strip meaningless timestamps from resouce
