@@ -1,17 +1,27 @@
-# ARG BASE_IMAGE
-# ARG BASE_IMAGE_VERSION
+FROM ghcr.io/bento-platform/bento_base_image:python-debian-2023.03.22
 
-# debian image
-# FROM python:3.8-slim-bullseye
-FROM ghcr.io/bento-platform/bento_base_image:python-debian-latest
+LABEL org.opencontainers.image.description="Local development image for the Bento Beacon service."
+LABEL devcontainer.metadata='[{ \
+  "remoteUser": "bento_user", \
+  "customizations": { \
+    "vscode": { \
+      "extensions": ["ms-python.python", "eamodio.gitlens"], \
+      "settings": {"workspaceFolder": "/beacon"} \
+    } \
+  } \
+}]'
+
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /beacon
 
-COPY ./entrypoint.dev.sh ./requirements.txt /beacon/bento_beacon/
+COPY requirements.txt .
 
-# shared volume with local repo, see docker.compose.dev.yaml
-WORKDIR /beacon/bento_beacon
+RUN pip install --no-cache-dir debugpy -r requirements.txt
 
-RUN pip install debugpy -r requirements.txt; 
+# Copy in run.dev.bash so that we have somewhere to start
+COPY run.dev.bash .
 
-CMD [ "sh", "./entrypoint.dev.sh" ]
+# Use base image entrypoint to set up non-root user & drop into run.dev.bash
+
+CMD [ "bash", "./run.dev.bash" ]
