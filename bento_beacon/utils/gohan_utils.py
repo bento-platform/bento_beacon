@@ -1,8 +1,6 @@
 from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
-from json import JSONDecodeError
 import requests
-from urllib.parse import urljoin
 
 # -------------------------------------------------------
 #       query mapping

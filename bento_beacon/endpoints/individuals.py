@@ -1,58 +1,13 @@
-from flask import Blueprint, current_app, g
+from flask import Blueprint
 from ..utils.beacon_request import query_parameters_from_request
-from ..utils.beacon_response import beacon_response, add_info_to_response, beacon_response_with_handover
-from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count, phenopackets_for_ids
+from ..utils.beacon_response import beacon_response, add_info_to_response
+from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
 from ..utils.gohan_utils import query_gohan
-from ..utils.handover_utils import handover_for_ids
-
-from bento_lib.auth.wrappers import authn_token_required_flask_wrapper, authn_token_optional_flask_wrapper
 
 individuals = Blueprint("individuals", __name__)
 
-
-# TODO: pagination
-# total count of responses available at katsu_results.count
-# call and return phenopacket and handover results in batches
-def individuals_full_response(ids):
-
-    # temp
-    # if len(ids) > 100:
-    #     return {"message": "too many ids for full response"}
-
-    handover = handover_for_ids(ids)
-    phenopackets_by_result_set = phenopackets_for_ids(ids).get("results", {})
-    result_ids = list(phenopackets_by_result_set.keys())
-    result_sets = {}
-
-    for r_id in result_ids:
-        results_this_id = phenopackets_by_result_set.get(r_id, {}).get("matches", [])
-        results_count = len(results_this_id)
-        result = {
-            "id": r_id,
-            "setType": "individual",
-            "exists": results_count > 0,
-            "resultsCount": results_count,
-            "results": results_this_id,
-        }
-        handover_this_id = handover.get(r_id, [])
-        if handover_this_id:
-            result["resultsHandovers"] = handover_this_id
-        result_sets[r_id] = result
-
-    return beacon_response_with_handover(result_sets)
-
-
 @individuals.route("/individuals", methods=['GET', 'POST'])
-@authn_token_optional_flask_wrapper
 def get_individuals():
-    auth_enabled = current_app.authx['enabled']
-    has_valid_token = "authn" in g and g.authn.get("has_valid_token", False)
-    private = auth_enabled and has_valid_token
-
-    # TODO: data access filtering by roles
-    # if current_app.authx['enabled']:
-    #     print(g.authn['roles'])
-
     variants_query, phenopacket_filters, experiment_filters = query_parameters_from_request()
 
     # if no query, return total count of individuals
@@ -86,23 +41,19 @@ def get_individuals():
     # finally, get all matching individuals
     phenopacket_results = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
 
-    if private and phenopacket_results:
-        return individuals_full_response(phenopacket_results)
-    else:
-        return beacon_response({"count": len(phenopacket_results), "results": phenopacket_results})
-
-
-@individuals.route("/individuals/<id>", methods=['GET', 'POST'])
-@authn_token_required_flask_wrapper
-def individual_by_id(id):
-    # get one individual by id, with handover if available
-    return individuals_full_response([id])
-
+    return beacon_response({"count": len(phenopacket_results), "results": phenopacket_results})
 
 # -------------------------------------------------------
 #       unimplemented endpoints
 # -------------------------------------------------------
 # these would be appropriate for full-access beacons only
+
+# replace this one once auth is in place
+# @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
+# @authn_token_required_flask_wrapper
+# def individual_by_id(id):
+#     # get one individual by id, with handover if available
+#     return individuals_full_response([id])
 
 
 # @individuals.route("/individuals/<id>/g_variants", methods=['GET', 'POST'])
