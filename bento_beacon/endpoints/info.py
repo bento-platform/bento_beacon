@@ -1,9 +1,24 @@
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources
+from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count
+from ..utils.gohan_utils import gohan_counts_by_assembly_id
 
 
 info = Blueprint("info", __name__)
+
+
+def overview():
+    if current_app.config["USE_GOHAN"]:
+        variants_count = gohan_counts_by_assembly_id()
+    else:
+        variants_count = {}
+
+    return {
+        "counts": {
+            "individuals": katsu_total_individuals_count(),
+            "variants": variants_count
+        }
+    }
 
 
 # service-info in ga4gh format
@@ -14,9 +29,14 @@ def service_info():
 
 # service info in beacon format
 @info.route("/")
-@info.route("/info")
 def beacon_info():
     return beacon_info_response(current_app.config["BEACON_SERVICE_INFO"])
+
+
+# as above but with beacon overview details
+@info.route("/info")
+def beacon_info_with_overview():
+    return beacon_info_response({**current_app.config["BEACON_SERVICE_INFO"], "overview": overview()})
 
 
 @info.route("/filtering_terms")

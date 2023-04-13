@@ -1,6 +1,15 @@
 from flask import current_app, g
 
 
+def init_response_data():
+    # init so always available at endpoints
+    g.response_data = {}
+
+
+def add_info_to_response(info):
+    g.response_info = info
+
+
 def katsu_not_found(r):
     if "count" in r:
         return r["count"] == 0
@@ -9,18 +18,34 @@ def katsu_not_found(r):
     return "id" not in r
 
 
-def beacon_response(results, info_message=None, collection_response=False):
-    granularity = current_app.config["BEACON_GRANULARITY"]
+def beacon_response(results, collection_response=False):
+    g.request_data["requestedGranularity"] = "record" if collection_response else "count"
     r = {
         "meta": build_response_meta(),
-        "responseSummary": build_response_summary(results, granularity, collection_response)
+        "responseSummary": build_response_summary(results, collection_response)
     }
 
     if collection_response:
         r["response"] = results
 
-    if info_message:
-        r["info"] = info_message
+    info = getattr(g, "response_info", None)
+    if info:
+        r["info"] = {"message": info}
+
+    return r
+
+
+def beacon_response_with_handover(result_sets):
+    g.request_data["requestedGranularity"] = "record"
+    r = {
+        "meta": build_response_meta(),
+        "responseSummary": {"exists": True},
+        "response": {"resultSets": result_sets}
+    }
+
+    info = getattr(g, "response_info", None)
+    if info:
+        r["info"] = info
 
     return r
 
@@ -43,9 +68,9 @@ def received_request():
 
 
 def build_response_meta():
-    returned_schemas = []
-    returned_granularity = current_app.config["BEACON_GRANULARITY"]
-    service_info = current_app.config["BEACON_SERVICE_INFO"] 
+    returned_schemas = g.get("response_data", {}).get("returnedSchemas", [])
+    returned_granularity = g.get("response_data", {}).get("returnedGranularity", "count")
+    service_info = current_app.config["BEACON_SERVICE_INFO"]
     received_request_summary = received_request()
     return {
         "beaconId": service_info.get("id"),
@@ -57,7 +82,7 @@ def build_response_meta():
 
 
 def build_info_response_meta():
-    service_info = current_app.config["BEACON_SERVICE_INFO"] 
+    service_info = current_app.config["BEACON_SERVICE_INFO"]
     return {
         "beaconId": service_info.get("id"),
         "apiVersion": service_info.get("apiVersion"),
@@ -69,11 +94,8 @@ def build_response_details(results):
     return {"resultSets": results}
 
 
-def build_response_summary(results, granularity, collection_response):
+def build_response_summary(results, collection_response):
     small_cell_count_threshold = current_app.config["SMALL_CELL_COUNT_THRESHOLD"]
-    print()
-    print(f"RESULTS: {results}")
-    print()
 
     if not collection_response:
         count = results.get("count")
@@ -88,9 +110,6 @@ def build_response_summary(results, granularity, collection_response):
         count = len(results)
 
     exists = count > 0 if count else False
-
-    if granularity == "boolean":
-        return {"exists": exists}
 
     return {
         "exists": exists,

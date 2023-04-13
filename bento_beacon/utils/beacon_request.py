@@ -6,7 +6,7 @@ from .exceptions import InvalidQuery
 def request_defaults():
     return {
         "apiVersion": current_app.config["BEACON_API_VERSION"],
-        "granularity": current_app.config["BEACON_GRANULARITY"],
+        "granularity": current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint, None),
         "includeResultsetResponses": "ALL",
         "pagination": {
             "skip": 0,
@@ -26,7 +26,19 @@ def query_parameters_from_request():
     variants_query = beacon_args.get("query", {}).get(
         "requestParameters", {}).get("g_variant") or {}
     filters = beacon_args.get("query", {}).get("filters") or []
-    return variants_query, filters
+
+    # reject if too many filters
+    max_filters = current_app.config["MAX_FILTERS"]
+    if max_filters > 0 and len(filters) > max_filters:
+        raise InvalidQuery(
+            f"too many filters in request, maximum of {max_filters} permitted")
+
+    phenopacket_filters = list(filter(lambda f: not f["id"].startswith("experiment"), filters))
+    experiment_filters = list(filter(lambda f: f["id"].startswith("experiment"), filters))
+    
+    # strip "experiment." prefix from experiment filters, no longer needed
+    experiment_filters = list(map(lambda f:  {"id": f["id"][len("experiment."):], "operator": f["operator"], "value": f["value"]}, experiment_filters))
+    return variants_query, phenopacket_filters, experiment_filters
 
 
 def save_request_data():
@@ -52,7 +64,7 @@ def save_request_data():
     g.request_data = request_data
 
 
-def validate_request(): 
+def validate_request():
     if request.method == "POST":
         request_args = request.get_json() or {}
     else:

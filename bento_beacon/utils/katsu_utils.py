@@ -2,18 +2,12 @@ from flask import current_app
 from json import JSONDecodeError
 import requests
 from urllib.parse import urlsplit, urlunsplit
-from .exceptions import APIException, InvalidQuery
+from .exceptions import APIException
 from functools import reduce
 
 
-def katsu_filters_query(beacon_filters, get_biosample_ids=False):
-
-    # reject if too many filters
-    max_filters = current_app.config["MAX_FILTERS"]
-    if max_filters > 0 and len(beacon_filters) > max_filters:
-        raise InvalidQuery(f"too many filters in request, maximum of {max_filters} permitted")
-
-    payload = katsu_json_payload(beacon_filters, get_biosample_ids)
+def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
+    payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
     response = katsu_network_call(payload)
     results = response.get("results")
     match_list = []
@@ -23,21 +17,27 @@ def katsu_filters_query(beacon_filters, get_biosample_ids=False):
 
     # response correct but nothing found
     if not results:
-        return {"count": 0, "results": []}
+        return []
+        # return {"count": 0, "results": []}
 
-    # possibly multiple phenopackets tables, combine results
+    # possibly multiple tables tables, combine results
     for value in results.values():
-        if value.get("data_type") == "phenopacket":
+        if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
 
-    return {"count": len(match_list), "results": match_list}
+    return match_list
 
 
-def katsu_filters_and_sample_ids_query(beacon_filters, sample_ids):
-    # hardcoded phenopackets linked field id, TODO: parameterize
-    in_statement = {"id": "biosamples.[item].id", "operator": "#in", "value": sample_ids}
-    filters_and_in = [*beacon_filters, in_statement]
-    return katsu_filters_query(filters_and_in)
+def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
+
+    # okay if sample_ids is empty, just don't add "in statement" if missing
+    # may have to managed katsu_filters_query() below, add get_biosample_ids stuff?
+    filters_copy = beacon_filters[:]
+    if sample_ids:
+        filters_copy.append(
+            {"id": "biosamples.[item].id", "operator": "#in", "value": sample_ids}
+        )
+    return katsu_filters_query(filters_copy, datatype)
 
 
 def katsu_network_call(payload, endpoint=None):
@@ -58,13 +58,18 @@ def katsu_network_call(payload, endpoint=None):
 
         katsu_response = r.json()
         if not r.ok:
-            current_app.logger.warning(f"katsu error, status: {r.status_code}, message: {katsu_response.get('message')}")
-            raise APIException(message=f"error searching katsu metadata service: {katsu_response.get('message')}")
+            current_app.logger.warning(
+                f"katsu error, status: {r.status_code}, message: {katsu_response.get('message')}")
+            raise APIException(
+                message=f"error searching katsu metadata service: {katsu_response.get('message')}")
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
         current_app.logger.debug("katsu error")
         raise APIException()
+    except requests.exceptions.RequestException as e:
+        current_app.logger.debug(f"katsu error: {e}")
+        raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
 
@@ -76,7 +81,7 @@ def katsu_get(endpoint, id=None, query=""):
     verify_certificates = not c["DEBUG"]
     timeout = current_app.config["KATSU_TIMEOUT"]
 
-    # construct request url 
+    # construct request url
     url_components = urlsplit(katsu_base_url)
     id_param = "/" + id if id is not None else ""
     query_url = urlunsplit((
@@ -85,7 +90,7 @@ def katsu_get(endpoint, id=None, query=""):
         url_components.path + endpoint + id_param,
         url_components.query + query,
         url_components.fragment
-        ))
+    ))
 
     print("before request")
 
@@ -129,7 +134,7 @@ def bento_query_expression(q):
     if q["operator"] == "!":
         return ["#not", ["#eq", katsu_key, q["value"]]]
 
-    # separate handling for in/list 
+    # separate handling for in/list
     if q["operator"] == "#in":
         return ["#in", katsu_key, ["#list", *q["value"]]]
 
@@ -146,12 +151,18 @@ def bento_expression_tree(terms):
     return {} if not terms else reduce(lambda x, y: ["#and", x, y], expression_array(terms))
 
 
-# TODO: parameterize data_type and field
-def katsu_json_payload(filters, get_biosample_ids):
-    id_type = "biosamples" if get_biosample_ids else "subject"
+def katsu_json_payload(filters, datatype, get_biosample_ids):
+
+    id_type = "subject"
+
+    if get_biosample_ids:
+        if datatype == "phenopacket":
+            id_type = "biosamples"  # plural
+        if datatype == "experiment":
+            id_type = "biosample"
 
     return {
-        "data_type": "phenopacket",
+        "data_type": datatype,
         "query": bento_expression_tree(filters),
         "output": "values_list",
         "field": [id_type, "id"]
@@ -173,7 +184,7 @@ def katsu_autocomplete_to_beacon_filter(a):
 
 # strip meaningless timestamps from resouce
 def katsu_resources_to_beacon_resource(r):
-    return {key: value for (key, value) in r.items() if key != "created" and key != "updated" }
+    return {key: value for (key, value) in r.items() if key != "created" and key != "updated"}
 
 
 # construct filtering terms collection from katsu autocomplete endpoints
@@ -181,9 +192,12 @@ def katsu_resources_to_beacon_resource(r):
 # TODO: these could be memoized, either at startup or the first time they're requested
 def get_filtering_terms():
     c = current_app.config
-    pheno_features = katsu_autocomplete_terms(c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
-    disease_terms = katsu_autocomplete_terms(c["KATSU_DISEASES_TERMS_ENDPOINT"])
-    sampled_tissue_terms = katsu_autocomplete_terms(c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
+    pheno_features = katsu_autocomplete_terms(
+        c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
+    disease_terms = katsu_autocomplete_terms(
+        c["KATSU_DISEASES_TERMS_ENDPOINT"])
+    sampled_tissue_terms = katsu_autocomplete_terms(
+        c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
     filtering_terms = pheno_features + disease_terms + sampled_tissue_terms
     return list(map(katsu_autocomplete_to_beacon_filter, filtering_terms))
 
@@ -221,12 +235,11 @@ def katsu_datasets(id=None):
 
 
 def phenopackets_for_ids(ids):
-    # call /batch/individuals
-    payload = {
-        "id": [*ids],
-        "format": "phenopackets"
-    }
-    endpoint = current_app.config["KATSU_BATCH_INDIVIDUALS_ENDPOINT"]
-    result = katsu_network_call(payload, endpoint)
+    # retrieve from katsu search
 
-    return result
+    payload = {
+        "data_type": "phenopacket",
+        "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]
+    }
+    endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
+    return katsu_network_call(payload, endpoint)

@@ -28,7 +28,7 @@ def katsu_biosample_to_beacon_biosample(obj):
     beacon_biosample["biosampleStatus"] = BIOSAMPLE_STATUS
     beacon_biosample["sampleOriginType"] = BIOSAMPLE_ORIGIN_TYPE
 
-    # directly mapped fields 
+    # directly mapped fields
     for katsu_property, beacon_property in katsu_beacon_biosample_mapped_fields.items():
         if (katsu_property) in obj_keys:
             beacon_biosample[beacon_property] = obj[katsu_property]

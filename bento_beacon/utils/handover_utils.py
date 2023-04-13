@@ -89,9 +89,9 @@ def drs_object_from_filename(filename):
     return drs_network_call("/search", f"name={filename}")
 
 
-def filenames_from_ids(ids):
+def filenames_by_results_set(ids):
     if not ids:
-        return []
+        return {}
 
     # payload for bento search that returns all experiment filenames in results
     payload = {
@@ -103,17 +103,17 @@ def filenames_from_ids(ids):
 
     response = katsu_network_call(payload)
     results = response.get("results")
+    files_by_results_set = {}
 
-    all_files = []
-    # possibly multiple tables
-    for value in results.values():
-        if value.get("data_type") == "phenopacket":
-            all_files = all_files + value.get("matches")
+    for r in results.keys():
+        filenames = results[r].get("matches", [])
 
-    # TODO: filter by file type? (vcf, cram, etc) or some other property
+        # can filter here if needed by filetype or some other property
 
-    # remove any duplicates (possible with multisample vcfs)
-    return list(set(all_files))
+        unique_filenames = list(set(filenames))
+        files_by_results_set[r] = unique_filenames
+    
+    return files_by_results_set
 
 
 def drs_link_from_vcf_filename(filename):
@@ -144,10 +144,17 @@ def vcf_handover_entry(url, note=None):
 def handover_for_ids(ids):
     # ideally we would preserve the mapping between ids and links,
     # but this requires changes in katsu to do well
-    handovers = []
-    filenames = filenames_from_ids(ids)
-    for f in filenames:
-        link = drs_link_from_vcf_filename(f)
-        if link:
-            handovers.append(vcf_handover_entry(link))
+
+    handovers = {}
+
+    files_for_results = filenames_by_results_set(ids)
+
+    for results_set, files in files_for_results.items():
+        handovers_this_set = []
+        for f in files:
+            link = drs_link_from_vcf_filename(f)
+            if link:
+                handovers_this_set.append(vcf_handover_entry(link))
+        handovers[results_set] = handovers_this_set
+
     return handovers

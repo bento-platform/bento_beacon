@@ -5,20 +5,29 @@ import os
 class Config:
     DEBUG = os.environ.get("BEACON_DEBUG", False)
 
-    # can be "boolean", "count", or "record"
-    BEACON_GRANULARITY = os.environ.get("BEACON_GRANULARITY", "count")
-
     # version of ga4gh beacon spec, not version of this implementation
     BEACON_API_VERSION = "v2.0.0"
 
-    SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get("BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
+    SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get(
+        "BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
 
     MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
+
+    # max granularity for unauthorized users
+    DEFAULT_GRANULARITY = {
+        "individuals": "count",
+        "variants": "count",
+        "biosamples": "count",
+        "cohorts": "record",
+        "datasets": "record",
+        "info": "record"
+    }
 
 # -------------------
 # katsu
 
-    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL", "http://bentov2-katsu:8000")
+    KATSU_BASE_URL = os.environ.get(
+        "KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_BATCH_INDIVIDUALS_ENDPOINT = "/api/batch/individuals"
@@ -33,20 +42,25 @@ class Config:
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
         "MAP_EXTRA_PROPERTIES_TO_INFO", True)
 
+    PHENOPACKETS_SCHEMA_REFERENCE = {
+        "entityType": "individual",
+        "schema": "phenopackets v1"
+    }
 # -------------------
 # gohan
 
-    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL", "http://bentov2-gohan-api:5000")
+    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
+    USE_GOHAN = os.environ.get("BEACON_USE_GOHAN", True)
 
 # -------------------
 # drs
 
-    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL", "http://bentov2-drs:5000")
-    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL", "https://portal.bentov2.local/api/drs")
+    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL")
+    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL")
 
 
 # -------------------
@@ -57,16 +71,17 @@ class Config:
 #      configuration files are expected to be located
     def retrieve_config_json(filename):
         # TODO: abstract out CONFIG_PATH if needed
-        config_path = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
+        config_path = os.environ.get(
+            "CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
         print(f"Searching for file {filename} in {config_path}")
         file_path = os.path.join(config_path, filename)
         try:
             with open(file_path) as f:
                 data = json.load(f)
-                return data    
+                return data
         except FileNotFoundError:
-            # TODO: proper error response           
-            return {"message": "Beacon error, missing config file"}    
+            # TODO: proper error response
+            return {"message": "Beacon error, missing config file"}
 
     BEACON_SERVICE_INFO = retrieve_config_json("beacon_service_info.json")
 
@@ -76,6 +91,7 @@ class Config:
     BEACON_MAP = retrieve_config_json("beacon_map.json")
 
     # TODO: parameterize, merge with beacon service info
-    BEACON_GA4GH_SERVICE_INFO = retrieve_config_json("beacon_ga4gh_service_info.json")
+    BEACON_GA4GH_SERVICE_INFO = retrieve_config_json(
+        "beacon_ga4gh_service_info.json")
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")

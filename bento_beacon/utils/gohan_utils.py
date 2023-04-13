@@ -1,8 +1,6 @@
 from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
-from json import JSONDecodeError
 import requests
-from urllib.parse import urljoin
 
 # -------------------------------------------------------
 #       query mapping
@@ -78,7 +76,7 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     bracket_query = numStart == 2 and numEnd == 2
     geneId_query = geneId is not None
 
-    if not(sequence_query or range_query or bracket_query or geneId_query):
+    if not (sequence_query or range_query or bracket_query or geneId_query):
         raise InvalidQuery()
 
     if bracket_query:
@@ -197,9 +195,9 @@ def gohan_network_call(url, gohan_args):
 
         gohan_response = r.json()
 
-    except JSONDecodeError as e:
-        current_app.logger.debug(f"gohan error: {e.msg}")
-        raise APIException()
+    except requests.exceptions.RequestException as e:
+        current_app.logger.debug(f"gohan error: {e}")
+        raise APIException(message="error calling gohan variants service")
 
     return gohan_response
 
@@ -212,16 +210,23 @@ def gohan_full_record_query(gohan_args):
     return response.get("calls")
 
 
-def gohan_totals_by_sample_id():
+def gohan_overview():
     config = current_app.config
-    count_url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
-    response = gohan_network_call(count_url, {})
-    return response.get("sampleIDs")
+    url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
+    return gohan_network_call(url, {})
+
+
+def gohan_totals_by_sample_id():
+    return gohan_overview().get("sampleIDs", {})
 
 
 def gohan_total_variants_count():
     totals_by_id = gohan_totals_by_sample_id()
     return sum(totals_by_id.values())
+
+
+def gohan_counts_by_assembly_id():
+    return gohan_overview().get("assemblyIDs", {})
 
 
 # --------------------------------------------

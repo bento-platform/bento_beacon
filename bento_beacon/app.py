@@ -5,7 +5,7 @@ from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
-from .endpoints.biosamples import biosamples
+# from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
@@ -13,12 +13,13 @@ from werkzeug.exceptions import HTTPException
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
+from .utils.beacon_response import init_response_data
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 
 app = Flask(__name__)
 
-# find path for beacon-v2 spec 
+# find path for beacon-v2 spec
 app_parent_dir = os.path.dirname(app.root_path)
 beacon_request_spec_uri = urlunsplit(
     ("file", app_parent_dir, REQUEST_SPEC_RELATIVE_PATH, "", ""))
@@ -38,10 +39,18 @@ logging.basicConfig(
 )
 
 
+@app.before_request
+def before_request():
+    validate_request()
+    save_request_data()
+    init_response_data()
+
+
+# routes
 app.register_blueprint(info)
 app.register_blueprint(individuals)
 app.register_blueprint(variants)
-app.register_blueprint(biosamples)
+# app.register_blueprint(biosamples)
 app.register_blueprint(cohorts)
 app.register_blueprint(datasets)
 
@@ -49,7 +58,7 @@ app.register_blueprint(datasets)
 @app.errorhandler(Exception)
 def generic_exception_handler(e):
     if isinstance(e, APIException):
-        current_app.logger.error(f"API Exception: {e}")
+        current_app.logger.error(f"API Exception: {e.message}")
         return beacon_error_response(e.message, e.status_code), e.status_code
     if isinstance(e, HTTPException):
         current_app.logger.error(f"HTTP Exception: {e}")
@@ -57,9 +66,3 @@ def generic_exception_handler(e):
 
     current_app.logger.error(f"Server Error: {e}")
     return beacon_error_response("Server Error", 500), 500
-
-
-@app.before_request
-def before_request():
-    save_request_data()
-    validate_request()

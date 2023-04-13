@@ -8,7 +8,7 @@ from ..utils.beacon_mappings import katsu_biosample_to_beacon_biosample
 biosamples = Blueprint("biosamples", __name__)
 
 
-# TODO: pass beacon filtering terms as katsu queries 
+# TODO: pass beacon filtering terms as katsu queries
 
 @biosamples.route("/biosamples", methods=['GET', 'POST'])
 def get_biosamples():
@@ -26,6 +26,7 @@ def get_biosamples():
     # return beacon_response(mapped_results)
     raise NotImplemented()
 
+
 @biosamples.route("/biosamples/<id>", methods=['GET', 'POST'])
 def get_katsu_biosamples_by_id(id):
     # katsu_response = query_katsu(
@@ -40,6 +41,7 @@ def get_katsu_biosamples_by_id(id):
     # mapped_repsonse = katsu_biosample_to_beacon_biosample(katsu_response)
     # return beacon_response([mapped_repsonse])
     raise NotImplemented()
+
 
 @biosamples.route("/biosamples/<id>/g_variants", methods=['GET', 'POST'])
 def variants_by_biosample(id):
