@@ -160,7 +160,7 @@ def katsu_json_payload(filters, datatype, get_biosample_ids):
             id_type = "biosamples"  # plural
         if datatype == "experiment":
             id_type = "biosample"
-        
+
     return {
         "data_type": datatype,
         "query": bento_expression_tree(filters),
