@@ -5,7 +5,7 @@ from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
-# from .endpoints.biosamples import biosamples
+from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
@@ -38,21 +38,30 @@ logging.basicConfig(
     ]
 )
 
+# blueprints
+# always load info endpoints, load everything else based on config
+
+app.register_blueprint(info)
+
+blueprints = {
+    "biosamples": biosamples,
+    "cohorts": cohorts,
+    "datasets": datasets,
+    "individuals": individuals,
+    "variants": variants,
+}
+
+with app.app_context():
+    endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
+    for endpoint_set in endpoint_sets:
+        app.register_blueprint(blueprints[endpoint_set])
+
 
 @app.before_request
 def before_request():
     validate_request()
     save_request_data()
     init_response_data()
-
-
-# routes
-app.register_blueprint(info)
-app.register_blueprint(individuals)
-app.register_blueprint(variants)
-# app.register_blueprint(biosamples)
-app.register_blueprint(cohorts)
-app.register_blueprint(datasets)
 
 
 @app.errorhandler(Exception)

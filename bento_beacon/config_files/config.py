@@ -95,3 +95,5 @@ class Config:
         "beacon_ga4gh_service_info.json")
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")
+
+    BEACON_CONFIG = retrieve_config_json("beacon_config.json")
