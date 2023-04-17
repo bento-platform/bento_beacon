@@ -5,8 +5,10 @@ import os
 class Config:
     DEBUG = os.environ.get("BEACON_DEBUG", False)
 
-    # version of ga4gh beacon spec, not version of this implementation
-    BEACON_API_VERSION = "v2.0.0"
+    BEACON_SPEC_VERSION = "v2.0.0"
+
+    # version of this implementation
+    BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
     SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get(
         "BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
@@ -22,6 +24,8 @@ class Config:
         "datasets": "record",
         "info": "record"
     }
+
+    BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
 
 # -------------------
 # katsu
@@ -54,7 +58,7 @@ class Config:
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
-    USE_GOHAN = os.environ.get("BEACON_USE_GOHAN", True)
+    # USE_GOHAN = os.environ.get("BEACON_USE_GOHAN", True)
 
 # -------------------
 # drs
@@ -91,8 +95,8 @@ class Config:
     BEACON_MAP = retrieve_config_json("beacon_map.json")
 
     # TODO: parameterize, merge with beacon service info
-    BEACON_GA4GH_SERVICE_INFO = retrieve_config_json(
-        "beacon_ga4gh_service_info.json")
+    # BEACON_GA4GH_SERVICE_INFO = retrieve_config_json(
+    #     "beacon_ga4gh_service_info.json")
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")
 
