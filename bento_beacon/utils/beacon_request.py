@@ -5,7 +5,7 @@ from .exceptions import InvalidQuery
 
 def request_defaults():
     return {
-        "apiVersion": current_app.config["BEACON_API_VERSION"],
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "granularity": current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint, None),
         "includeResultsetResponses": "ALL",
         "pagination": {
