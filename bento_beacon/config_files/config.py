@@ -27,6 +27,58 @@ class Config:
 
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
 
+    ENTRY_TYPES_DETAILS = {
+        "biosamples": {
+            "entryType": "biosample",
+            "name": "Biosample",
+            "ontologyTermForThisType": {"id": "NCIT:C70699", "label": "Biospecimen"},
+            "defaultSchema": {
+                "id": "ga4gh-beacon-biosample-v2.0.0",
+                "name": "Default schema for biosamples",
+                    "referenceToSchemaDefinition": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
+                    "schemaVersion": "v2.0.0"
+            }
+        },
+        "cohorts": {
+            "entryType": "cohort",
+            "name": "Cohort",
+            "ontologyTermForThisType": {"id": "NCIT:C61512", "label": "Cohort"},
+            "defaultSchema": {
+                "id": "ga4gh-beacon-cohort-v2.0.0",
+                "name": "Default schema for cohorts",
+                    "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
+                    "schemaVersion": "v2.0.0"
+            }
+        },
+        "datasets": {
+            "entryType": "dataset",
+            "name": "Dataset",
+            "ontologyTermForThisType":  {"id": "NCIT:C47824", "label": "Data set"},
+            "defaultSchema": {
+                "id": "ga4gh-beacon-dataset-v2.0.0",
+                "name": "Default schema for datasets",
+                        "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
+                        "schemaVersion": "v2.0.0"
+            }
+        },
+        "individuals": {
+            "entryType": "individual",
+            "name": "Individual",
+            "ontologyTermForThisType":  {"id": "NCIT:C25190", "label": "Person"},
+            "defaultSchema": "https://raw.githubusercontent.com/phenopackets/phenopacket-schema/master/src/main/proto/phenopackets/schema/v1/phenopackets.proto"
+        },
+        "variants": {
+            "entryType": "genomicVariant",
+            "name": "Genomic Variant",
+            "ontologyTermForThisType":  {"id": "ENSGLOSSARY:0000092", "label": "Variant"},
+            "defaultSchema": {
+                "id": "ga4gh-beacon-variant-v2.0.0",
+                "name": "Default schema for a genomic variation",
+                        "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
+                        "schemaVersion": "v2.0.0"
+            }
+        }
+    }
 # -------------------
 # katsu
 
@@ -66,7 +118,6 @@ class Config:
     DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL")
     DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL")
 
-
 # -------------------
 # handle injected config files
 #   a) obtain reference to the expected configuration files' location by
@@ -87,12 +138,12 @@ class Config:
             # TODO: proper error response
             return {"message": "Beacon error, missing config file"}
 
-    BEACON_SERVICE_INFO = retrieve_config_json("beacon_service_info.json")
+    # BEACON_SERVICE_INFO = retrieve_config_json("beacon_service_info.json")
 
     BEACON_CONFIGURATION = retrieve_config_json("beacon_configuration.json")
 
     # TODO: correct paths with BENTO_URL
-    BEACON_MAP = retrieve_config_json("beacon_map.json")
+    # BEACON_MAP = retrieve_config_json("beacon_map.json")
 
     # TODO: parameterize, merge with beacon service info
     # BEACON_GA4GH_SERVICE_INFO = retrieve_config_json(
