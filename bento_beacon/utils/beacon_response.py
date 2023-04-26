@@ -70,11 +70,11 @@ def received_request():
 def build_response_meta():
     returned_schemas = g.get("response_data", {}).get("returnedSchemas", [])
     returned_granularity = g.get("response_data", {}).get("returnedGranularity", "count")
-    service_info = current_app.config["BEACON_SERVICE_INFO"]
+    service_info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
     received_request_summary = received_request()
     return {
         "beaconId": service_info.get("id"),
-        "apiVersion": service_info.get("apiVersion"),
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],   
         "returnedSchemas": returned_schemas,
         "returnedGranularity": returned_granularity,
         "receivedRequestSummary": received_request_summary
@@ -82,10 +82,10 @@ def build_response_meta():
 
 
 def build_info_response_meta():
-    service_info = current_app.config["BEACON_SERVICE_INFO"]
+    service_info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
     return {
         "beaconId": service_info.get("id"),
-        "apiVersion": service_info.get("apiVersion"),
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "returnedSchemas": []
     }
 
