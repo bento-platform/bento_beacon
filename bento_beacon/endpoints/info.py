@@ -27,7 +27,7 @@ def overview():
 # service-info in ga4gh format
 @info.route("/service-info")
 def service_info():
-    return getattr(current_app.config, "BEACON_GA4GH_SERVICE_INFO", build_ga4gh_service_info())
+    return current_app.config.get("BEACON_GA4GH_SERVICE_INFO", build_ga4gh_service_info())
 
 
 # service info in beacon format

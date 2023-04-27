@@ -123,7 +123,6 @@ class Config:
     GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
-    # USE_GOHAN = os.environ.get("BEACON_USE_GOHAN", True)
 
 # -------------------
 # drs
