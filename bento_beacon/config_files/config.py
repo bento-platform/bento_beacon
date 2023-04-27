@@ -37,7 +37,8 @@ class Config:
                 "name": "Default schema for biosamples",
                     "referenceToSchemaDefinition": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
                     "schemaVersion": "v2.0.0"
-            }
+            },
+            "partOfSpecification": "Beacon v2.0.0"
         },
         "cohorts": {
             "entryType": "cohort",
@@ -48,7 +49,9 @@ class Config:
                 "name": "Default schema for cohorts",
                     "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
                     "schemaVersion": "v2.0.0"
-            }
+            },
+            "partOfSpecification": "Beacon v2.0.0"
+
         },
         "datasets": {
             "entryType": "dataset",
@@ -59,16 +62,24 @@ class Config:
                 "name": "Default schema for datasets",
                         "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
                         "schemaVersion": "v2.0.0"
-            }
+            },
+            "partOfSpecification": "Beacon v2.0.0"
+
         },
         "individuals": {
             "entryType": "individual",
             "name": "Individual",
             "ontologyTermForThisType":  {"id": "NCIT:C25190", "label": "Person"},
-            "defaultSchema": "https://raw.githubusercontent.com/phenopackets/phenopacket-schema/master/src/main/proto/phenopackets/schema/v1/phenopackets.proto"
+            "defaultSchema": {
+                "id": "phenopacket-v1",
+                "name": "phenopacket v1",
+                        "referenceToSchemaDefinition": "https://raw.githubusercontent.com/phenopackets/phenopacket-schema/master/src/main/proto/phenopackets/schema/v1/phenopackets.proto",
+                        "schemaVersion": "v1.0.0"
+            },
+            "partOfSpecification": "Phenopacket v1"
         },
         "variants": {
-            "entryType": "genomicVariant",
+            "entryType": "genomicVariation",
             "name": "Genomic Variant",
             "ontologyTermForThisType":  {"id": "ENSGLOSSARY:0000092", "label": "Variant"},
             "defaultSchema": {
@@ -76,7 +87,9 @@ class Config:
                 "name": "Default schema for a genomic variation",
                         "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
                         "schemaVersion": "v2.0.0"
-            }
+            },
+            "partOfSpecification": "Beacon v2.0.0"
+
         }
     }
 # -------------------
@@ -137,17 +150,6 @@ class Config:
         except FileNotFoundError:
             # TODO: proper error response
             return {"message": "Beacon error, missing config file"}
-
-    # BEACON_SERVICE_INFO = retrieve_config_json("beacon_service_info.json")
-
-    BEACON_CONFIGURATION = retrieve_config_json("beacon_configuration.json")
-
-    # TODO: correct paths with BENTO_URL
-    # BEACON_MAP = retrieve_config_json("beacon_map.json")
-
-    # TODO: parameterize, merge with beacon service info
-    # BEACON_GA4GH_SERVICE_INFO = retrieve_config_json(
-    #     "beacon_ga4gh_service_info.json")
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")
 
