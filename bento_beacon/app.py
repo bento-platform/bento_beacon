@@ -5,7 +5,7 @@ from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
-# from .endpoints.biosamples import biosamples
+from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
@@ -16,6 +16,7 @@ from .utils.beacon_request import save_request_data, validate_request
 from .utils.beacon_response import init_response_data
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
+BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
 
 app = Flask(__name__)
 
@@ -38,21 +39,32 @@ logging.basicConfig(
     ]
 )
 
+# blueprints
+# always load info endpoints, load everything else based on config
+
+app.register_blueprint(info)
+
+blueprints = {
+    "biosamples": biosamples,
+    "cohorts": cohorts,
+    "datasets": datasets,
+    "individuals": individuals,
+    "variants": variants,
+}
+
+with app.app_context():
+    endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
+    for endpoint_set in endpoint_sets:
+        if endpoint_set not in BEACON_MODELS:
+            raise APIException(message="beacon config contains unknown endpoint set")
+        app.register_blueprint(blueprints[endpoint_set])
+
 
 @app.before_request
 def before_request():
     validate_request()
     save_request_data()
     init_response_data()
-
-
-# routes
-app.register_blueprint(info)
-app.register_blueprint(individuals)
-app.register_blueprint(variants)
-# app.register_blueprint(biosamples)
-app.register_blueprint(cohorts)
-app.register_blueprint(datasets)
 
 
 @app.errorhandler(Exception)

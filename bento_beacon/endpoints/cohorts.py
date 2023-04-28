@@ -9,9 +9,8 @@ cohorts = Blueprint("cohorts", __name__)
 def get_cohorts():
     granularity = current_app.config["DEFAULT_GRANULARITY"]["cohorts"]
 
-    # single cohort
     cohort = current_app.config["BEACON_COHORT"]
-    results = {"collections": [cohort]}
+    results = {"collections": cohort}
     return beacon_response(results, collection_response=True)
 
 
