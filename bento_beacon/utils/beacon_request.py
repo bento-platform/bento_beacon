@@ -33,12 +33,14 @@ def query_parameters_from_request():
         raise InvalidQuery(
             f"too many filters in request, maximum of {max_filters} permitted")
 
-    phenopacket_filters = list(filter(lambda f: not f["id"].startswith("experiment"), filters))
-    experiment_filters = list(filter(lambda f: f["id"].startswith("experiment"), filters))
+    phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
+    experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
+    config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
     
-    # strip "experiment." prefix from experiment filters, no longer needed
+    # strip filter prefixes, no longer needed
+    phenopacket_filters = list(map(lambda f:  {"id": f["id"][len("phenopacket."):], "operator": f["operator"], "value": f["value"]}, phenopacket_filters))
     experiment_filters = list(map(lambda f:  {"id": f["id"][len("experiment."):], "operator": f["operator"], "value": f["value"]}, experiment_filters))
-    return variants_query, phenopacket_filters, experiment_filters
+    return variants_query, phenopacket_filters, experiment_filters, config_filters
 
 
 def save_request_data():
