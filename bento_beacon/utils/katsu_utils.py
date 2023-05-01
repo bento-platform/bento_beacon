@@ -111,6 +111,23 @@ def katsu_get(endpoint, id=None, query=""):
 
 
 # -------------------------------------------------------
+#       search using katsu public config
+# -------------------------------------------------------
+
+
+def search_from_config(config_filters):
+    # query error checking handled in katsu 
+    query_string = "&".join([f'{cf["id"]}={cf["value"]}' for cf in config_filters])
+    response = katsu_get(current_app.config["KATSU_PUBLIC_SEARCH_ENDPOINT"], query=query_string)
+    return response.get("matches", [])
+
+
+def get_katsu_config():
+    katsu_config = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"])
+    current_app.config["KATSU_CONFIG"] = katsu_config
+    return katsu_config
+
+# -------------------------------------------------------
 #       query conversion
 # -------------------------------------------------------
 
