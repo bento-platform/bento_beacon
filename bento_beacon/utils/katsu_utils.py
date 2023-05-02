@@ -122,9 +122,9 @@ def search_from_config(config_filters):
     return response.get("matches", [])
 
 
-def get_katsu_config_search_fields():
+def get_katsu_config():
     katsu_config = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"])
-    current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = katsu_config
+    current_app.config["KATSU_CONFIG"] = katsu_config
     return katsu_config
 
 # -------------------------------------------------------
@@ -199,40 +199,31 @@ def katsu_autocomplete_to_beacon_filter(a):
     return {"type": "alphanumeric", "id": a.get("id"), "label": a.get("text")}
 
 
-def katsu_config_field_to_beacon_filtering_term(cf):
-    return {
-        "type": "alphanumeric",
-        "id": cf.get("id"),
-        "label": cf.get("title"),
-        "operator": "=",
-        "options": cf.get("options")
-    }
-
-
 # strip meaningless timestamps from resouce
 def katsu_resources_to_beacon_resource(r):
     return {key: value for (key, value) in r.items() if key != "created" and key != "updated"}
 
 
+# construct filtering terms collection from katsu autocomplete endpoints
+# note: katsu autocomplete endpoints are paginated
+# TODO: these could be memoized, either at startup or the first time they're requested
 def get_filtering_terms():
-    return current_app.config.get("FILTERING_TERMS", build_filtering_terms())
+    c = current_app.config
+    pheno_features = katsu_autocomplete_terms(
+        c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
+    disease_terms = katsu_autocomplete_terms(
+        c["KATSU_DISEASES_TERMS_ENDPOINT"])
+    sampled_tissue_terms = katsu_autocomplete_terms(
+        c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
+    filtering_terms = pheno_features + disease_terms + sampled_tissue_terms
+    return list(map(katsu_autocomplete_to_beacon_filter, filtering_terms))
 
 
 def get_filtering_term_resources():
-    # no real resources for key-value pairs
-    return []
-
-
-# build terms from katsu public config
-def build_filtering_terms():
-    search_fields = current_app.config.get("KATSU_CONFIG_SEARCH_FIELDS", get_katsu_config_search_fields())
-    fields = []
-    for s in search_fields["sections"]:
-        fields.extend(s["fields"])
-    filtering_terms = list(map(katsu_config_field_to_beacon_filtering_term, fields))
-    current_app.config["FILTERING_TERMS"] = filtering_terms
-    return filtering_terms
-
+    r = katsu_get(current_app.config["KATSU_RESOURCES_ENDPOINT"])
+    resources = r.get("results", [])
+    resources = list(map(katsu_resources_to_beacon_resource, resources))
+    return resources
 
 # -------------------------------------------------------
 #       utils
