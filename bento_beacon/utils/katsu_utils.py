@@ -122,10 +122,10 @@ def search_from_config(config_filters):
     return response.get("matches", [])
 
 
-def get_katsu_config():
-    katsu_config = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"])
-    current_app.config["KATSU_CONFIG"] = katsu_config
-    return katsu_config
+def get_katsu_config_search_fields():
+    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"])
+    current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
+    return fields
 
 # -------------------------------------------------------
 #       query conversion
