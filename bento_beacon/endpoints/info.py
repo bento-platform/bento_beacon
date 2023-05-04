@@ -145,5 +145,8 @@ def build_beacon_map():
         entry_type = current_app.config["ENTRY_TYPES_DETAILS"].get(endpoint_set, {}).get("entryType")
         beacon_map[entry_type] = {"rootUrl": root_url, "entryType": entry_type}
 
+        if endpoint_set in ["datasets", "cohorts"]:
+            beacon_map[entry_type]["singleEntryUrl"] = root_url + "/{id}"
+
     current_app.config["BEACON_MAP"] = beacon_map
     return beacon_map
