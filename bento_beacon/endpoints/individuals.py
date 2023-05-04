@@ -36,8 +36,11 @@ def get_individuals():
         results_biosample_ids["experiment_sample_ids"] = experiment_sample_ids
 
     # compute intersection of everything in "results" dict
-    # note that the dict has non-empty lists only
-    sample_ids = list(reduce(set.intersection, (set(ids) for ids in results_biosample_ids.values())))
+    # dict is either empty or has dict entries that are non-empty
+    if results_biosample_ids:
+        sample_ids = list(reduce(set.intersection, (set(ids) for ids in results_biosample_ids.values())))
+    else:
+        sample_ids = []
 
     # -----------------------------------------------------------
     #  collect individual ids from phenopacket and config search
