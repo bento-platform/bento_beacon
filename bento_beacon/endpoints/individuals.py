@@ -7,6 +7,7 @@ from ..utils.gohan_utils import query_gohan
 
 individuals = Blueprint("individuals", __name__)
 
+
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
@@ -38,6 +39,7 @@ def get_individuals():
     # compute intersection of everything in "results" dict
     # dict is either empty or has dict entries that are non-empty
     if results_biosample_ids:
+        # ornate syntax but avoids a lot of separate edge cases
         sample_ids = list(reduce(set.intersection, (set(ids) for ids in results_biosample_ids.values())))
     else:
         sample_ids = []
@@ -46,15 +48,28 @@ def get_individuals():
     #  collect individual ids from phenopacket and config search
     # -----------------------------------------------------------
 
-    # get all individuals for variant / experiment / phenopacket search
-    individual_results = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+    # an alternative here is to return biosample ids from config search instead of individual ids,
+    # and then move the code to the block above. But this would mean implicitly hardcoding the
+    # linked field set in katsu, which we probably don't want
 
-    # get all individuals from config search, find intersection
+    results_individual_ids = {}
+
+    # get all individuals from phenopacket search,
+    # but limit results to people with matching sample ids from searches above
+    phenopacket_ids = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+    if phenopacket_ids:
+        results_individual_ids["phenopacket_ids"] = phenopacket_ids
+
     if config_filters:
-        config_search_subject_ids = search_from_config(config_filters)
-        individual_results = list(set(individual_results) & set(config_search_subject_ids))
+        config_ids = search_from_config(config_filters)
+        results_individual_ids["config_ids"] = config_ids
+        
+    if results_individual_ids:
+        individual_ids = list(reduce(set.intersection, (set(ids) for ids in results_individual_ids.values())))
+    else:
+        individual_ids = []
 
-    return beacon_response({"count": len(individual_results), "results": individual_results})
+    return beacon_response({"count": len(individual_ids), "results": individual_ids})
 
 
 # -------------------------------------------------------

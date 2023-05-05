@@ -30,8 +30,11 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
 
 def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
 
-    # okay if sample_ids is empty, just don't add "in statement" if missing
-    # may have to managed katsu_filters_query() below, add get_biosample_ids stuff?
+    # empty query
+    if not beacon_filters and not sample_ids:
+        return []
+
+    # okay if sample_ids is empty, just don't add "in" statement if missing
     filters_copy = beacon_filters[:]
     if sample_ids:
         filters_copy.append(
