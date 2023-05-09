@@ -3,6 +3,7 @@ from .gohan_utils import query_gohan
 from .katsu_utils import katsu_filters_query, search_from_config
 
 
+# TODO: search by linked field set elements instead of hardcoding
 def biosample_id_search(variants_query=None, phenopacket_filters=None, experiment_filters=None, config_filters=None):
     results_biosample_ids = {}
 

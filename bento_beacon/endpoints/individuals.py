@@ -24,9 +24,9 @@ def get_individuals():
     sample_ids = biosample_id_search(
         variants_query=variants_query, experiment_filters=experiment_filters, config_filters=config_filters)
 
-    # -----------------
+    # -------------------------------
     #  get individuals
-    # -----------------
+    # -------------------------------
 
     # get all individuals from phenopacket search,
     # but limit results to people with matching sample ids from searches above
