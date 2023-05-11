@@ -1,6 +1,6 @@
-from flask import Blueprint
-from ..utils.beacon_request import query_parameters_from_request
-from ..utils.beacon_response import beacon_response, add_info_to_response
+from flask import Blueprint, g
+from ..utils.beacon_request import query_parameters_from_request, summary_stats_requested
+from ..utils.beacon_response import beacon_response, add_info_to_response, add_stats_to_response, add_overview_stats_to_response
 from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_total_individuals_count
 from ..utils.search import biosample_id_search
 
@@ -15,6 +15,8 @@ def get_individuals():
     if not (variants_query or phenopacket_filters or experiment_filters or config_filters):
         add_info_to_response("no query found, returning total count")
         total_count = katsu_total_individuals_count()
+        if summary_stats_requested():
+            add_overview_stats_to_response()
         return beacon_response({"count": total_count})
 
     # ------------------------------------------------------------------
@@ -31,6 +33,10 @@ def get_individuals():
     # get all individuals from phenopacket search,
     # but limit results to people with matching sample ids from searches above
     individual_ids = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+
+    # conditionally add summary statistics to response
+    if g.request_data.get("bento", {}).get("showSummaryStatitics"):
+        add_stats_to_response(individual_ids)
 
     return beacon_response({"count": len(individual_ids), "results": individual_ids})
 

@@ -55,13 +55,17 @@ def save_request_data():
 
     request_meta = request_args.get("meta", {})
     request_query = request_args.get("query", {})
+    request_bento = request_args.get("bento", {})
 
     request_data = {
         "apiVersion": request_meta.get("apiVersion", defaults["apiVersion"]),
         "requestedSchemas": request_meta.get("requestedSchemas", defaults["requestedSchemas"]),
         "pagination": {**defaults["pagination"], **request_query.get("pagination", {})},
-        "requestedGranularity": request_query.get("requestedGranularity", defaults["granularity"])
+        "requestedGranularity": request_query.get("requestedGranularity", defaults["granularity"]),
     }
+
+    if request_bento:
+        request_data["bento"] = request_bento
 
     g.request_data = request_data
 
@@ -90,3 +94,7 @@ def validate_request():
         raise InvalidQuery(message=f"Bad Request: {e.message}")
 
     return
+
+
+def summary_stats_requested():
+    return g.request_data.get("bento", {}).get("showSummaryStatitics")
