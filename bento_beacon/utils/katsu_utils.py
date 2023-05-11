@@ -271,5 +271,5 @@ def search_summary_statistics(ids):
 
 
 def overview_statistics():
-    endpoint = "/api/overview"
-    return katsu_get(endpoint).get("data_type_specific", {})
+    return katsu_get("/api/overview").get("data_type_specific", {})
+
