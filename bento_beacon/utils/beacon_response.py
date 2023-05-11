@@ -131,7 +131,7 @@ def build_response_details(results):
 
 
 def build_response_summary(results, collection_response):
-    small_cell_count_threshold = current_app.config["SMALL_CELL_COUNT_THRESHOLD"]
+    small_cell_count_threshold = current_app.config["BEACON_CONFIG"].get("smallCellCountThreshold")
 
     if not collection_response:
         count = results.get("count")

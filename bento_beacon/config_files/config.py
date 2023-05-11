@@ -10,11 +10,6 @@ class Config:
     # version of this implementation
     BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
-    SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get(
-        "BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
-
-    MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
-
     # max granularity for unauthorized users
     DEFAULT_GRANULARITY = {
         "individuals": "count",
