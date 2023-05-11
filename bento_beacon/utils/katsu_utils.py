@@ -256,10 +256,20 @@ def katsu_datasets(id=None):
 
 def phenopackets_for_ids(ids):
     # retrieve from katsu search
-
     payload = {
         "data_type": "phenopacket",
         "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]
     }
     endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
     return katsu_network_call(payload, endpoint)
+
+
+def search_summary_statistics(ids):
+    endpoint = "/api/search_overview"
+    payload = {"id": ids}
+    return katsu_network_call(payload, endpoint)
+
+
+def overview_statistics():
+    endpoint = "/api/overview"
+    return katsu_get(endpoint).get("data_type_specific", {})
