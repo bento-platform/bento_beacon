@@ -2,6 +2,11 @@ from flask import current_app, g
 from .katsu_utils import search_summary_statistics, overview_statistics
 
 
+def get_censorship_threshold():
+    # throws expection if threshold missing from config
+    return current_app.config["BEACON_CONFIG"]["smallCellCountThreshold"]
+
+
 def zero_count_response():
     return beacon_response({"count": 0, "results": []})
 
@@ -17,7 +22,9 @@ def add_info_to_response(info):
 
 
 def add_stats_to_response(ids):
-    # TODO: uncensored stats, may need censorship
+    if len(ids) <= get_censorship_threshold():
+        return
+
     if ids is None:
         stats = overview_statistics()
     else:
@@ -135,11 +142,9 @@ def build_response_details(results):
 
 
 def build_response_summary(results, collection_response):
-    small_cell_count_threshold = current_app.config["BEACON_CONFIG"].get("smallCellCountThreshold")
-
     if not collection_response:
         count = results.get("count")
-        count = 0 if count <= small_cell_count_threshold else count
+        count = 0 if count <= get_censorship_threshold() else count
 
     # single collection (cohort or dataset), possibly empty
     elif isinstance(results, dict):
