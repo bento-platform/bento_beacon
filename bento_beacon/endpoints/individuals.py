@@ -27,6 +27,7 @@ def get_individuals():
     # ----------------------------------------------------------
     #  collect biosample ids from variant and experiment search
     # ----------------------------------------------------------
+    sample_ids = []
 
     if search_sample_ids:
         sample_ids = biosample_id_search(variants_query=variants_query, experiment_filters=experiment_filters)
