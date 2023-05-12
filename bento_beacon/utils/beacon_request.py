@@ -16,6 +16,11 @@ def request_defaults():
     }
 
 
+# replace compact phenopacket and experiment ids with native bento format
+def expand_path(id):
+    return id.replace("/", ".[item].")
+
+
 # request read from flask request context
 def query_parameters_from_request():
     if request.method == "POST":
@@ -37,9 +42,11 @@ def query_parameters_from_request():
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
     
-    # strip filter prefixes, no longer needed
-    phenopacket_filters = list(map(lambda f:  {"id": f["id"][len("phenopacket."):], "operator": f["operator"], "value": f["value"]}, phenopacket_filters))
-    experiment_filters = list(map(lambda f:  {"id": f["id"][len("experiment."):], "operator": f["operator"], "value": f["value"]}, experiment_filters))
+    # strip filter prefixes and convert remaining ids to bento format
+    phenopacket_filters = list(map(lambda f:  {"id": expand_path(f["id"])[len("phenopacket."):],
+                                               "operator": f["operator"], "value": f["value"]}, phenopacket_filters))
+    experiment_filters = list(map(lambda f:  {"id": expand_path(f["id"])[len("experiment."):],
+                                              "operator": f["operator"], "value": f["value"]}, experiment_filters))
     return variants_query, phenopacket_filters, experiment_filters, config_filters
 
 
