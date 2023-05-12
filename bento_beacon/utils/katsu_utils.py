@@ -121,6 +121,7 @@ def katsu_get(endpoint, id=None, query=""):
 def search_from_config(config_filters):
     # query error checking handled in katsu 
     query_string = "&".join([f'{cf["id"]}={cf["value"]}' for cf in config_filters])
+    query_string += "&response_format=beacon"
     response = katsu_get(current_app.config["KATSU_PUBLIC_SEARCH_ENDPOINT"], query=query_string)
     return response.get("matches", [])
 
