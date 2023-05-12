@@ -2,6 +2,10 @@ from flask import current_app, g
 from .katsu_utils import search_summary_statistics, overview_statistics
 
 
+def zero_count_response():
+    return beacon_response({"count": 0, "results": []})
+
+
 def init_response_data():
     # init so always available at endpoints
     g.response_data = {}
