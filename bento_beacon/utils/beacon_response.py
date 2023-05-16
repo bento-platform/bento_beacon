@@ -22,7 +22,7 @@ def add_info_to_response(info):
 
 
 def add_stats_to_response(ids):
-    if len(ids) <= get_censorship_threshold():
+    if ids is not None and len(ids) <= get_censorship_threshold():
         return
 
     if ids is None:
