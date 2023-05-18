@@ -45,8 +45,6 @@ def package_biosample_and_experiment_stats(stats):
     sampled_tissue = biosamples.get("sampled_tissue", {})
     experiment_type = experiments.get("experiment_type", {})
 
-    # TODO: apply censorship here
-
     # convert to bento_public response format
     sampled_tissue_data = [{"label": key, "value": value} for key, value in sampled_tissue.items()]
     experiment_type_data = [{"label": key, "value": value} for key, value in experiment_type.items()]
