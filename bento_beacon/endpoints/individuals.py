@@ -1,8 +1,21 @@
 from flask import Blueprint, g
 from functools import reduce
-from ..utils.beacon_request import query_parameters_from_request, summary_stats_requested
-from ..utils.beacon_response import beacon_response, add_info_to_response, add_stats_to_response, add_overview_stats_to_response, zero_count_response
-from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_total_individuals_count, search_from_config
+from ..utils.beacon_request import (
+    query_parameters_from_request,
+    summary_stats_requested,
+    )
+from ..utils.beacon_response import (
+    beacon_response,
+    add_info_to_response,
+    add_stats_to_response,
+    add_overview_stats_to_response,
+    zero_count_response
+)
+from ..utils.katsu_utils import (
+    katsu_filters_and_sample_ids_query,
+    katsu_total_individuals_count,
+    search_from_config
+)
 from ..utils.search import biosample_id_search
 
 individuals = Blueprint("individuals", __name__)
