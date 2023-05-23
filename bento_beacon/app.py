@@ -28,7 +28,7 @@ app.config.from_mapping(
     BEACON_REQUEST_SPEC_URI=beacon_request_spec_uri
 )
 
-app.config.from_object(Config)
+app.config.from_object(Config())
 
 # all logs are printed in dev mode regardless of level
 logging.basicConfig(
