@@ -2,7 +2,7 @@ FROM ghcr.io/bento-platform/bento_base_image:python-debian-2023.03.22
 
 SHELL ["/bin/bash", "-c"]
 
-RUN mkdir -p /beacon/config
+# RUN mkdir -p /beacon/config
 WORKDIR /beacon
 
 # Install dependencies
