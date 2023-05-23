@@ -13,6 +13,7 @@ LABEL devcontainer.metadata='[{ \
 
 SHELL ["/bin/bash", "-c"]
 
+RUN mkdir -p /beacon/config
 WORKDIR /beacon
 
 COPY requirements.txt .
