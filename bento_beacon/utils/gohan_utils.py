@@ -232,9 +232,9 @@ def gohan_counts_by_assembly_id():
 # gohan /variants/overview hangs when no variants table
 # so check for a table before calling
 def gohan_counts_for_overview():
-    tablesUrl = current_app.config["GOHAN_BASE_URL"] + "/tables?data-type=variant"
-    hasTables = gohan_network_call(tablesUrl, {})
-    if hasTables:
+    tables_url = current_app.config["GOHAN_BASE_URL"] + "/tables?data-type=variant"
+    has_tables = gohan_network_call(tables_url, {})
+    if has_tables:
         return gohan_counts_by_assembly_id()
     return {"error": "gohan unavailable"}
 
