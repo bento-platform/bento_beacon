@@ -147,8 +147,15 @@ class Config:
             with open(file_path) as f:
                 data = json.load(f)
                 return data
-        except FileNotFoundError:
-            # TODO: proper error response
+        except FileNotFoundError as e:
+            # print() since flask logging won't work here
+            print(f"File not found: {filename}")
+
+            # config file not optional
+            if filename == "beacon_config.json":
+                raise e
+
+            # else optional cohort file missing, error only shows if /cohorts endpoint present
             return {"message": "Beacon error, missing config file"}
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")
