@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count
-from ..utils.gohan_utils import gohan_counts_by_assembly_id
+from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count, katsu_get
+from ..utils.gohan_utils import gohan_counts_for_overview
 
 
 info = Blueprint("info", __name__)
@@ -12,7 +12,7 @@ JSON_SCHEMA = "https://json-schema.org/draft/2020-12/schema"
 
 def overview():
     if current_app.config["BEACON_CONFIG"].get("useGohan"):
-        variants_count = gohan_counts_by_assembly_id()
+        variants_count = gohan_counts_for_overview()
     else:
         variants_count = {}
 
@@ -67,8 +67,23 @@ def beacon_map():
 
 
 # -------------------------------------------------------
+#  schemas
+# -------------------------------------------------------
 
-# utility functions for building responses
+
+@info.route("/individual_schema", methods=['GET', 'POST'])
+def get_individual_schema():
+    return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
+
+
+@info.route("/experiment_schema", methods=['GET', 'POST'])
+def get_experiment_schema():
+    return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
+
+
+# -------------------------------------------------------
+#  utility functions for building responses
+# -------------------------------------------------------
 # these return the appropriate response but also save as a side effect
 
 

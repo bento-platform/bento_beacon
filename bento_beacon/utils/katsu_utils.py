@@ -30,8 +30,11 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
 
 def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
 
-    # okay if sample_ids is empty, just don't add "in statement" if missing
-    # may have to managed katsu_filters_query() below, add get_biosample_ids stuff?
+    # empty query
+    if not beacon_filters and not sample_ids:
+        return []
+
+    # okay if sample_ids is empty, just don't add "in" statement if missing
     filters_copy = beacon_filters[:]
     if sample_ids:
         filters_copy.append(
@@ -109,6 +112,23 @@ def katsu_get(endpoint, id=None, query=""):
 
     return katsu_response
 
+
+# -------------------------------------------------------
+#       search using katsu public config
+# -------------------------------------------------------
+
+
+def search_from_config(config_filters):
+    # query error checking handled in katsu
+    query_string = "&".join(f'{cf["id"]}{cf["operator"]}{cf["value"]}' for cf in config_filters)
+    response = katsu_get(current_app.config["KATSU_BEACON_SEARCH"], query=query_string)
+    return response.get("matches", [])
+
+
+def get_katsu_config_search_fields():
+    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"])
+    current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
+    return fields
 
 # -------------------------------------------------------
 #       query conversion
@@ -236,10 +256,19 @@ def katsu_datasets(id=None):
 
 def phenopackets_for_ids(ids):
     # retrieve from katsu search
-
     payload = {
         "data_type": "phenopacket",
         "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]
     }
     endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
     return katsu_network_call(payload, endpoint)
+
+
+def search_summary_statistics(ids):
+    endpoint = current_app.config["KATSU_SEARCH_OVERVIEW"]
+    payload = {"id": ids}
+    return katsu_network_call(payload, endpoint)
+
+
+def overview_statistics():
+    return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"]).get("data_type_specific", {})

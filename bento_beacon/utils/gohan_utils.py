@@ -189,9 +189,9 @@ def gohan_network_call(url, gohan_args):
         # handle gohan errors or any bad responses
         if not r.ok:
             current_app.logger.warning(
-                f"gohan error, status: {r.status_code}, message: {gohan_response.get('message')}")
+                 f"gohan error, status: {r.status_code}, message: {r.text}")
             raise APIException(
-                message=f"error searching gohan variants service: {gohan_response.get('message')}")
+                message="error searching gohan variants service")
 
         gohan_response = r.json()
 
@@ -228,6 +228,15 @@ def gohan_total_variants_count():
 def gohan_counts_by_assembly_id():
     return gohan_overview().get("assemblyIDs", {})
 
+
+# gohan /variants/overview hangs when no variants table
+# so check for a table before calling
+def gohan_counts_for_overview():
+    tables_url = current_app.config["GOHAN_BASE_URL"] + "/tables?data-type=variant"
+    has_tables = gohan_network_call(tables_url, {})
+    if has_tables:
+        return gohan_counts_by_assembly_id()
+    return {"error": "gohan unavailable"}
 
 # --------------------------------------------
 #     BEACON VARIANT QUERY TYPES

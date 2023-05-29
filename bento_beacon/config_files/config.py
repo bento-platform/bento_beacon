@@ -10,11 +10,6 @@ class Config:
     # version of this implementation
     BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
-    SMALL_CELL_COUNT_THRESHOLD = int(os.environ.get(
-        "BEACON_SMALL_CELL_COUNT_THRESHOLD", 5))
-
-    MAX_FILTERS = int(os.environ.get("BEACON_MAX_FILTERS", 2))
-
     # max granularity for unauthorized users
     DEFAULT_GRANULARITY = {
         "individuals": "count",
@@ -106,6 +101,12 @@ class Config:
     KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT = "/api/phenotypic_feature_type_autocomplete"
     KATSU_DISEASES_TERMS_ENDPOINT = "/api/disease_term_autocomplete"
     KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT = "/api/biosample_sampled_tissue_autocomplete"
+    KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/public_search_fields"
+    KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/chord_phenopacket_schema"
+    KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/experiment_schema"
+    KATSU_BEACON_SEARCH = "/api/beacon_search"
+    KATSU_SEARCH_OVERVIEW = "/api/search_overview"
+    KATSU_PRIVATE_OVERVIEW = "/api/overview"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
@@ -146,8 +147,15 @@ class Config:
             with open(file_path) as f:
                 data = json.load(f)
                 return data
-        except FileNotFoundError:
-            # TODO: proper error response
+        except FileNotFoundError as e:
+            # print() since flask logging won't work here
+            print(f"File not found: {filename}")
+
+            # config file not optional
+            if filename == "beacon_config.json":
+                raise e
+
+            # else optional cohort file missing, error only shows if /cohorts endpoint present
             return {"message": "Beacon error, missing config file"}
 
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")

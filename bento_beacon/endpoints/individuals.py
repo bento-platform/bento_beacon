@@ -1,47 +1,82 @@
-from flask import Blueprint
-from ..utils.beacon_request import query_parameters_from_request
-from ..utils.beacon_response import beacon_response, add_info_to_response
-from ..utils.katsu_utils import katsu_filters_and_sample_ids_query, katsu_filters_query, katsu_total_individuals_count
-from ..utils.gohan_utils import query_gohan
+from flask import Blueprint, g
+from functools import reduce
+from ..utils.beacon_request import (
+    query_parameters_from_request,
+    summary_stats_requested,
+    )
+from ..utils.beacon_response import (
+    beacon_response,
+    add_info_to_response,
+    add_stats_to_response,
+    add_overview_stats_to_response,
+    zero_count_response
+)
+from ..utils.katsu_utils import (
+    katsu_filters_and_sample_ids_query,
+    katsu_total_individuals_count,
+    search_from_config
+)
+from ..utils.search import biosample_id_search
 
 individuals = Blueprint("individuals", __name__)
 
+
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
-    variants_query, phenopacket_filters, experiment_filters = query_parameters_from_request()
+    variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 
-    # if no query, return total count of individuals
-    if not (variants_query or phenopacket_filters or experiment_filters):
+    no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
+    search_sample_ids = variants_query or experiment_filters
+    config_search_only = config_filters and not (variants_query or phenopacket_filters or experiment_filters)
+
+    # return total count of individuals if no query
+    if no_query:
         add_info_to_response("no query found, returning total count")
         total_count = katsu_total_individuals_count()
+        if summary_stats_requested():
+            add_overview_stats_to_response()
         return beacon_response({"count": total_count})
 
-    if variants_query:
-        variant_sample_ids = query_gohan(variants_query, "count", ids_only=True)
-        if not variant_sample_ids:
-            return beacon_response({"count": 0, "results": []})
-    
-    if experiment_filters:
-        experiment_sample_ids = katsu_filters_query(experiment_filters, "experiment", get_biosample_ids=True)
-        if not experiment_sample_ids:
-            return beacon_response({"count": 0, "results": []})
-
-    # compute cases for results
-    # some redundant bools for clarity
+    # ----------------------------------------------------------
+    #  collect biosample ids from variant and experiment search
+    # ----------------------------------------------------------
     sample_ids = []
-    if variants_query and experiment_filters:
-        sample_ids = list(set(variant_sample_ids) & set(experiment_sample_ids))
+
+    if search_sample_ids:
+        sample_ids = biosample_id_search(variants_query=variants_query, experiment_filters=experiment_filters)
         if not sample_ids:
-            return beacon_response({"count": 0, "results": []})
-    if variants_query and not experiment_filters:
-        sample_ids = variant_sample_ids
-    if experiment_filters and not variants_query:
-        sample_ids = experiment_sample_ids
+            return zero_count_response()
 
-    # finally, get all matching individuals
-    phenopacket_results = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+    # -------------------------------
+    #  get individuals
+    # -------------------------------
 
-    return beacon_response({"count": len(phenopacket_results), "results": phenopacket_results})
+    individual_results = {}
+
+    # get individuals from katsu config search
+    if config_filters:
+        config_ids = search_from_config(config_filters)
+        if not config_ids:
+            return zero_count_response()
+        individual_results["config_ids"] = config_ids
+
+    if not config_search_only:
+        # retrieve all matching individuals from sample id search, filtered by any phenopacket filters
+        # either of phenopacket_filters or sample_ids can be empty
+        phenopacket_ids = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+        if not phenopacket_ids:
+            return zero_count_response()
+        individual_results["phenopacket_ids"] = phenopacket_ids
+
+    # baroque syntax but covers all cases
+    individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
+
+    # conditionally add summary statistics to response
+    if g.request_data.get("bento", {}).get("showSummaryStatitics"):
+        add_stats_to_response(individual_ids)
+
+    return beacon_response({"count": len(individual_ids), "results": individual_ids})
+
 
 # -------------------------------------------------------
 #       unimplemented endpoints
