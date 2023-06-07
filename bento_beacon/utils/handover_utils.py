@@ -69,7 +69,6 @@ def drs_network_call(path, query):
     try:
         r = requests.get(
             url,
-            verify=not current_app.config["DEBUG"],
             timeout=DRS_TIMEOUT_SECONDS,
         )
         drs_response = r.json()

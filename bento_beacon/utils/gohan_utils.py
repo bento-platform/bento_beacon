@@ -181,7 +181,6 @@ def gohan_network_call(url, gohan_args):
     try:
         r = requests.get(
             url,
-            verify=not c["DEBUG"],
             timeout=c["GOHAN_TIMEOUT"],
             params=gohan_args
         )
