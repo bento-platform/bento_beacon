@@ -3,8 +3,6 @@ import os
 
 
 class Config:
-    DEBUG = os.environ.get("BEACON_DEBUG", False)
-
     BEACON_SPEC_VERSION = "v2.0.0"
 
     # version of this implementation
@@ -21,6 +19,11 @@ class Config:
     }
 
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
+
+    # reverse domain id
+    BEACON_ID = ".".join(reversed(os.environ.get("BENTOV2_DOMAIN").split("."))) + ".beacon"
+
+    BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "BENTO") + " Beacon"
 
     ENTRY_TYPES_DETAILS = {
         "biosamples": {

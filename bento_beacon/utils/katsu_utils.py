@@ -54,7 +54,6 @@ def katsu_network_call(payload, endpoint=None):
     try:
         r = requests.post(
             url,
-            verify=not c["DEBUG"],
             timeout=c["KATSU_TIMEOUT"],
             json=payload
         )
@@ -81,7 +80,6 @@ def katsu_network_call(payload, endpoint=None):
 def katsu_get(endpoint, id=None, query=""):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
-    verify_certificates = not c["DEBUG"]
     timeout = current_app.config["KATSU_TIMEOUT"]
 
     # construct request url
@@ -100,7 +98,6 @@ def katsu_get(endpoint, id=None, query=""):
     try:
         r = requests.get(
             query_url,
-            verify=verify_certificates,
             timeout=timeout
         )
         katsu_response = r.json()
