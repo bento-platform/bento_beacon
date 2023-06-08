@@ -27,19 +27,21 @@ def overview():
 # service-info in ga4gh format
 @info.route("/service-info")
 def service_info():
+    # plain response without beacon wrappers
     return current_app.config.get("BEACON_GA4GH_SERVICE_INFO", build_ga4gh_service_info())
 
 
 # service info in beacon format
 @info.route("/")
 def beacon_info():
-    return current_app.config["BEACON_CONFIG"].get("serviceInfo")
+    return current_app.config.get("SERVICE_INFO", build_service_info())
 
 
 # as above but with beacon overview details
 @info.route("/info")
 def beacon_info_with_overview():
-    return beacon_info_response({**current_app.config["BEACON_CONFIG"].get("serviceInfo"), "overview": overview()})
+    service_info = current_app.config.get("SERVICE_INFO", build_service_info())
+    return beacon_info_response({**service_info, "overview": overview()})
 
 
 @info.route("/filtering_terms")
@@ -86,9 +88,17 @@ def get_experiment_schema():
 # -------------------------------------------------------
 # these return the appropriate response but also save as a side effect
 
+def build_service_info():
+    service_info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
+    service_info["environment"] = "dev" if current_app.config["DEBUG"] else "prod"
+    service_info["id"] = current_app.config["BEACON_ID"]
+    service_info["name"] = current_app.config["BEACON_NAME"]
+    current_app.config["SERVICE_INFO"] = service_info
+    return service_info
+
 
 def build_ga4gh_service_info():
-    service_info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
+    service_info = current_app.config.get("SERVICE_INFO", build_service_info())
     service_info["type"] = {
         "artifact": "Beacon v2",
         "group": "org.ga4gh",
@@ -104,8 +114,8 @@ def build_configuration_endpoint_response():
     entry_types_details = current_app.config.get("ENTRY_TYPES", build_entry_types())
 
     # production status is one of "DEV", "PROD", "TEST"
-    # while environment is one of "dev", "prod", "test", "staging".. generally only need "dev" and "prod"
-    production_status = current_app.config["BEACON_CONFIG"].get("serviceInfo", {}).get("environment", "error").upper()
+    # while environment is one of "dev", "prod", "test", "staging".. generally only use "dev" or "prod"
+    production_status = current_app.config.get("SERVICE_INFO", build_service_info()).get("environment", "error").upper()
 
     response = {
         "$schema": JSON_SCHEMA,
