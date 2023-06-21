@@ -150,7 +150,7 @@ def bento_query_expression(q):
     has_wildcard = "%" in beacon_value
 
     # reject meaningless cases
-    if has_wildcard and q["operator"] in ["<", "<=", ">", ">="]:
+    if has_wildcard and q["operator"] in ("<", "<=", ">", ">="):
         raise InvalidQuery("cannot interpret wildcard character '%' with an inequality operator (<, <=, >, >=)")
 
     # separate handling for negation
