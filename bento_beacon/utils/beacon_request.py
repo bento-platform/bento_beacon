@@ -104,4 +104,4 @@ def validate_request():
 
 
 def summary_stats_requested():
-    return g.request_data.get("bento", {}).get("showSummaryStatitics")
+    return g.request_data.get("bento", {}).get("showSummaryStatistics")

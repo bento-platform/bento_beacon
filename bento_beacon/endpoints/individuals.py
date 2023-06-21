@@ -1,4 +1,4 @@
-from flask import Blueprint, g
+from flask import Blueprint
 from functools import reduce
 from ..utils.beacon_request import (
     query_parameters_from_request,
@@ -72,7 +72,7 @@ def get_individuals():
     individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
 
     # conditionally add summary statistics to response
-    if g.request_data.get("bento", {}).get("showSummaryStatitics"):
+    if summary_stats_requested():
         add_stats_to_response(individual_ids)
 
     return beacon_response({"count": len(individual_ids), "results": individual_ids})
