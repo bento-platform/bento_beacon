@@ -2,7 +2,7 @@ from flask import current_app
 from json import JSONDecodeError
 import requests
 from urllib.parse import urlsplit, urlunsplit
-from .exceptions import APIException
+from .exceptions import APIException, InvalidQuery
 from functools import reduce
 
 
@@ -141,21 +141,30 @@ katsu_operator_mapping = {
 }
 
 
-# assume json query already validated
 # convert an individual beacon filter into bento format
 def bento_query_expression(q):
     # break up phenopackets property name with "#resolve" appended at the front
     katsu_key = ["#resolve", *q["id"].split(".")]
 
-    # extra handling for negation, "!" is always negated equality
+    beacon_value = q["value"]
+    has_wildcard = "%" in beacon_value
+
+    # reject meaningless cases
+    if has_wildcard and q["operator"] in ("<", "<=", ">", ">="):
+        raise InvalidQuery("cannot interpret wildcard character '%' with an inequality operator (<, <=, >, >=)")
+
+    # separate handling for negation
     if q["operator"] == "!":
-        return ["#not", ["#eq", katsu_key, q["value"]]]
+        op = "#ilike" if has_wildcard else "#eq"
+        return ["#not", [op, katsu_key, beacon_value]]
 
-    # separate handling for in/list
+    # separate handling for in/list (never negated)
     if q["operator"] == "#in":
-        return ["#in", katsu_key, ["#list", *q["value"]]]
+        return ["#in", katsu_key, ["#list", *beacon_value]]
 
-    return [katsu_operator_mapping[q["operator"]], katsu_key, q["value"]]
+    # all other cases
+    katsu_op = "#ilike" if has_wildcard else katsu_operator_mapping[q["operator"]]
+    return [katsu_op, katsu_key, beacon_value]
 
 
 # convert an array of beacon filters into an array of bento query terms
