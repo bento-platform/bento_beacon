@@ -1,6 +1,12 @@
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count, katsu_get
+from ..utils.katsu_utils import (
+    get_filtering_terms,
+    get_filtering_term_resources,
+    katsu_total_individuals_count,
+    katsu_get,
+    katsu_datasets
+)
 from ..utils.gohan_utils import gohan_counts_for_overview
 
 
@@ -108,6 +114,36 @@ def build_ga4gh_service_info():
     service_info["bento"] = {"serviceKind": "beacon"}
     current_app.config["BEACON_GA4GH_SERVICE_INFO"] = service_info
     return service_info
+
+
+def build_organization_info():
+    # build org info with values for logoUrl, welcomeUrl, contactUrl
+    # ... what about the other values?
+
+    # logo
+    # pull from bento public assets, ie /public/assets/branding.png
+    # this will either be custom branding or a big bento logo
+    # possibly override if "logoUrl" present in copied service info??
+
+    # description
+    # pull from DATS description
+    # or nothing if missing
+    k_datasets = katsu_datasets()
+
+    # welcomeUrl
+    # BQC landing page is at distributions[0].access.landingPage
+    # ICHANGE landing page is at distributions[0].access.landingPage
+    # ... so should be good to pull from here?
+    # could also override with "welcomeUrl" in copied service info?
+
+    # contact url
+    # DATS is not strict enough here
+    # for both BQC and ICHANGE, contact info is in extraProperties array
+    # in an objet with field "category": "contact",
+    # and corresponding values array with string entry, eg "value": "BQC19 support, info@bqc19.ca"
+    # no guarantee there will be an email or url or anything in particular here
+    # so may have to add to copied service info ?
+    ...
 
 
 def build_configuration_endpoint_response():
