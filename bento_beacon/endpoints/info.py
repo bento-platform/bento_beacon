@@ -34,7 +34,7 @@ def service_info():
 # service info in beacon format
 @info.route("/")
 def beacon_info():
-    return current_app.config.get("SERVICE_INFO", build_service_info())
+    return beacon_info_response(current_app.config.get("SERVICE_INFO", build_service_info()))
 
 
 # as above but with beacon overview details
@@ -55,17 +55,17 @@ def filtering_terms():
 # distinct from "BEACON_CONFIG"
 @info.route("/configuration")
 def beacon_configuration():
-    return current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", build_configuration_endpoint_response())
+    return beacon_info_response(current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", build_configuration_endpoint_response()))
 
 
 @info.route("/entry_types")
 def entry_types():
-    return current_app.config.get("ENTRY_TYPES", build_entry_types())
+    return beacon_info_response(current_app.config.get("ENTRY_TYPES", build_entry_types()))
 
 
 @info.route("/map")
 def beacon_map():
-    return current_app.config.get("BEACON_MAP", build_beacon_map())
+    return beacon_info_response(current_app.config.get("BEACON_MAP", build_beacon_map()))
 
 
 # -------------------------------------------------------
