@@ -107,6 +107,10 @@ def build_service_info():
     if description:
         service_info["description"] = description
 
+    # url for beacon ui
+    if current_app.config["BEACON_UI_ENABLED"]:
+        service_info["welcomeUrl"] = current_app.config["BEACON_UI_URL"]
+
     current_app.config["SERVICE_INFO"] = service_info
     return service_info
 
