@@ -1,6 +1,12 @@
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count, katsu_get
+from ..utils.katsu_utils import (
+    get_filtering_terms,
+    get_filtering_term_resources,
+    katsu_total_individuals_count,
+    katsu_get,
+    katsu_datasets
+)
 from ..utils.gohan_utils import gohan_counts_for_overview
 
 
@@ -93,6 +99,14 @@ def build_service_info():
     service_info["environment"] = "dev" if current_app.config["DEBUG"] else "prod"
     service_info["id"] = current_app.config["BEACON_ID"]
     service_info["name"] = current_app.config["BEACON_NAME"]
+
+    # retrieve dataset description from DATS
+    # may be multiple datasets, so collect all descriptions into one string
+    k_datasets = katsu_datasets()
+    description = " ".join([d.get("description") for d in k_datasets if "description" in d])
+    if description:
+        service_info["description"] = description
+
     current_app.config["SERVICE_INFO"] = service_info
     return service_info
 
