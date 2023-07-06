@@ -1,3 +1,4 @@
+from copy import deepcopy
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import (
@@ -95,7 +96,7 @@ def get_experiment_schema():
 # these return the appropriate response but also save as a side effect
 
 def build_service_info():
-    service_info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
+    service_info = deepcopy(current_app.config["BEACON_CONFIG"].get("serviceInfo"))
     service_info["environment"] = "dev" if current_app.config["DEBUG"] else "prod"
     service_info["id"] = current_app.config["BEACON_ID"]
     service_info["name"] = current_app.config["BEACON_NAME"]
