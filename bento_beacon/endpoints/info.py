@@ -103,9 +103,10 @@ def build_service_info():
 
     # retrieve dataset description from DATS
     # may be multiple datasets, so collect all descriptions into one string
+    # for custom description, add a "description" field to service info in beacon_config.json
     k_datasets = katsu_datasets()
     description = " ".join([d.get("description") for d in k_datasets if "description" in d])
-    if description:
+    if description and service_info.get("description") is None:
         service_info["description"] = description
 
     # url for beacon ui
