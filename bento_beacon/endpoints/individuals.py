@@ -1,5 +1,6 @@
 from flask import Blueprint
 from functools import reduce
+from ..authz import authz_middleware
 from ..utils.beacon_request import (
     query_parameters_from_request,
     summary_stats_requested,
@@ -22,6 +23,7 @@ individuals = Blueprint("individuals", __name__)
 
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
+@authz_middleware.deco_public_endpoint()  # TODO: for now. eventually, return more depending on permissions
 def get_individuals():
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 

@@ -1,4 +1,5 @@
 from flask import Blueprint
+from ..authz import authz_middleware
 from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response, add_info_to_response
 from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_totals_by_sample_id
@@ -9,6 +10,7 @@ variants = Blueprint("variants", __name__)
 
 # returns counts only
 @variants.route("/g_variants", methods=['GET', 'POST'])
+@authz_middleware.deco_public_endpoint()  # TODO: for now. eventually, return more depending on permissions
 def get_variants():
     variants_query, phenopacket_filters, experiment_filters = query_parameters_from_request()
 
