@@ -1,4 +1,5 @@
 from flask import Blueprint, current_app
+from ..authz import authz_middleware
 from ..utils.exceptions import NotImplemented
 from ..utils.beacon_response import beacon_response
 from ..utils.katsu_utils import katsu_datasets
@@ -8,6 +9,7 @@ datasets = Blueprint("datasets", __name__)
 
 
 @datasets.route("/datasets", methods=['GET', 'POST'])
+@authz_middleware.deco_public_endpoint()  # TODO: authz - more flexibility in what is visible (?)
 def get_datasets():
     granularity = current_app.config["DEFAULT_GRANULARITY"]["datasets"]
 
@@ -19,6 +21,7 @@ def get_datasets():
 
 
 @datasets.route("/datasets/<id>", methods=['GET', 'POST'])
+@authz_middleware.deco_public_endpoint()  # TODO: authz - more flexibility in what is visible (?)
 def get_datasets_by_id(id):
     k_dataset = katsu_datasets(id)
     dataset_beacon_format = katsu_to_beacon_dataset_mapping(
