@@ -25,10 +25,10 @@ def get_cohort_by_id(id):
 
 
 @cohorts.route("/cohorts/<id>/individuals", methods=['GET', 'POST'])
-def individuals_by_cohort(id):
+def individuals_by_cohort(id):  # TODO: authz
     raise NotImplemented()
 
 
 @cohorts.route("/cohorts/<id>/filtering_terms", methods=['GET', 'POST'])
-def filtering_terms_by_cohort(id):
+def filtering_terms_by_cohort(id):  # TODO: authz
     raise NotImplemented()

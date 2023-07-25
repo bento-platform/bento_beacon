@@ -67,18 +67,18 @@ def get_variants():
 # These aren't useful for a counts-only beacon (you will never know any ids)
 
 @variants.route("/g_variants/<id>", methods=['GET', 'POST'])
-def variant_by_id(id):
+def variant_by_id(id):  # TODO: authz
     # get one variant by (internal) id
     raise NotImplemented()
 
 
 @variants.route("/g_variants/<id>/biosamples", methods=['GET', 'POST'])
-def biosamples_by_variant(id):
+def biosamples_by_variant(id):  # TODO: authz
     # all biosamples for a particular variant
     raise NotImplemented()
 
 
 @variants.route("/g_variants/<id>/individuals", methods=['GET', 'POST'])
-def individuals_by_variant(id):
+def individuals_by_variant(id):  # TODO: authz
     # all individuals for a particular variant
     raise NotImplemented()

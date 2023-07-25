@@ -30,20 +30,20 @@ def get_datasets_by_id(id):
 
 
 @datasets.route("/datasets/<id>/g_variants", methods=['GET', 'POST'])
-def variants_by_dataset(id):
+def variants_by_dataset(id):  # TODO: authz
     raise NotImplemented()
 
 
 @datasets.route("/datasets/<id>/biosamples", methods=['GET', 'POST'])
-def biosamples_by_dataset(id):
+def biosamples_by_dataset(id):  # TODO: authz
     raise NotImplemented()
 
 
 @datasets.route("/datasets/<id>/individuals", methods=['GET', 'POST'])
-def individuals_by_dataset(id):
+def individuals_by_dataset(id):  # TODO: authz
     raise NotImplemented()
 
 
 @datasets.route("/datasets/<id>/filtering_terms", methods=['GET', 'POST'])
-def filtering_terms_by_dataset(id):
+def filtering_terms_by_dataset(id):  # TODO: authz
     raise NotImplemented()
