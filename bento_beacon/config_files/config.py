@@ -21,7 +21,6 @@ class Config:
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
     BENTO_PUBLIC_URL = "https://" + BENTO_DOMAIN
-    BRANDING_LOGO_URL = BENTO_PUBLIC_URL + "/public/assets/branding.png"
 
     # reverse domain id
     BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
