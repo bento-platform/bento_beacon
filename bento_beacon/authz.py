@@ -13,9 +13,11 @@ __all__ = [
 
 authz_middleware = FlaskAuthMiddleware(Config.AUTHZ_URL, enabled=Config.AUTHZ_ENABLED)
 
+# for now, these will go unused - Beacon currently does not have a strong concept of Bento projects/datasets
 PERMISSION_QUERY_PROJECT_LEVEL_BOOLEAN = "query:project_level_boolean"
 PERMISSION_QUERY_DATASET_LEVEL_BOOLEAN = "query:dataset_level_boolean"
 PERMISSION_QUERY_PROJECT_LEVEL_COUNTS = "query:project_level_counts"
 PERMISSION_QUERY_DATASET_LEVEL_COUNTS = "query:dataset_level_counts"
+# these permissions can open up various aspects of handoff / full-search
 PERMISSION_QUERY_DATA = "query:data"
 PERMISSION_DOWNLOAD_DATA = "download:data"
