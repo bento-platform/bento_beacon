@@ -10,6 +10,7 @@ from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
+from .authz import authz_middleware
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
@@ -38,6 +39,9 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+# attach authz middleware to the Flask app
+authz_middleware.attach(app)
 
 # blueprints
 # always load info endpoints, load everything else based on config
