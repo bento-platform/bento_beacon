@@ -23,7 +23,7 @@ individuals = Blueprint("individuals", __name__)
 
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
-@authz_middleware.deco_public_endpoint()  # TODO: authz - for now. eventually, return more depending on permissions
+@authz_middleware.deco_public_endpoint  # TODO: authz - for now. eventually, return more depending on permissions
 def get_individuals():
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 

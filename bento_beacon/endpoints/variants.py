@@ -10,7 +10,7 @@ variants = Blueprint("variants", __name__)
 
 # returns counts only
 @variants.route("/g_variants", methods=['GET', 'POST'])
-@authz_middleware.deco_public_endpoint()  # TODO: for now. eventually, return more depending on permissions
+@authz_middleware.deco_public_endpoint  # TODO: for now. eventually, return more depending on permissions
 def get_variants():
     variants_query, phenopacket_filters, experiment_filters = query_parameters_from_request()
 
