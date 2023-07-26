@@ -26,7 +26,7 @@ class Config:
     BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
 
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
-    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED")
+    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED").lower() in ('true', '1', 't')
     BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
