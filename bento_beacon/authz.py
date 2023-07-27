@@ -1,5 +1,6 @@
 from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from .config_files.config import Config
+from .utils.beacon_response import build_response_meta
 
 __all__ = [
     "authz_middleware",
@@ -11,7 +12,12 @@ __all__ = [
     "PERMISSION_DOWNLOAD_DATA",
 ]
 
-authz_middleware = FlaskAuthMiddleware(Config.AUTHZ_URL, enabled=Config.AUTHZ_ENABLED)
+
+authz_middleware = FlaskAuthMiddleware(
+    Config.AUTHZ_URL,
+    enabled=Config.AUTHZ_ENABLED,
+    beacon_meta_callback=build_response_meta,
+)
 
 # for now, these will go unused - Beacon currently does not have a strong concept of Bento projects/datasets
 PERMISSION_QUERY_PROJECT_LEVEL_BOOLEAN = "query:project_level_boolean"
