@@ -195,7 +195,7 @@ def gohan_network_call(url, gohan_args):
         gohan_response = r.json()
 
     except requests.exceptions.RequestException as e:
-        current_app.logger.debug(f"gohan error: {e}")
+        current_app.logger.error(f"gohan error: {e}")
         raise APIException(message="error calling gohan variants service")
 
     return gohan_response
@@ -232,9 +232,18 @@ def gohan_counts_by_assembly_id():
 # so check for a table before calling
 def gohan_counts_for_overview():
     tables_url = current_app.config["GOHAN_BASE_URL"] + "/tables?data-type=variant"
-    has_tables = gohan_network_call(tables_url, {})
-    if has_tables:
+    tables = []
+
+    try:
+        tables = gohan_network_call(tables_url, {})
+    except APIException:
+        # note this exception but don't rethrow
+        current_app.logger.error("cannot reach gohan for overview")
+    
+    if tables:
         return gohan_counts_by_assembly_id()
+
+    # either api is dead or elasticsearch is down
     return {"error": "gohan unavailable"}
 
 # --------------------------------------------
