@@ -1,6 +1,13 @@
+from copy import deepcopy
 from flask import Blueprint, current_app
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import get_filtering_terms, get_filtering_term_resources, katsu_total_individuals_count, katsu_get
+from ..utils.katsu_utils import (
+    get_filtering_terms,
+    get_filtering_term_resources,
+    katsu_total_individuals_count,
+    katsu_get,
+    katsu_datasets
+)
 from ..utils.gohan_utils import gohan_counts_for_overview
 
 
@@ -89,10 +96,23 @@ def get_experiment_schema():
 # these return the appropriate response but also save as a side effect
 
 def build_service_info():
-    service_info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
+    service_info = deepcopy(current_app.config["BEACON_CONFIG"].get("serviceInfo"))
     service_info["environment"] = "dev" if current_app.config["DEBUG"] else "prod"
     service_info["id"] = current_app.config["BEACON_ID"]
     service_info["name"] = current_app.config["BEACON_NAME"]
+
+    # retrieve dataset description from DATS
+    # may be multiple datasets, so collect all descriptions into one string
+    # for custom description, add a "description" field to service info in beacon_config.json
+    k_datasets = katsu_datasets()
+    description = " ".join([d.get("description") for d in k_datasets if "description" in d])
+    if description and service_info.get("description") is None:
+        service_info["description"] = description
+
+    # url for beacon ui
+    if current_app.config["BEACON_UI_ENABLED"]:
+        service_info["welcomeUrl"] = current_app.config["BEACON_UI_URL"]
+
     current_app.config["SERVICE_INFO"] = service_info
     return service_info
 
