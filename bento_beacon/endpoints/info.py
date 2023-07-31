@@ -18,7 +18,7 @@ JSON_SCHEMA = "https://json-schema.org/draft/2020-12/schema"
 
 
 def overview():
-    if current_app.config["BEACON_CONFIG"].get("useGohan").strip().lower() in ('true', '1', 't'):
+    if current_app.config["BEACON_CONFIG"].get("useGohan"):
         variants_count = gohan_counts_for_overview()
     else:
         variants_count = {}
