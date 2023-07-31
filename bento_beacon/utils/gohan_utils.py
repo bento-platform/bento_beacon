@@ -228,6 +228,7 @@ def gohan_counts_by_assembly_id():
     return gohan_overview().get("assemblyIDs", {})
 
 
+# only runs if "useGohan" true
 def gohan_counts_for_overview():
     # gohan /variants/overview hangs when no variants table
     # so check for tables before calling
@@ -245,8 +246,9 @@ def gohan_counts_for_overview():
         return gohan_counts_by_assembly_id()
     
     # empty tables (fresh instance or elasticsearch down)
+    # "useGohan" is true here so we expect variants to exist
     if tables is not None:
-        return {}
+        return {"error": "no variants available"}
 
     # else bad response from gohan
     return {"error": "gohan unavailable"}
