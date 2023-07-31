@@ -18,12 +18,16 @@ class Config:
         "info": "record"
     }
 
+    BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
+    BENTO_PUBLIC_URL = os.environ.get("BENTOV2_PUBLIC_URL")
 
     # reverse domain id
-    BEACON_ID = ".".join(reversed(os.environ.get("BENTOV2_DOMAIN").split("."))) + ".beacon"
+    BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
 
-    BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "BENTO") + " Beacon"
+    BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
+    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED").strip().lower() in ('true', '1', 't')
+    BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
         "biosamples": {
