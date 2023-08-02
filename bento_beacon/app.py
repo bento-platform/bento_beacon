@@ -15,6 +15,7 @@ from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
 from .utils.beacon_response import init_response_data
+from .utils.katsu_utils import katsu_censorship_settings
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -62,6 +63,10 @@ with app.app_context():
         if endpoint_set not in BEACON_MODELS:
             raise APIException(message="beacon config contains unknown endpoint set")
         app.register_blueprint(blueprints[endpoint_set])
+    
+    max_filters, count_threshold = katsu_censorship_settings()
+    current_app.config["MAX_FILTERS"] = max_filters
+    current_app.config["COUNT_THRESHOLD"] = count_threshold
 
 
 @app.before_request

@@ -95,8 +95,6 @@ def katsu_get(endpoint, id=None, query=""):
         url_components.fragment
     ))
 
-    print("before request")
-
     try:
         r = requests.get(
             query_url,
@@ -280,3 +278,19 @@ def search_summary_statistics(ids):
 
 def overview_statistics():
     return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"]).get("data_type_specific", {})
+
+
+def katsu_censorship_settings():
+    o = katsu_get(current_app.config["KATSU_PUBLIC_OVERVIEW"])
+
+    max_filters = o.get("max_query_parameters")
+    if max_filters is None:
+        current_app.logger.error("could not read 'max_query_parameters' setting in katsu config")
+        max_filters = current_app.config["DEFAULT_MAX_FILTERS"]
+
+    count_threshold = o.get("count_threshold")
+    if count_threshold is None: 
+        current_app.logger.error("could not read 'count_threshold' setting in katsu config")
+        count_threshold = current_app.config["DEFAULT_COUNT_THRESHOLD"]
+
+    return max_filters, count_threshold
