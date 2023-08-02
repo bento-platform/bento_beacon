@@ -1,5 +1,6 @@
 from copy import deepcopy
 from flask import Blueprint, current_app
+from ..authz import authz_middleware
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import (
     get_filtering_terms,
@@ -33,6 +34,7 @@ def overview():
 
 # service-info in ga4gh format
 @info.route("/service-info")
+@authz_middleware.deco_public_endpoint
 def service_info():
     # plain response without beacon wrappers
     return current_app.config.get("BEACON_GA4GH_SERVICE_INFO", build_ga4gh_service_info())
@@ -40,18 +42,21 @@ def service_info():
 
 # service info in beacon format
 @info.route("/")
+@authz_middleware.deco_public_endpoint
 def beacon_info():
     return beacon_info_response(current_app.config.get("SERVICE_INFO", build_service_info()))
 
 
 # as above but with beacon overview details
 @info.route("/info")
+@authz_middleware.deco_public_endpoint
 def beacon_info_with_overview():
     service_info = current_app.config.get("SERVICE_INFO", build_service_info())
     return beacon_info_response({**service_info, "overview": overview()})
 
 
 @info.route("/filtering_terms")
+@authz_middleware.deco_public_endpoint
 # TODO
 def filtering_terms():
     resources = get_filtering_term_resources()
@@ -61,16 +66,19 @@ def filtering_terms():
 
 # distinct from "BEACON_CONFIG"
 @info.route("/configuration")
+@authz_middleware.deco_public_endpoint
 def beacon_configuration():
     return beacon_info_response(current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", build_configuration_endpoint_response()))
 
 
 @info.route("/entry_types")
+@authz_middleware.deco_public_endpoint
 def entry_types():
     return beacon_info_response(current_app.config.get("ENTRY_TYPES", build_entry_types()))
 
 
 @info.route("/map")
+@authz_middleware.deco_public_endpoint
 def beacon_map():
     return beacon_info_response(current_app.config.get("BEACON_MAP", build_beacon_map()))
 
@@ -81,11 +89,13 @@ def beacon_map():
 
 
 @info.route("/individual_schema", methods=['GET', 'POST'])
+@authz_middleware.deco_public_endpoint
 def get_individual_schema():
     return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
 
 
 @info.route("/experiment_schema", methods=['GET', 'POST'])
+@authz_middleware.deco_public_endpoint
 def get_experiment_schema():
     return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
 

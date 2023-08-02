@@ -4,6 +4,7 @@ import requests
 from urllib.parse import urlsplit, urlunsplit
 from .exceptions import APIException, InvalidQuery
 from functools import reduce
+from .nested_query_utils import auth_header_from_request
 
 
 def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
@@ -54,6 +55,7 @@ def katsu_network_call(payload, endpoint=None):
     try:
         r = requests.post(
             url,
+            headers=auth_header_from_request(),
             timeout=c["KATSU_TIMEOUT"],
             json=payload
         )

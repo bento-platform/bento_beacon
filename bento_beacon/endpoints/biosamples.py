@@ -11,7 +11,7 @@ biosamples = Blueprint("biosamples", __name__)
 # TODO: pass beacon filtering terms as katsu queries
 
 @biosamples.route("/biosamples", methods=['GET', 'POST'])
-def get_biosamples():
+def get_biosamples():  # TODO: authz
     # katsu_response = query_katsu(
     #     current_app.config["KATSU_BIOSAMPLES_ENDPOINT"])
 
@@ -28,7 +28,7 @@ def get_biosamples():
 
 
 @biosamples.route("/biosamples/<id>", methods=['GET', 'POST'])
-def get_katsu_biosamples_by_id(id):
+def get_katsu_biosamples_by_id(id):  # TODO: authz
     # katsu_response = query_katsu(
     #     current_app.config["KATSU_BIOSAMPLES_ENDPOINT"], id)
 
@@ -44,15 +44,15 @@ def get_katsu_biosamples_by_id(id):
 
 
 @biosamples.route("/biosamples/<id>/g_variants", methods=['GET', 'POST'])
-def variants_by_biosample(id):
+def variants_by_biosample(id):  # TODO: authz
     raise NotImplemented()
 
 
 @biosamples.route("/biosamples/<id>/analyses", methods=['GET', 'POST'])
-def analyses_by_biosample(id):
+def analyses_by_biosample(id):  # TODO: authz
     raise NotImplemented()
 
 
 @biosamples.route("/biosamples/<id>/runs", methods=['GET', 'POST'])
-def runs_by_biosample(id):
+def runs_by_biosample(id):  # TODO: authz
     raise NotImplemented()

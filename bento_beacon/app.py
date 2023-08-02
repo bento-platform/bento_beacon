@@ -1,6 +1,6 @@
 import logging
 import os
-from flask import Flask, current_app
+from flask import Flask, current_app, request
 from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
@@ -10,6 +10,7 @@ from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
+from .authz import authz_middleware
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
@@ -38,6 +39,9 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+# attach authz middleware to the Flask app
+authz_middleware.attach(app)
 
 # blueprints
 # always load info endpoints, load everything else based on config
@@ -69,6 +73,12 @@ def before_request():
 
 @app.errorhandler(Exception)
 def generic_exception_handler(e):
+    # Assume we've determined this exception is OK to show upstream (i.e., not mask with a 403 Forbidden),
+    # and mark the request authz as completed.
+    authz_middleware.mark_authz_done(request)
+    # Situations where we may want to mask, e.g., 404s include situations where a specific ID is involved;
+    # if we don't mask 404s there, the IDs in a dataset could be enumerated + guessed.
+
     if isinstance(e, APIException):
         current_app.logger.error(f"API Exception: {e.message}")
         return beacon_error_response(e.message, e.status_code), e.status_code

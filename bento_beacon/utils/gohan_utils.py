@@ -1,5 +1,6 @@
 from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
+from .nested_query_utils import auth_header_from_request
 import requests
 
 # -------------------------------------------------------
@@ -181,6 +182,7 @@ def gohan_network_call(url, gohan_args):
     try:
         r = requests.get(
             url,
+            headers=auth_header_from_request(),
             timeout=c["GOHAN_TIMEOUT"],
             params=gohan_args
         )

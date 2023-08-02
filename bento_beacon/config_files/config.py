@@ -139,6 +139,12 @@ class Config:
     DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL")
 
 # -------------------
+# authorization
+
+    AUTHZ_URL: str = os.environ.get("BENTO_AUTHZ_SERVICE_URL", "")
+    AUTHZ_ENABLED: bool = os.environ.get("AUTHZ_ENABLED", "true").strip().lower() in ("true", "1", "yes")
+
+# -------------------
 # handle injected config files
 #   a) obtain reference to the expected configuration files' location by
 #      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
