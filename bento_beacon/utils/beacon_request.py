@@ -33,7 +33,7 @@ def query_parameters_from_request():
     filters = beacon_args.get("query", {}).get("filters") or []
 
     # reject if too many filters
-    max_filters = current_app.config["BEACON_CONFIG"].get("maxFilters")
+    max_filters = current_app.config["MAX_FILTERS"]
     if max_filters > 0 and len(filters) > max_filters:
         raise InvalidQuery(
             f"too many filters in request, maximum of {max_filters} permitted")

@@ -3,8 +3,7 @@ from .katsu_utils import search_summary_statistics, overview_statistics
 
 
 def get_censorship_threshold():
-    # throws exception if threshold missing from config
-    return current_app.config["BEACON_CONFIG"]["smallCellCountThreshold"]
+    return current_app.config["COUNT_THRESHOLD"]
 
 
 def zero_count_response():
