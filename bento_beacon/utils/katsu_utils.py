@@ -69,10 +69,10 @@ def katsu_network_call(payload, endpoint=None):
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
-        current_app.logger.debug("katsu error")
+        current_app.logger.error("katsu error")
         raise APIException()
     except requests.exceptions.RequestException as e:
-        current_app.logger.debug(f"katsu error: {e}")
+        current_app.logger.error(f"katsu error: {e}")
         raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
@@ -104,8 +104,11 @@ def katsu_get(endpoint, id=None, query=""):
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
-        current_app.logger.debug("katsu error")
+        current_app.logger.error("katsu error")
         raise APIException()
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f"katsu error: {e}")
+        raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
 
@@ -281,16 +284,8 @@ def overview_statistics():
 
 
 def katsu_censorship_settings():
-    o = katsu_get(current_app.config["KATSU_PUBLIC_OVERVIEW"])
-
-    max_filters = o.get("max_query_parameters")
-    if max_filters is None:
-        current_app.logger.error("could not read 'max_query_parameters' setting in katsu config")
-        max_filters = current_app.config["DEFAULT_MAX_FILTERS"]
-
-    count_threshold = o.get("count_threshold")
-    if count_threshold is None: 
-        current_app.logger.error("could not read 'count_threshold' setting in katsu config")
-        count_threshold = current_app.config["DEFAULT_COUNT_THRESHOLD"]
-
+    overview = katsu_get(current_app.config["KATSU_PUBLIC_OVERVIEW"])
+    max_filters = overview.get("max_query_parameters")
+    count_threshold = overview.get("count_threshold")
+    # return even if None
     return max_filters, count_threshold
