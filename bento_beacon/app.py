@@ -88,11 +88,11 @@ with app.app_context():
     if max_filters is None or count_threshold is None:
         # kill container
         raise RuntimeError("unable to retrieve censorship settings from katsu")
-    else:
-        current_app.logger.info(
-            f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
-        current_app.config["MAX_FILTERS"] = max_filters
-        current_app.config["COUNT_THRESHOLD"] = count_threshold
+
+    current_app.logger.info(
+        f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
+    current_app.config["MAX_FILTERS"] = max_filters
+    current_app.config["COUNT_THRESHOLD"] = count_threshold
 
 
 @app.before_request
