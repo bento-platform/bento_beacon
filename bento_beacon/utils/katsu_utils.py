@@ -69,10 +69,10 @@ def katsu_network_call(payload, endpoint=None):
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
-        current_app.logger.debug("katsu error")
+        current_app.logger.error("katsu error")
         raise APIException()
     except requests.exceptions.RequestException as e:
-        current_app.logger.debug(f"katsu error: {e}")
+        current_app.logger.error(f"katsu error: {e}")
         raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
@@ -95,8 +95,6 @@ def katsu_get(endpoint, id=None, query=""):
         url_components.fragment
     ))
 
-    print("before request")
-
     try:
         r = requests.get(
             query_url,
@@ -106,8 +104,11 @@ def katsu_get(endpoint, id=None, query=""):
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
-        current_app.logger.debug("katsu error")
+        current_app.logger.error("katsu error")
         raise APIException()
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f"katsu error: {e}")
+        raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
 
@@ -280,3 +281,11 @@ def search_summary_statistics(ids):
 
 def overview_statistics():
     return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"]).get("data_type_specific", {})
+
+
+def katsu_censorship_settings():
+    overview = katsu_get(current_app.config["KATSU_PUBLIC_OVERVIEW"])
+    max_filters = overview.get("max_query_parameters")
+    count_threshold = overview.get("count_threshold")
+    # return even if None
+    return max_filters, count_threshold

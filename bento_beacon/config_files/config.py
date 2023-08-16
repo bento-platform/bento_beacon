@@ -114,6 +114,7 @@ class Config:
     KATSU_BEACON_SEARCH = "/api/beacon_search"
     KATSU_SEARCH_OVERVIEW = "/api/search_overview"
     KATSU_PRIVATE_OVERVIEW = "/api/overview"
+    KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
@@ -123,6 +124,8 @@ class Config:
         "entityType": "individual",
         "schema": "phenopackets v1"
     }
+
+    MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 5
 # -------------------
 # gohan
 

@@ -1,6 +1,7 @@
 import logging
 import os
 from flask import Flask, current_app, request
+from time import sleep
 from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
@@ -15,6 +16,7 @@ from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request
 from .utils.beacon_response import init_response_data
+from .utils.katsu_utils import katsu_censorship_settings
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -57,11 +59,40 @@ blueprints = {
 }
 
 with app.app_context():
+    # load blueprints
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     for endpoint_set in endpoint_sets:
         if endpoint_set not in BEACON_MODELS:
             raise APIException(message="beacon config contains unknown endpoint set")
         app.register_blueprint(blueprints[endpoint_set])
+
+    # get censorship settings from katsu
+    max_filters = None
+    count_threshold = None
+    retries = 0
+    max_retries = current_app.config["MAX_RETRIES_FOR_CENSORSHIP_PARAMS"]
+    for tries in range(max_retries+1):
+        current_app.logger.info("calling katsu for censorship parameters")
+        try:
+            max_filters, count_threshold = katsu_censorship_settings()
+        except APIException:
+            # katsu down or unavailable, details logged when exception thrown
+            # swallow exception and continue retries
+            current_app.logger.error("error calling katsu for censorship settings")
+        
+        if max_filters is not None and count_threshold is not None:
+            break
+        sleep(5 + 5*tries)
+
+    # either params retrieved or we hit max retries
+    if max_filters is None or count_threshold is None:
+        # kill container
+        raise RuntimeError("unable to retrieve censorship settings from katsu")
+
+    current_app.logger.info(
+        f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
+    current_app.config["MAX_FILTERS"] = max_filters
+    current_app.config["COUNT_THRESHOLD"] = count_threshold
 
 
 @app.before_request
