@@ -53,8 +53,6 @@ def query_parameters_from_request():
 def save_request_data():
     defaults = request_defaults()
 
-    # queries only use POST for now
-    # if GET, it's a call to an info endpoint, can ignore anything here for now
     if request.method == "POST":
         request_args = request.get_json() or {}
     else:
@@ -63,6 +61,8 @@ def save_request_data():
     request_meta = request_args.get("meta", {})
     request_query = request_args.get("query", {})
     request_bento = request_args.get("bento", {})
+    query_request_parameters = request_query.get("requestParameters")
+    query_filters = request_query.get("filters")
 
     request_data = {
         "apiVersion": request_meta.get("apiVersion", defaults["apiVersion"]),
@@ -70,6 +70,12 @@ def save_request_data():
         "pagination": {**defaults["pagination"], **request_query.get("pagination", {})},
         "requestedGranularity": request_query.get("requestedGranularity", defaults["granularity"]),
     }
+
+    if query_request_parameters:
+        request_data["requestParameters"] = query_request_parameters
+
+    if query_filters:
+        request_data["filters"] = query_filters
 
     if request_bento:
         request_data["bento"] = request_bento
