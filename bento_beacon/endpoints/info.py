@@ -83,7 +83,7 @@ def beacon_map():
     return beacon_info_response(current_app.config.get("BEACON_MAP", build_beacon_map()))
 
 
-# custom endpoint not in spec
+# custom endpoint not in beacon spec
 @info.route("/overview")
 @authz_middleware.deco_public_endpoint
 def beacon_overview():
