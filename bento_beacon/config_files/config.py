@@ -18,6 +18,8 @@ class Config:
         "info": "record"
     }
 
+    DEFAULT_PAGINATION_PAGE_SIZE = 10
+
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
     BENTO_PUBLIC_URL = os.environ.get("BENTOV2_PUBLIC_URL")
