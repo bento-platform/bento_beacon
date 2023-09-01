@@ -232,28 +232,10 @@ def gohan_counts_by_assembly_id():
 
 # only runs if "useGohan" true
 def gohan_counts_for_overview():
-    # gohan /variants/overview hangs when no variants table
-    # so check for tables before calling
-    tables_url = current_app.config["GOHAN_BASE_URL"] + "/tables?data-type=variant"
-    tables = None
+    # TODO: call gohan to see if elasticsearch down before calling gohan_counts_by_assembly_id()
+    # ... was previously possible with /tables, may need a fresh gohan endpoint
+    return gohan_counts_by_assembly_id()
 
-    try:
-        tables = gohan_network_call(tables_url, {})
-    except APIException:
-        # note this exception but don't rethrow
-        current_app.logger.error("cannot reach gohan for overview")
-    
-    # non-empty tables
-    if tables:
-        return gohan_counts_by_assembly_id()
-    
-    # empty tables (fresh instance or elasticsearch down)
-    # "useGohan" is true here so we expect variants to exist
-    if tables is not None:
-        return {"error": "no variants available"}
-
-    # else bad response from gohan
-    return {"error": "gohan unavailable"}
 
 # --------------------------------------------
 #     BEACON VARIANT QUERY TYPES
