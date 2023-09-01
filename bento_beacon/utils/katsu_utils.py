@@ -21,7 +21,8 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
         return []
         # return {"count": 0, "results": []}
 
-    # possibly multiple tables tables, combine results
+    # possibly multiple projects/datasets, combine results
+    # TODO: revist when we clarify relationship between project and beacons
     for value in results.values():
         if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
