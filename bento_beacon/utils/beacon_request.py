@@ -1,6 +1,6 @@
 from flask import current_app, request, g
 import jsonschema
-from .exceptions import InvalidQuery
+from .exceptions import APIException, InvalidQuery
 
 
 def request_defaults():
@@ -21,12 +21,19 @@ def expand_path(id):
     return id.replace("/", ".[item].")
 
 
+def get_max_filters():
+    max_filters = current_app.config["MAX_FILTERS"]
+    if max_filters is None: 
+        raise APIException(message="unable to retrieve 'max_query_parameters' censorship setting from katsu")
+    return max_filters
+
+
 def query_parameters_from_request():
     variants_query = g.request_data.get("requestParameters", {}).get("g_variant") or {}
     filters = g.request_data.get("filters") or []
 
     # reject if too many filters
-    max_filters = current_app.config["MAX_FILTERS"]
+    max_filters = get_max_filters()
     if max_filters > 0 and len(filters) > max_filters:
         raise InvalidQuery(
             f"too many filters in request, maximum of {max_filters} permitted")

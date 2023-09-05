@@ -79,18 +79,19 @@ with app.app_context():
             # katsu down or unavailable, details logged when exception thrown
             # swallow exception and continue retries
             current_app.logger.error("error calling katsu for censorship settings")
-        
+
         if max_filters is not None and count_threshold is not None:
             break
         sleep(5 + 5*tries)
 
     # either params retrieved or we hit max retries
     if max_filters is None or count_threshold is None:
-        # kill container
-        raise RuntimeError("unable to retrieve censorship settings from katsu")
+        current_app.logger.error("unable to retrieve censorship settings from katsu")
+    else:
+        current_app.logger.info(
+            f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
 
-    current_app.logger.info(
-        f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
+    # save even if None
     current_app.config["MAX_FILTERS"] = max_filters
     current_app.config["COUNT_THRESHOLD"] = count_threshold
 
