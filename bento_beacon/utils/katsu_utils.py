@@ -14,7 +14,7 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
     match_list = []
 
     if results is None:
-        raise APIException("error calling metadata service")
+        raise APIException(message="error calling metadata service")
 
     # response correct but nothing found
     if not results:
