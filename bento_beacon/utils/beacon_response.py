@@ -1,9 +1,13 @@
 from flask import current_app, g
 from .katsu_utils import search_summary_statistics, overview_statistics
+from .exceptions import APIException
 
 
 def get_censorship_threshold():
-    return current_app.config["COUNT_THRESHOLD"]
+    threshold = current_app.config["COUNT_THRESHOLD"]
+    if threshold is None:
+        raise APIException(message="unable to retrieve 'count_threshold' censorship parameter from katsu")
+    return threshold
 
 
 def zero_count_response():
