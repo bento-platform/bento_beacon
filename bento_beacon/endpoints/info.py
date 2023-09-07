@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 from flask import Blueprint, current_app
 from ..authz import authz_middleware
@@ -123,7 +124,8 @@ def build_service_info():
     # may be multiple datasets, so collect all descriptions into one string
     # for custom description, add a "description" field to service info in beacon_config.json
     k_datasets = katsu_datasets()
-    description = " ".join([d.get("description") for d in k_datasets if "description" in d])
+    dats_array = list(map(lambda d: json.loads(d.get("datsFile", {})), k_datasets))
+    description = " ".join([d.get("description") for d in dats_array if "description" in d])
     if description and service_info.get("description") is None:
         service_info["description"] = description
 
