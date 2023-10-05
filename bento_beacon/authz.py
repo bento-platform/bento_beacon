@@ -17,6 +17,7 @@ authz_middleware = FlaskAuthMiddleware(
     Config.AUTHZ_URL,
     enabled=Config.AUTHZ_ENABLED,
     beacon_meta_callback=build_response_meta,
+    debug_mode=Config.BENTO_DEBUG
 )
 
 # for now, these will go unused - Beacon currently does not have a strong concept of Bento projects/datasets
