@@ -121,7 +121,7 @@ def build_response_meta():
     received_request_summary = received_request()
     return {
         "beaconId": current_app.config["BEACON_ID"],
-        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],   
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "returnedSchemas": returned_schemas,
         "returnedGranularity": returned_granularity,
         "receivedRequestSummary": received_request_summary
