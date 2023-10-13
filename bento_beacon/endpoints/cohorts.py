@@ -1,5 +1,5 @@
 from flask import Blueprint, current_app
-from ..authz import authz_middleware
+from ..authz.middleware import authz_middleware
 from ..utils.exceptions import NotImplemented
 from ..utils.beacon_response import beacon_response
 

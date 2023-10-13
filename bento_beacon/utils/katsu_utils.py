@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urlsplit, urlunsplit
 from .exceptions import APIException, InvalidQuery
 from functools import reduce
-from .nested_query_utils import auth_header_from_request
+from ..authz.headers import auth_header_from_request
 
 
 def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):

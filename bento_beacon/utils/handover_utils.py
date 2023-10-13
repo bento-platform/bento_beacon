@@ -3,7 +3,7 @@ import requests
 from urllib.parse import urlsplit, urlunsplit
 from .katsu_utils import katsu_network_call
 from .exceptions import APIException
-from .nested_query_utils import auth_header_from_request
+from ..authz.headers import auth_header_from_request
 
 
 DRS_TIMEOUT_SECONDS = 10
