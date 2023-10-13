@@ -143,8 +143,7 @@ class Config:
 # -------------------
 # drs
 
-    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL")
-    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL")
+    DRS_URL = os.environ.get("DRS_URL")
 
 # -------------------
 # authorization
