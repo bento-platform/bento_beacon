@@ -4,7 +4,7 @@ from ..authz.middleware import authz_middleware, PERMISSION_DOWNLOAD_DATA, PERMI
 from ..utils.beacon_request import (
     query_parameters_from_request,
     summary_stats_requested,
-    )
+)
 from ..utils.beacon_response import (
     beacon_response,
     add_info_to_response,
@@ -128,7 +128,7 @@ def individual_by_id(id):
 
 # -------------------------------------------------------
 #       endpoints in beacon model not yet implemented:
-# 
+#
 #       /individuals/<id>/g_variants
 #           - may be simpler to download vcf instead
 #       /individuals/<id>/biosamples

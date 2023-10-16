@@ -20,6 +20,7 @@ def init_response_data():
     g.response_info = {}
 
 
+# TODO: handle multiple messages
 def add_info_to_response(info):
     g.response_info["message"] = info
 
