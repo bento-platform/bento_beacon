@@ -30,3 +30,7 @@ def check_permissions(permissions: list[str]) -> bool:
     )["result"]
     authz_middleware.mark_authz_done(request)
     return auth_res
+
+
+def check_permission(permission: str) -> bool:
+    return check_permissions([permission])
