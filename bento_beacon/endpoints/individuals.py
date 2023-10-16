@@ -27,6 +27,9 @@ individuals = Blueprint("individuals", __name__)
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
+
+    full_response = check_permission(PERMISSION_QUERY_DATA)
+
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 
     no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
@@ -76,18 +79,13 @@ def get_individuals():
     # baroque syntax but covers all cases
     individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
 
-    # conditionally add summary statistics to response
     if summary_stats_requested():
         add_stats_to_response(individual_ids)
 
-    return individuals_response(individual_ids)
+    if full_response:
+        return individuals_full_response(individual_ids)
 
-
-def individuals_response(ids):
-    if check_permission(PERMISSION_QUERY_DATA):
-        return individuals_full_response(ids)
-    # TODO: configurable default response rather than hardcoded counts
-    return beacon_response({"count": len(ids), "results": ids})
+    return beacon_response({"count": len(individual_ids), "results": individual_ids})
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
