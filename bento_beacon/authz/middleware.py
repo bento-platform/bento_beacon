@@ -26,7 +26,7 @@ def check_permissions(permissions: list[str]) -> bool:
         "requested_resource": {"everything": True},
         "required_permissions": permissions,
         },
-        headers_getter=auth_header_getter,  # currently same as default, so can be removed
+        headers_getter=auth_header_getter,  # currently same as middleware default, so can be removed
     )["result"]
     authz_middleware.mark_authz_done(request)
     return auth_res
