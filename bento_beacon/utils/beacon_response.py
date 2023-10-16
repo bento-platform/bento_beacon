@@ -83,7 +83,7 @@ def beacon_response(results, collection_response=False):
     return r
 
 
-def beacon_response_with_handover(result_sets):
+def beacon_full_response(result_sets):
     g.request_data["requestedGranularity"] = "record"
     r = {
         "meta": build_response_meta(),
