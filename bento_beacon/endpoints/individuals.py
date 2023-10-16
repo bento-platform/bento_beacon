@@ -1,6 +1,6 @@
 from flask import Blueprint
 from functools import reduce
-from ..authz.middleware import PERMISSION_DOWNLOAD_DATA, PERMISSION_QUERY_DATA, check_permission
+from ..authz.middleware import authz_middleware, PERMISSION_DOWNLOAD_DATA, PERMISSION_QUERY_DATA, check_permission
 from ..utils.beacon_request import (
     query_parameters_from_request,
     summary_stats_requested,
@@ -27,9 +27,6 @@ individuals = Blueprint("individuals", __name__)
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
-
-    full_response = check_permission(PERMISSION_QUERY_DATA)
-
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 
     no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
@@ -83,11 +80,14 @@ def get_individuals():
     if summary_stats_requested():
         add_stats_to_response(individual_ids)
 
-    if full_response:
-        return individuals_full_response(individual_ids)
-    
+    return individuals_response(individual_ids)
+
+
+def individuals_response(ids):
+    if check_permission(PERMISSION_QUERY_DATA):
+        return individuals_full_response(ids)
     # TODO: configurable default response rather than hardcoded counts
-    return beacon_response({"count": len(individual_ids), "results": individual_ids})
+    return beacon_response({"count": len(ids), "results": ids})
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
@@ -121,34 +121,21 @@ def individuals_full_response(ids):
     return beacon_full_response(result_sets)
 
 
+@individuals.route("/individuals/<id>", methods=['GET', 'POST'])
+@authz_middleware.deco_require_permissions_on_resource({PERMISSION_QUERY_DATA})
+def individual_by_id(id):
+    # forbidden / unauthorized if no permissions
+    return individuals_full_response([id])
+
+
 # -------------------------------------------------------
-#       unimplemented endpoints
+#       endpoints in beacon model not yet implemented:
+# 
+#       /individuals/<id>/g_variants
+#           - may be simpler to download vcf instead
+#       /individuals/<id>/biosamples
+#           - requires full response code for biosamples (could just serve phenopackets again here)
+#       /individuals/<id>/filtering_terms
+#           - unclear use case, isn't reading the full response better?
+#           - requires better ontology support / better filtering terms implementation
 # -------------------------------------------------------
-# these would be appropriate for full-access beacons only
-
-# replace this one once auth is in place
-# @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
-# @authn_token_required_flask_wrapper
-# def individual_by_id(id):
-#     # get one individual by id, with handover if available
-#     return individuals_full_response([id])
-
-
-# @individuals.route("/individuals/<id>/g_variants", methods=['GET', 'POST'])
-# def individual_variants(id):
-#     # all variants for a particular individual
-#     # may never be implemented, bad match for our use case (download vcf instead)
-#     raise NotImplemented()
-
-
-# @individuals.route("/individuals/<id>/biosamples", methods=['GET', 'POST'])
-# def individual_biosamples(id):
-#     # all biosamples for a particular individual
-#     pass
-
-
-# @individuals.route("/individuals/<id>/filtering_terms", methods=['GET', 'POST'])
-# def individual_filtering_terms(id):
-#     # filtering terms for a particular individual
-#     # note that this involves private data   
-#     pass
