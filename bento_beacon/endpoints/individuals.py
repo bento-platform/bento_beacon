@@ -1,6 +1,6 @@
 from flask import Blueprint
 from functools import reduce
-from ..authz.middleware import PERMISSION_DOWNLOAD_DATA, PERMISSION_QUERY_DATA, check_permissions
+from ..authz.middleware import PERMISSION_DOWNLOAD_DATA, PERMISSION_QUERY_DATA, check_permission
 from ..utils.beacon_request import (
     query_parameters_from_request,
     summary_stats_requested,
@@ -28,7 +28,7 @@ individuals = Blueprint("individuals", __name__)
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
 
-    full_response = check_permissions([PERMISSION_QUERY_DATA])
+    full_response = check_permission(PERMISSION_QUERY_DATA)
 
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 
@@ -97,7 +97,7 @@ def individuals_full_response(ids):
     # if len(ids) > 100:
     #     return {"message": "too many ids for full response"}
 
-    handover_permission = check_permissions([PERMISSION_DOWNLOAD_DATA])
+    handover_permission = check_permission(PERMISSION_DOWNLOAD_DATA)
     handover = handover_for_ids(ids) if handover_permission else {}
     phenopackets_by_result_set = phenopackets_for_ids(ids).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
