@@ -4,6 +4,19 @@ from ..config_files.config import Config
 from ..utils.beacon_response import build_response_meta
 from .headers import auth_header_getter
 
+__all__ = [
+    "authz_middleware",
+    "PERMISSION_QUERY_PROJECT_LEVEL_BOOLEAN",
+    "PERMISSION_QUERY_DATASET_LEVEL_BOOLEAN",
+    "PERMISSION_QUERY_PROJECT_LEVEL_COUNTS",
+    "PERMISSION_QUERY_DATASET_LEVEL_COUNTS",
+    "PERMISSION_QUERY_DATA",
+    "PERMISSION_DOWNLOAD_DATA",
+    "check_permissions",
+    "check_permission"
+]
+
+
 authz_middleware = FlaskAuthMiddleware(
     Config.AUTHZ_URL,
     enabled=Config.AUTHZ_ENABLED,
