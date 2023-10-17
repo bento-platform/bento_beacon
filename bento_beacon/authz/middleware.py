@@ -2,7 +2,6 @@ from flask import request
 from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from ..config_files.config import Config
 from ..utils.beacon_response import build_response_meta
-from .headers import auth_header_getter
 
 __all__ = [
     "authz_middleware",
