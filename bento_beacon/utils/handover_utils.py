@@ -13,18 +13,6 @@ def drs_url_components():
     return urlsplit(current_app.config["DRS_URL"])
 
 
-def drs_file_link_for_id(id):
-    url_components = drs_url_components()
-    path = url_components.path + "/objects/" + id + "/download"
-    return urlunsplit((
-        "https",
-        url_components.netloc,
-        path,
-        url_components.query,
-        url_components.fragment
-    ))
-
-
 def drs_network_call(path, query):
     base_url_components = drs_url_components()
     url = urlunsplit((
@@ -93,11 +81,12 @@ def drs_link_from_vcf_filename(filename):
 
     # there may be multiple files with the same filename
     # for now, just return the most recent
-    ordered_by_most_recent = sorted(
-        obj, key=lambda entry: entry['created_time'], reverse=True)
-    most_recent_id = ordered_by_most_recent[0].get("id")
-    drs_url_for_file = drs_file_link_for_id(most_recent_id)
-    return drs_url_for_file
+    most_recent = sorted(obj, key=lambda entry: entry['created_time'], reverse=True)[0]
+
+    # return any http access, in the future we may want to return other stuff (Globus, htsget, etc)
+    access_methods = most_recent.get("access_methods", [])
+    http_access = next((a for a in access_methods if a.get("type") in ("http", "https")), None)
+    return http_access.get("access_url", {}).get("url") if http_access else None
 
 
 def vcf_handover_entry(url, note=None):
