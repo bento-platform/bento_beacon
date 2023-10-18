@@ -1,6 +1,6 @@
 from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
-from .nested_query_utils import auth_header_from_request
+from ..authz.headers import auth_header_from_request
 import requests
 
 # -------------------------------------------------------

@@ -11,7 +11,7 @@ from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
-from .authz import authz_middleware
+from .authz.middleware import authz_middleware
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request

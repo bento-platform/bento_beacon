@@ -20,6 +20,7 @@ def init_response_data():
     g.response_info = {}
 
 
+# TODO: handle multiple messages
 def add_info_to_response(info):
     g.response_info["message"] = info
 
@@ -83,7 +84,7 @@ def beacon_response(results, collection_response=False):
     return r
 
 
-def beacon_response_with_handover(result_sets):
+def beacon_full_response(result_sets):
     g.request_data["requestedGranularity"] = "record"
     r = {
         "meta": build_response_meta(),
@@ -121,7 +122,7 @@ def build_response_meta():
     received_request_summary = received_request()
     return {
         "beaconId": current_app.config["BEACON_ID"],
-        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],   
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "returnedSchemas": returned_schemas,
         "returnedGranularity": returned_granularity,
         "receivedRequestSummary": received_request_summary

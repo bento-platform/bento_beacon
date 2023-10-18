@@ -1,68 +1,24 @@
-from flask import current_app, request, url_for
+from flask import current_app
 import requests
 from urllib.parse import urlsplit, urlunsplit
 from .katsu_utils import katsu_network_call
 from .exceptions import APIException
-from .nested_query_utils import auth_header_from_request
+from ..authz.headers import auth_header_from_request
 
-# path elements removed by bento gateway
-# BEACON_PATH_FRAGMENT = "api/beacon"
 
 DRS_TIMEOUT_SECONDS = 10
 
-# may or may not be needed
-# def get_handover_url():
-#     base_url_components = urlsplit(request.url)
-#     handover_scheme = "https"
-#     handover_path = BEACON_PATH_FRAGMENT + url_for("handover.get_handover")
-#     handover_base_url = urlunsplit((
-#         handover_scheme,
-#         base_url_components.netloc,
-#         handover_path,
-#         base_url_components.query,
-#         base_url_components.fragment
-#     ))
-#     return handover_base_url
 
-
-def drs_internal_url_components():
-    return urlsplit(current_app.config["DRS_INTERNAL_URL"])
-
-
-def drs_external_url_components():
-    return urlsplit(current_app.config["DRS_EXTERNAL_URL"])
-
-# TODO: either remove or deduplicate with below
-# def drs_internal_file_link_for_id(id):
-#     internal_url_components = drs_internal_url_components()
-#     path = internal_url_components.path + "/objects/" + id + "/download"
-#     return urlunsplit((
-#         internal_url_components.scheme,
-#         internal_url_components.netloc,
-#         path,
-#         internal_url_components.query,
-#         internal_url_components.fragment
-#     ))
-
-
-def drs_external_file_link_for_id(id):
-    external_url_components = drs_external_url_components()
-    path = external_url_components.path + "/objects/" + id + "/download"
-    return urlunsplit((
-        "https",
-        external_url_components.netloc,
-        path,
-        external_url_components.query,
-        external_url_components.fragment
-    ))
+def drs_url_components():
+    return urlsplit(current_app.config["DRS_URL"])
 
 
 def drs_network_call(path, query):
-    base_url_components = drs_internal_url_components()
+    base_url_components = drs_url_components()
     url = urlunsplit((
         base_url_components.scheme,
         base_url_components.netloc,
-        path,
+        base_url_components.path + path,
         query,
         base_url_components.fragment
     ))
@@ -72,15 +28,16 @@ def drs_network_call(path, query):
             url,
             headers=auth_header_from_request(),
             timeout=DRS_TIMEOUT_SECONDS,
+            verify=not current_app.config.get("BENTO_DEBUG")
         )
         drs_response = r.json()
 
-    # TODO, ideally after auth merge:
+    # TODO
     # on handover errors, keep returning rest of results instead of throwing api exception
     # add optional note in g and add to beacon response
     # return {}
     except requests.exceptions.RequestException as e:
-        current_app.logger.debug(f"drs error: {e.msg}")
+        current_app.logger.error(f"drs error: {e}")
         raise APIException(message="error generating handover links")
 
     return drs_response
@@ -113,7 +70,7 @@ def filenames_by_results_set(ids):
 
         unique_filenames = list(set(filenames))
         files_by_results_set[r] = unique_filenames
-    
+
     return files_by_results_set
 
 
@@ -122,15 +79,14 @@ def drs_link_from_vcf_filename(filename):
     if not obj:
         return None
 
-    # even with checksum de-duplication, there may be multiple files with the same filename
-    # (... perhaps you fixed the sample id in the vcf... )
+    # there may be multiple files with the same filename
     # for now, just return the most recent
-    ordered_by_most_recent = sorted(
-        obj, key=lambda entry: entry['created_time'], reverse=True)
-    most_recent_id = ordered_by_most_recent[0].get("id")
-    # internal_url = drs_internal_file_link_for_id(most_recent_id)
-    external_url = drs_external_file_link_for_id(most_recent_id)
-    return external_url
+    most_recent = sorted(obj, key=lambda entry: entry['created_time'], reverse=True)[0]
+
+    # return any http access, in the future we may want to return other stuff (Globus, htsget, etc)
+    access_methods = most_recent.get("access_methods", [])
+    http_access = next((a for a in access_methods if a.get("type") in ("http", "https")), None)
+    return http_access.get("access_url", {}).get("url") if http_access else None
 
 
 def vcf_handover_entry(url, note=None):

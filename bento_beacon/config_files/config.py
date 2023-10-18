@@ -20,6 +20,9 @@ class Config:
 
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
+    BENTO_DEBUG = os.environ.get("BENTO_DEBUG", os.environ.get(
+        "FLASK_DEBUG", "false")).strip().lower() in ('true', '1', 't')
+
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
     BENTO_PUBLIC_URL = os.environ.get("BENTOV2_PUBLIC_URL")
@@ -140,8 +143,7 @@ class Config:
 # -------------------
 # drs
 
-    DRS_INTERNAL_URL = os.environ.get("DRS_INTERNAL_URL")
-    DRS_EXTERNAL_URL = os.environ.get("DRS_EXTERNAL_URL")
+    DRS_URL = os.environ.get("DRS_URL")
 
 # -------------------
 # authorization
