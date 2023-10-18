@@ -3,7 +3,6 @@ from ..authz.middleware import authz_middleware
 from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import beacon_response, add_info_to_response, zero_count_response
 from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_totals_by_sample_id
-from ..utils.katsu_utils import katsu_filters_query
 from ..utils.search import biosample_id_search
 from ..utils.exceptions import NotImplemented
 
