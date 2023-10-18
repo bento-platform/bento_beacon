@@ -21,9 +21,7 @@ def get_variants():
         total_count = gohan_total_variants_count()
         return beacon_response({"count": total_count})
 
-    # ----------------------------------------------------------
     #  collect biosample ids from all filters
-    # ----------------------------------------------------------
     sample_ids = []
 
     if has_filters:
@@ -56,10 +54,10 @@ def get_variants():
 
 # -------------------------------------------------------
 #       endpoints in beacon model not yet implemented:
-# 
+#
 #       /g_variants/<id>
 #       /g_variants/<id>/biosamples
 #       /g_variants/<id>/individuals
-# 
+#
 #       ... "id" here appears to be a unique id for each entry, not a variant identifier like a dbSNP entry
 # -------------------------------------------------------
