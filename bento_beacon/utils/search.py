@@ -1,6 +1,6 @@
 from functools import reduce
 from .gohan_utils import query_gohan
-from .katsu_utils import katsu_filters_query
+from .katsu_utils import katsu_filters_query, search_from_config, biosample_ids_for_individuals
 
 
 # TODO: search by linked field set elements instead of hardcoding
@@ -22,10 +22,18 @@ def biosample_id_search(variants_query=None, phenopacket_filters=None, experimen
             return []
         results_biosample_ids["experiment_sample_ids"] = experiment_sample_ids
 
+    # next two return *all* biosample ids for matching individuals
+
     if phenopacket_filters:
         phenopacket_sample_ids = katsu_filters_query(phenopacket_filters, "phenopacket", get_biosample_ids=True)
         if not phenopacket_sample_ids:
             return []
         results_biosample_ids["phenopacket_sample_ids"] = phenopacket_sample_ids
-    
+
+    if config_filters:
+        config_individuals = search_from_config(config_filters)
+        if not config_individuals:
+            return []
+        results_biosample_ids["config_sample_ids"] = biosample_ids_for_individuals(config_individuals)
+
     return list(reduce(set.intersection, (set(ids) for ids in results_biosample_ids.values())))
