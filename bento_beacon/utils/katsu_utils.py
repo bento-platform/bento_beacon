@@ -274,6 +274,13 @@ def phenopackets_for_ids(ids):
     return katsu_network_call(payload, endpoint)
 
 
+def biosample_ids_for_individuals(individual_ids):
+    if not individual_ids:
+        return []
+    filters = [{"id": "subject.id", "operator": "#in", "value": individual_ids}]
+    return katsu_filters_query(filters, "phenopacket", get_biosample_ids=True)
+
+
 def search_summary_statistics(ids):
     endpoint = current_app.config["KATSU_SEARCH_OVERVIEW"]
     payload = {"id": ids}
