@@ -27,7 +27,7 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
         if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
 
-    return match_list
+    return list(set(match_list))
 
 
 def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
@@ -272,6 +272,13 @@ def phenopackets_for_ids(ids):
     }
     endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
     return katsu_network_call(payload, endpoint)
+
+
+def biosample_ids_for_individuals(individual_ids):
+    if not individual_ids:
+        return []
+    filters = [{"id": "subject.id", "operator": "#in", "value": individual_ids}]
+    return katsu_filters_query(filters, "phenopacket", get_biosample_ids=True)
 
 
 def search_summary_statistics(ids):
