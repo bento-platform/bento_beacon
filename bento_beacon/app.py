@@ -14,7 +14,7 @@ from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware
 from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
-from .utils.beacon_request import save_request_data, validate_request
+from .utils.beacon_request import save_request_data, validate_request, verify_permissions
 from .utils.beacon_response import init_response_data
 from .utils.katsu_utils import katsu_censorship_settings
 
@@ -99,6 +99,7 @@ with app.app_context():
 @app.before_request
 def before_request():
     validate_request()
+    verify_permissions()
     save_request_data()
     init_response_data()
 
