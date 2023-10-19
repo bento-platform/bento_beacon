@@ -9,15 +9,15 @@ cohorts = Blueprint("cohorts", __name__)
 @cohorts.route("/cohorts", methods=['GET', 'POST'])
 @authz_middleware.deco_public_endpoint
 def get_cohorts():
-    cohort = current_app.config["BEACON_COHORT"]
-    return beacon_collections_response({"collections": cohort})
+    cohorts = current_app.config["BEACON_COHORT"]
+    return beacon_collections_response({"collections": cohorts})
 
 
 @cohorts.route("/cohorts/<id>", methods=['GET', 'POST'])
 @authz_middleware.deco_public_endpoint
 def get_cohort_by_id(id):
-    cohort = current_app.config["BEACON_COHORT"]
-    cohort_this_id = cohort if id == cohort.get("id") else []
+    cohorts = current_app.config["BEACON_COHORT"]
+    cohort_this_id = next((c for c in cohorts if c.get("id") == id), [])
     return beacon_collections_response({"collections": cohort_this_id})
 
 
