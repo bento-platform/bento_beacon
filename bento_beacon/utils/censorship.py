@@ -11,6 +11,13 @@ def get_censorship_threshold():
     return threshold
 
 
+def censored_count(count):
+    t = get_censorship_threshold()
+    if count < t:
+        return 0
+    return count
+
+
 # we don't have the same option of returning zero here
 def get_max_filters():
     max_filters = current_app.config["MAX_FILTERS"]
