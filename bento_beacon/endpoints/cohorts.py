@@ -4,7 +4,6 @@ from ..utils.beacon_response import beacon_collections_response
 
 cohorts = Blueprint("cohorts", __name__)
 
-# may need minor refactoring in the future if we use mulitple cohorts
 
 @cohorts.route("/cohorts", methods=['GET', 'POST'])
 @authz_middleware.deco_public_endpoint
