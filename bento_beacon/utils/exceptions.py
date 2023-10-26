@@ -21,9 +21,3 @@ class InvalidQuery(APIException):
         self.message = message
         self.status_code = status_code
 
-
-class AuthXException(APIException):
-    def __init__(self, message="Unauthorized", status_code=401):
-        super().__init__()
-        self.message = message
-        self.status_code = status_code
