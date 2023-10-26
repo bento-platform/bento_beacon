@@ -1,17 +1,11 @@
-from flask import current_app, g
+from flask import current_app, g, request
 from .katsu_utils import search_summary_statistics, overview_statistics
-from .exceptions import APIException
-
-
-def get_censorship_threshold():
-    threshold = current_app.config["COUNT_THRESHOLD"]
-    if threshold is None:
-        raise APIException(message="unable to retrieve 'count_threshold' censorship parameter from katsu")
-    return threshold
+from .censorship import get_censorship_threshold, censored_count
+from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
 def zero_count_response():
-    return beacon_response({"count": 0, "results": []})
+    return build_query_response([])
 
 
 def init_response_data():
@@ -137,16 +131,13 @@ def build_info_response_meta():
     }
 
 
-def build_response_details(results):
-    return {"resultSets": results}
-
-
 def build_response_summary(results, collection_response):
     if not collection_response:
         count = results.get("count")
         count = 0 if count <= get_censorship_threshold() else count
 
     # single collection (cohort or dataset), possibly empty
+    # now incorrect, especially if results are paginated
     elif isinstance(results, dict):
         count = 1 if results else 0
 
@@ -170,3 +161,117 @@ def beacon_error_response(message, status_code):
             "errorMessage": message
         }
     }
+
+# new configurable response, with granularity and better control flow
+# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
+
+
+def response_granularity():
+    """
+    Determine response granularity from requested granularity and permissions.
+    Returns requested granularity when requested <= max, returns max otherwise,
+    where max is the highest granularity allowed, based on this user's permissions
+    and the ordering is "boolean" < "count" < "record"
+    """
+    default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
+    max_g = GRANULARITY_RECORD if g.permission_query_data else default_g
+    requested_g = g.request_data.get("requestedGranularity")
+
+    # below would be cleaner with an ordered enum, but that adds serialization headaches
+
+    # if max is "record" everything is permitted
+    if max_g == GRANULARITY_RECORD:
+        return requested_g
+    # if max if "boolean" nothing else is permitted
+    if max_g == GRANULARITY_BOOLEAN:
+        return max_g
+    # only thing lower than count is boolean
+    if max_g == GRANULARITY_COUNT:
+        return requested_g if requested_g == GRANULARITY_BOOLEAN else max_g
+
+
+def build_query_response(ids, full_record_handler=None):
+    granularity = response_granularity()
+    if granularity == GRANULARITY_BOOLEAN:
+        return beacon_boolean_response(ids)
+    if granularity == GRANULARITY_COUNT:
+        return beacon_count_response(ids)
+    if granularity == GRANULARITY_RECORD:
+        result_sets, numTotalResults = full_record_handler(ids)
+        return beacon_result_set_response(result_sets, numTotalResults)
+
+
+def response_meta(returned_schemas, returned_granularity):
+    return {
+        "beaconId": current_app.config["BEACON_ID"],
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
+        "returnedSchemas": returned_schemas,
+        "returnedGranularity": returned_granularity,
+        "receivedRequestSummary": received_request()
+    }
+
+
+def response_info():
+    return getattr(g, "response_info", None)
+
+
+def schemas_this_request():
+    # currently only one possible schema per entry type
+    s = current_app.config["ENTRY_TYPES_DETAILS"].get(request.blueprint, {}).get("defaultSchema", {}).get("id")
+    return [s]
+
+
+# censored (or not) according to permissions
+def beacon_boolean_response(ids):
+    # boolean response is just count response with count removed
+    r = beacon_count_response(ids)
+    r["responseSummary"] = {"exists": r["responseSummary"]["exists"]}
+    return r
+
+
+# censored (or not) according to permissions
+def beacon_count_response(ids):
+    returned_schemas = []
+    returned_granularity = "count"
+    numTotalResults = censored_count(len(ids))
+    r = {
+        "meta": response_meta(returned_schemas, returned_granularity),
+        "responseSummary": {"numTotalResults": numTotalResults, "exists": numTotalResults > 0},
+    }
+    info = response_info()
+    if info:
+        r["info"] = info
+    return r
+
+
+# response from /cohorts and /datasets
+# general info only, currently uncensored, could add filtering by permissions if necessary
+def beacon_collections_response(results):
+    returned_schemas = schemas_this_request()
+    returned_granularity = "record"
+    r = {
+        "meta": response_meta(returned_schemas, returned_granularity),
+        "response": results,
+        "response summary": {"exists": "true" if results else False}
+    }
+    info = response_info()
+    if info:
+        r["info"] = info
+    return r
+
+
+# uncensored full record response, typically for authorized users
+# any fine-grained permissions are handled before we get here
+# TODO: pagination (ideally after katsu search gets paginated)
+def beacon_result_set_response(result_sets, numTotalResults):
+    returned_schemas = schemas_this_request()
+    returned_granularity = "record"
+    r = {
+        "meta": response_meta(returned_schemas, returned_granularity),
+        "responseSummary": {"numTotalResults": numTotalResults, "exists": numTotalResults > 0},
+        "response": {"resultSets": result_sets}
+    }
+    info = response_info()
+    if info:
+        r["info"] = info
+    return r
