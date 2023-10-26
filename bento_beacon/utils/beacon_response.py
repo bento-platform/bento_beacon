@@ -1,11 +1,12 @@
 from flask import current_app, g, request
 from .katsu_utils import search_summary_statistics, overview_statistics
 from .censorship import get_censorship_threshold, censored_count
+from .exceptions import InvalidQuery
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
 def zero_count_response():
-    return build_query_response([])
+    return build_query_response(ids=[])
 
 
 def init_response_data():
@@ -190,15 +191,23 @@ def response_granularity():
         return requested_g if requested_g == GRANULARITY_BOOLEAN else max_g
 
 
-def build_query_response(ids, full_record_handler=None):
+def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
     granularity = response_granularity()
+    count = len(ids) if numTotalResults is None else numTotalResults
+    returned_count = censored_count(count)
     if granularity == GRANULARITY_BOOLEAN:
-        return beacon_boolean_response(ids)
+        return beacon_boolean_response(returned_count)
     if granularity == GRANULARITY_COUNT:
-        return beacon_count_response(ids)
+        return beacon_count_response(returned_count)
     if granularity == GRANULARITY_RECORD:
+        if full_record_handler is None:
+            # user asked for full response where it doesn't exist yet, eg in variants
+            raise InvalidQuery("full response not available for this entry type")
         result_sets, numTotalResults = full_record_handler(ids)
         return beacon_result_set_response(result_sets, numTotalResults)
+
+    # no other cases, throw exception?
+    # could add warning to response if not returning requested granularity
 
 
 def response_meta(returned_schemas, returned_granularity):
@@ -222,21 +231,26 @@ def schemas_this_request():
 
 
 # censored (or not) according to permissions
-def beacon_boolean_response(ids):
-    # boolean response is just count response with count removed
-    r = beacon_count_response(ids)
-    r["responseSummary"] = {"exists": r["responseSummary"]["exists"]}
+def beacon_boolean_response(count):
+    returned_schemas = []
+    returned_granularity = "boolean"
+    r = {
+        "meta": response_meta(returned_schemas, returned_granularity),
+        "responseSummary": {"exists": count > 0},
+    }
+    info = response_info()
+    if info:
+        r["info"] = info
     return r
 
 
 # censored (or not) according to permissions
-def beacon_count_response(ids):
+def beacon_count_response(count):
     returned_schemas = []
     returned_granularity = "count"
-    numTotalResults = censored_count(len(ids))
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
-        "responseSummary": {"numTotalResults": numTotalResults, "exists": numTotalResults > 0},
+        "responseSummary": {"numTotalResults": count, "exists": count > 0},
     }
     info = response_info()
     if info:
