@@ -54,14 +54,6 @@ def package_biosample_and_experiment_stats(stats):
     }
 
 
-def katsu_not_found(r):
-    if "count" in r:
-        return r["count"] == 0
-
-    # some endpoints return either an object with an id or an error (with no id)
-    return "id" not in r
-
-
 def beacon_response(results, collection_response=False):
     g.request_data["requestedGranularity"] = "record" if collection_response else "count"
     r = {

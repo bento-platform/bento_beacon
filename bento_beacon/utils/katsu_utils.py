@@ -297,3 +297,11 @@ def katsu_censorship_settings():
     count_threshold = overview.get("count_threshold")
     # return even if None
     return max_filters, count_threshold
+
+
+def katsu_not_found(r):
+    if "count" in r:
+        return r["count"] == 0
+
+    # some endpoints return either an object with an id or an error (with no id)
+    return "id" not in r

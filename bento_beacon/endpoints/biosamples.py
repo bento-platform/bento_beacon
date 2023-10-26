@@ -2,8 +2,9 @@ from json import JSONDecodeError
 import requests
 from flask import Blueprint, jsonify, current_app
 from ..utils.exceptions import APIException, NotImplemented
-from ..utils.beacon_response import beacon_response, katsu_not_found
+from ..utils.beacon_response import beacon_response
 from ..utils.beacon_mappings import katsu_biosample_to_beacon_biosample
+from ..utils.katsu_utils import katsu_not_found
 
 biosamples = Blueprint("biosamples", __name__)
 
