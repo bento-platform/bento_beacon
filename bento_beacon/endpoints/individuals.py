@@ -11,7 +11,8 @@ from ..utils.beacon_response import (
     add_stats_to_response,
     add_overview_stats_to_response,
     zero_count_response,
-    beacon_full_response
+    build_query_response,
+    beacon_result_set_response
 )
 from ..utils.katsu_utils import (
     katsu_filters_and_sample_ids_query,
@@ -27,9 +28,6 @@ individuals = Blueprint("individuals", __name__)
 
 @individuals.route("/individuals", methods=['GET', 'POST'])
 def get_individuals():
-
-    full_response = check_permission(PERMISSION_QUERY_DATA)
-
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 
     no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
@@ -82,14 +80,11 @@ def get_individuals():
     if summary_stats_requested():
         add_stats_to_response(individual_ids)
 
-    if full_response:
-        return individuals_full_response(individual_ids)
-
-    return beacon_response({"count": len(individual_ids), "results": individual_ids})
+    return build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
-def individuals_full_response(ids):
+def individuals_full_results(ids):
 
     # temp
     # if len(ids) > 100:
@@ -100,10 +95,12 @@ def individuals_full_response(ids):
     phenopackets_by_result_set = phenopackets_for_ids(ids).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
     result_sets = {}
+    numTotalResults = 0
 
     for r_id in result_ids:
         results_this_id = phenopackets_by_result_set.get(r_id, {}).get("matches", [])
         results_count = len(results_this_id)
+        numTotalResults += results_count
         result = {
             "id": r_id,
             "setType": "individual",
@@ -116,14 +113,14 @@ def individuals_full_response(ids):
             result["resultsHandovers"] = handover_this_id
         result_sets[r_id] = result
 
-    return beacon_full_response(result_sets)
+    return result_sets, numTotalResults
 
 
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
 @authz_middleware.deco_require_permissions_on_resource({PERMISSION_QUERY_DATA})
 def individual_by_id(id):
     # forbidden / unauthorized if no permissions
-    return individuals_full_response([id])
+    return beacon_result_set_response([id], 1)
 
 
 # -------------------------------------------------------
