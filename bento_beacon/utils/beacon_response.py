@@ -5,10 +5,6 @@ from .exceptions import InvalidQuery
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
-def zero_count_response():
-    return build_query_response(ids=[])
-
-
 def init_response_data():
     # init so always available at endpoints
     g.response_data = {}
@@ -54,45 +50,6 @@ def package_biosample_and_experiment_stats(stats):
     }
 
 
-def beacon_response(results, collection_response=False):
-    g.request_data["requestedGranularity"] = "record" if collection_response else "count"
-    r = {
-        "meta": build_response_meta(),
-        "responseSummary": build_response_summary(results, collection_response)
-    }
-
-    if collection_response:
-        r["response"] = results
-
-    info = getattr(g, "response_info", None)
-    if info:
-        r["info"] = info
-
-    return r
-
-
-def beacon_full_response(result_sets):
-    g.request_data["requestedGranularity"] = "record"
-    r = {
-        "meta": build_response_meta(),
-        "responseSummary": {"exists": True},
-        "response": {"resultSets": result_sets}
-    }
-
-    info = getattr(g, "response_info", None)
-    if info:
-        r["info"] = info
-
-    return r
-
-
-def beacon_info_response(info, build_meta=True):
-    r = {"response": info}
-    if build_meta:
-        r["meta"] = build_info_response_meta()
-    return r
-
-
 def received_request():
     try:
         r = {**g.request_data}
@@ -103,6 +60,7 @@ def received_request():
         return r
 
 
+# to replace XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 def build_response_meta():
     returned_schemas = g.get("response_data", {}).get("returnedSchemas", [])
     returned_granularity = g.get("response_data", {}).get("returnedGranularity", "count")
@@ -116,47 +74,12 @@ def build_response_meta():
     }
 
 
-def build_info_response_meta():
-    return {
-        "beaconId": current_app.config["BEACON_ID"],
-        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
-        "returnedSchemas": []
-    }
-
-
-def build_response_summary(results, collection_response):
-    if not collection_response:
-        count = results.get("count")
-        count = 0 if count <= get_censorship_threshold() else count
-
-    # single collection (cohort or dataset), possibly empty
-    # now incorrect, especially if results are paginated
-    elif isinstance(results, dict):
-        count = 1 if results else 0
-
-    # else array of collections
-    else:
-        count = len(results)
-
-    exists = count > 0 if count else False
-
-    return {
-        "exists": exists,
-        "count": count,
-    }
-
-
-def beacon_error_response(message, status_code):
-    return {
-        "meta": build_response_meta(),
-        "error": {
-            "errorCode": status_code,
-            "errorMessage": message
-        }
-    }
-
-# new configurable response, with granularity and better control flow
-# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
+# ------------------------------------------------------------
+#  response control flow
+#
+#  response is shaped according to response granularity,
+#  which itself is a function of user request and permissions
+# ------------------------------------------------------------
 
 
 def response_granularity():
@@ -166,6 +89,7 @@ def response_granularity():
     where max is the highest granularity allowed, based on this user's permissions
     and the ordering is "boolean" < "count" < "record"
     """
+    # XXXXXXXXXXXXXXXXx clean up this weird mix of dict access methods
     default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
     max_g = GRANULARITY_RECORD if g.permission_query_data else default_g
     requested_g = g.request_data.get("requestedGranularity")
@@ -194,12 +118,17 @@ def build_query_response(ids=None, numTotalResults=None, full_record_handler=Non
     if granularity == GRANULARITY_RECORD:
         if full_record_handler is None:
             # user asked for full response where it doesn't exist yet, eg in variants
-            raise InvalidQuery("full response not available for this entry type")
+            raise InvalidQuery("record response not available for this entry type")
         result_sets, numTotalResults = full_record_handler(ids)
         return beacon_result_set_response(result_sets, numTotalResults)
 
     # no other cases, throw exception?
     # could add warning to response if not returning requested granularity
+
+
+# --------------------------------
+#  response meta
+# --------------------------------
 
 
 def response_meta(returned_schemas, returned_granularity):
@@ -212,14 +141,29 @@ def response_meta(returned_schemas, returned_granularity):
     }
 
 
-def response_info():
-    return getattr(g, "response_info", None)
+def middleware_meta_callback():
+    # meta for middleware errors only
+    # errors don't return schemas or use granularity
+    # but stragely both fields are required
+    returned_schemas = []
+    returned_granularity = None
+    return response_meta(returned_schemas, returned_granularity)
 
 
-def schemas_this_request():
-    # currently only one possible schema per entry type
-    s = current_app.config["ENTRY_TYPES_DETAILS"].get(request.blueprint, {}).get("defaultSchema", {}).get("id")
-    return [s]
+# --------------------------------
+#  responses
+# --------------------------------
+
+
+def beacon_info_response(info):
+    return {
+        "response": info,
+        "meta": {
+            "beaconId": current_app.config["BEACON_ID"],
+            "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
+            "returnedSchemas": info_endpoint_schema()
+        }
+    }
 
 
 # censored (or not) according to permissions
@@ -253,7 +197,7 @@ def beacon_count_response(count):
 # response from /cohorts and /datasets
 # general info only, currently uncensored, could add filtering by permissions if necessary
 def beacon_collections_response(results):
-    returned_schemas = schemas_this_request()
+    returned_schemas = schemas_this_query()
     returned_granularity = "record"
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
@@ -270,7 +214,7 @@ def beacon_collections_response(results):
 # any fine-grained permissions are handled before we get here
 # TODO: pagination (ideally after katsu search gets paginated)
 def beacon_result_set_response(result_sets, numTotalResults):
-    returned_schemas = schemas_this_request()
+    returned_schemas = schemas_this_query()
     returned_granularity = "record"
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
@@ -281,3 +225,38 @@ def beacon_result_set_response(result_sets, numTotalResults):
     if info:
         r["info"] = info
     return r
+
+
+def beacon_error_response(message, status_code):
+    return {
+        "meta": response_meta([], None),
+        "error": {
+            "errorCode": status_code,
+            "errorMessage": message
+        }
+    }
+
+
+def zero_count_response():
+    return build_query_response(ids=[])
+
+
+# --------------------------------
+#  utils
+# --------------------------------
+
+
+def response_info():
+    return getattr(g, "response_info", None)
+
+
+def info_endpoint_schema():
+    return [current_app.config["INFO_ENDPOINTS_SCHEMAS"][request.path]]
+
+
+def schemas_this_query():
+    endpoint_set = current_app.config["ENTRY_TYPES_DETAILS"].get(request.blueprint)
+    entityType = endpoint_set["entryType"]  # confusion between "entityType" and "entryType" is part of beacon spec
+    schema = endpoint_set["defaultSchema"]["id"]
+    return [{"entityType": entityType, "schema": schema}]
+

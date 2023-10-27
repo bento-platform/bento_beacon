@@ -1,7 +1,7 @@
 from flask import request
 from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from ..config_files.config import Config
-from ..utils.beacon_response import build_response_meta
+from ..utils.beacon_response import middleware_meta_callback
 
 __all__ = [
     "authz_middleware",
@@ -19,7 +19,7 @@ __all__ = [
 authz_middleware = FlaskAuthMiddleware(
     Config.AUTHZ_URL,
     enabled=Config.AUTHZ_ENABLED,
-    beacon_meta_callback=build_response_meta,
+    beacon_meta_callback=middleware_meta_callback,
     debug_mode=Config.BENTO_DEBUG
 )
 

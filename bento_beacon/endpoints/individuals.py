@@ -6,7 +6,6 @@ from ..utils.beacon_request import (
     summary_stats_requested,
 )
 from ..utils.beacon_response import (
-    beacon_response,
     add_info_to_response,
     add_stats_to_response,
     add_overview_stats_to_response,
@@ -41,7 +40,7 @@ def get_individuals():
         total_count = katsu_total_individuals_count()
         if summary_stats_requested():
             add_overview_stats_to_response()
-        return beacon_response({"count": total_count})
+        return build_query_response(numTotalResults=total_count)
 
     # ----------------------------------------------------------
     #  collect biosample ids from variant and experiment search

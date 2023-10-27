@@ -8,7 +8,7 @@ class Config:
     # version of this implementation
     BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
-    # max granularity for unauthorized users
+    # default when no requested granularity, as well as max granularity for anonymous users
     DEFAULT_GRANULARITY = {
         "individuals": "count",
         "variants": "count",
@@ -98,6 +98,15 @@ class Config:
             "partOfSpecification": "Beacon v2.0.0"
 
         }
+    }
+
+    INFO_ENDPOINTS_SCHEMAS = {
+        "/":  {"entityType": "info", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconInfoResponse.json"},
+        "/configuration": {"entityType": "configuration", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconConfigurationResponse.json"},
+        "/entry_types": {"entityType": "entryType", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconEntryTypesResponse.json"},
+        "/filtering_terms": {"entityType": "filteringTerm", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconFilteringTermsResponse.json"},
+        "/info": {"entityType": "info", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconInfoResponse.json"},
+        "/map": {"entityType": "map", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconMapResponse.json"}
     }
 # -------------------
 # katsu
