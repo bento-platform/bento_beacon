@@ -49,7 +49,7 @@ def get_variants():
         else:
             gohan_count = sum(variant_totals.values())
 
-    return build_query_response(numTotalResults=gohan_count, full_record_handler=variants_full_results)
+    return build_query_response(numTotalResults=gohan_count)
 
 
 # -------------------------------------------------------
