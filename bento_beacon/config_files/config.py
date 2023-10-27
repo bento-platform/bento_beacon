@@ -106,7 +106,8 @@ class Config:
         "/entry_types": {"entityType": "entryType", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconEntryTypesResponse.json"},
         "/filtering_terms": {"entityType": "filteringTerm", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconFilteringTermsResponse.json"},
         "/info": {"entityType": "info", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconInfoResponse.json"},
-        "/map": {"entityType": "map", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconMapResponse.json"}
+        "/map": {"entityType": "map", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconMapResponse.json"},
+        "/overview": {}
     }
 # -------------------
 # katsu
