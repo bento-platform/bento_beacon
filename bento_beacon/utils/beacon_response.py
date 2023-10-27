@@ -60,26 +60,16 @@ def received_request():
         return r
 
 
-# to replace XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-def build_response_meta():
-    returned_schemas = g.get("response_data", {}).get("returnedSchemas", [])
-    returned_granularity = g.get("response_data", {}).get("returnedGranularity", "count")
-    received_request_summary = received_request()
-    return {
-        "beaconId": current_app.config["BEACON_ID"],
-        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
-        "returnedSchemas": returned_schemas,
-        "returnedGranularity": returned_granularity,
-        "receivedRequestSummary": received_request_summary
-    }
-
-
-# ------------------------------------------------------------
-#  response control flow
+# --------------------------------------------------------------------
+#  Response control flow
 #
-#  response is shaped according to response granularity,
-#  which itself is a function of user request and permissions
-# ------------------------------------------------------------
+#  - determine response granularity (boolean, count, record) from
+#    permissions and user request, then route response accordingly
+#
+#  - apply censorship to bool and count responses for anonymous users;
+#    full-record censorship is done elsewhere, typically by not
+#    permitting a response
+# --------------------------------------------------------------------
 
 
 def response_granularity():
@@ -89,7 +79,7 @@ def response_granularity():
     where max is the highest granularity allowed, based on this user's permissions
     and the ordering is "boolean" < "count" < "record"
     """
-    # XXXXXXXXXXXXXXXXx clean up this weird mix of dict access methods
+    # XXXXXXXXXXXXXXXXx clean up this weird mix of dict access methods   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
     max_g = GRANULARITY_RECORD if g.permission_query_data else default_g
     requested_g = g.request_data.get("requestedGranularity")
@@ -259,4 +249,3 @@ def schemas_this_query():
     entityType = endpoint_set["entryType"]  # confusion between "entityType" and "entryType" is part of beacon spec
     schema = endpoint_set["defaultSchema"]["id"]
     return [{"entityType": entityType, "schema": schema}]
-
