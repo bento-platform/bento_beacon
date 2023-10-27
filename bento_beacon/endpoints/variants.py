@@ -4,7 +4,6 @@ from ..utils.beacon_request import query_parameters_from_request
 from ..utils.beacon_response import build_query_response, add_info_to_response, zero_count_response
 from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_totals_by_sample_id
 from ..utils.search import biosample_id_search
-from ..utils.exceptions import NotImplemented
 
 variants = Blueprint("variants", __name__)
 
@@ -51,12 +50,6 @@ def get_variants():
             gohan_count = sum(variant_totals.values())
 
     return build_query_response(numTotalResults=gohan_count, full_record_handler=variants_full_results)
-
-
-def variants_full_results(ids):
-    # TODO? eventually
-    # requires mapping to beacon format and good pagination
-    raise NotImplemented("full response for variants not available")
 
 
 # -------------------------------------------------------
