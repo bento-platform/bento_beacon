@@ -1,6 +1,11 @@
 from flask import Blueprint
 from functools import reduce
-from ..authz.middleware import authz_middleware, PERMISSION_DOWNLOAD_DATA, PERMISSION_QUERY_DATA, check_permission
+from ..authz.middleware import (
+    authz_middleware,
+    PERMISSION_DOWNLOAD_DATA,
+    PERMISSION_QUERY_DATA,
+    check_permission
+)
 from ..utils.beacon_request import (
     query_parameters_from_request,
     summary_stats_requested,

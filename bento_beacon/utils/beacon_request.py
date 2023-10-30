@@ -9,7 +9,7 @@ def request_defaults():
     return {
         "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "granularity": current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint, None),
-        "includeResultsetResponses": "ALL",
+        "includeResultsetResponses": "HIT",
         "pagination": {
             "skip": 0,
             "limit": current_app.config["DEFAULT_PAGINATION_PAGE_SIZE"]

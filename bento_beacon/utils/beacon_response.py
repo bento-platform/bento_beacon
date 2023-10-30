@@ -1,7 +1,7 @@
 from flask import current_app, g, request
 from .katsu_utils import search_summary_statistics, overview_statistics
 from .censorship import get_censorship_threshold, censored_count
-from .exceptions import InvalidQuery
+from .exceptions import InvalidQuery, APIException
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
@@ -79,7 +79,6 @@ def response_granularity():
     where max is the highest granularity allowed, based on this user's permissions
     and the ordering is "boolean" < "count" < "record"
     """
-    # XXXXXXXXXXXXXXXXx clean up this weird mix of dict access methods   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
     max_g = GRANULARITY_RECORD if g.permission_query_data else default_g
     requested_g = g.request_data.get("requestedGranularity")
@@ -95,6 +94,9 @@ def response_granularity():
     # only thing lower than count is boolean
     if max_g == GRANULARITY_COUNT:
         return requested_g if requested_g == GRANULARITY_BOOLEAN else max_g
+    
+    # no other cases
+    raise APIException()
 
 
 def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
@@ -107,13 +109,10 @@ def build_query_response(ids=None, numTotalResults=None, full_record_handler=Non
         return beacon_count_response(returned_count)
     if granularity == GRANULARITY_RECORD:
         if full_record_handler is None:
-            # user asked for full response where it doesn't exist yet, eg in variants
+            # user asked for full response where it doesn't exist yet, e.g. in variants
             raise InvalidQuery("record response not available for this entry type")
         result_sets, numTotalResults = full_record_handler(ids)
         return beacon_result_set_response(result_sets, numTotalResults)
-
-    # no other cases, throw exception?
-    # could add warning to response if not returning requested granularity
 
 
 # --------------------------------
@@ -132,7 +131,7 @@ def response_meta(returned_schemas, returned_granularity):
 
 
 def middleware_meta_callback():
-    # meta for middleware errors only
+    # meta for error responses from middleware
     # errors don't return schemas or use granularity
     # but stragely both fields are required
     returned_schemas = []
@@ -245,7 +244,7 @@ def info_endpoint_schema():
 
 
 def schemas_this_query():
-    endpoint_set = current_app.config["ENTRY_TYPES_DETAILS"].get(request.blueprint)
+    endpoint_set = current_app.config["ENTRY_TYPES_DETAILS"][request.blueprint]
     entityType = endpoint_set["entryType"]  # confusion between "entityType" and "entryType" is part of beacon spec
     schema = endpoint_set["defaultSchema"]["id"]
     return [{"entityType": entityType, "schema": schema}]
