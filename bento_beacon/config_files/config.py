@@ -1,6 +1,8 @@
 import json
 import os
 
+GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
+
 
 class Config:
     BEACON_SPEC_VERSION = "v2.0.0"
@@ -42,7 +44,7 @@ class Config:
             "defaultSchema": {
                 "id": "ga4gh-beacon-biosample-v2.0.0",
                 "name": "Default schema for biosamples",
-                    "referenceToSchemaDefinition": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
+                    "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
                     "schemaVersion": "v2.0.0"
             },
             "partOfSpecification": "Beacon v2.0.0"
@@ -54,7 +56,7 @@ class Config:
             "defaultSchema": {
                 "id": "ga4gh-beacon-cohort-v2.0.0",
                 "name": "Default schema for cohorts",
-                    "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
+                    "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
                     "schemaVersion": "v2.0.0"
             },
             "partOfSpecification": "Beacon v2.0.0"
@@ -67,7 +69,7 @@ class Config:
             "defaultSchema": {
                 "id": "ga4gh-beacon-dataset-v2.0.0",
                 "name": "Default schema for datasets",
-                        "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
+                        "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
                         "schemaVersion": "v2.0.0"
             },
             "partOfSpecification": "Beacon v2.0.0"
@@ -92,7 +94,7 @@ class Config:
             "defaultSchema": {
                 "id": "ga4gh-beacon-variant-v2.0.0",
                 "name": "Default schema for a genomic variation",
-                        "referenceToSchemaDefinition": "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
+                        "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
                         "schemaVersion": "v2.0.0"
             },
             "partOfSpecification": "Beacon v2.0.0"
@@ -101,12 +103,30 @@ class Config:
     }
 
     INFO_ENDPOINTS_SCHEMAS = {
-        "/":  {"entityType": "info", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconInfoResponse.json"},
-        "/configuration": {"entityType": "configuration", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconConfigurationResponse.json"},
-        "/entry_types": {"entityType": "entryType", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconEntryTypesResponse.json"},
-        "/filtering_terms": {"entityType": "filteringTerm", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconFilteringTermsResponse.json"},
-        "/info": {"entityType": "info", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconInfoResponse.json"},
-        "/map": {"entityType": "map", "schema": "https://github.com/ga4gh-beacon/beacon-v2/blob/main/framework/json/responses/beaconMapResponse.json"},
+        "/":  {
+            "entityType": "info",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconInfoResponse.json"
+        },
+        "/configuration": {
+            "entityType": "configuration",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconConfigurationResponse.json"
+        },
+        "/entry_types": {
+            "entityType": "entryType",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconEntryTypesResponse.json"
+        },
+        "/filtering_terms": {
+            "entityType": "filteringTerm",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconFilteringTermsResponse.json"
+        },
+        "/info": {
+            "entityType": "info",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconInfoResponse.json"
+        },
+        "/map": {
+            "entityType": "map",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconMapResponse.json"
+        },
         "/overview": {}
     }
 # -------------------
