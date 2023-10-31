@@ -1,13 +1,15 @@
 from flask import current_app, request, g
 import jsonschema
-from .exceptions import APIException, InvalidQuery
+from .exceptions import InvalidQuery
+from .censorship import reject_if_too_many_filters
+from ..authz.middleware import check_permission, PERMISSION_QUERY_DATA
 
 
 def request_defaults():
     return {
         "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "granularity": current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint, None),
-        "includeResultsetResponses": "ALL",
+        "includeResultsetResponses": "HIT",
         "pagination": {
             "skip": 0,
             "limit": current_app.config["DEFAULT_PAGINATION_PAGE_SIZE"]
@@ -21,23 +23,9 @@ def expand_path(id):
     return id.replace("/", ".[item].")
 
 
-def get_max_filters():
-    max_filters = current_app.config["MAX_FILTERS"]
-    if max_filters is None: 
-        raise APIException(message="unable to retrieve 'max_query_parameters' censorship setting from katsu")
-    return max_filters
-
-
 def query_parameters_from_request():
     variants_query = g.request_data.get("requestParameters", {}).get("g_variant") or {}
     filters = g.request_data.get("filters") or []
-
-    # reject if too many filters
-    max_filters = get_max_filters()
-    if max_filters > 0 and len(filters) > max_filters:
-        raise InvalidQuery(
-            f"too many filters in request, maximum of {max_filters} permitted")
-
     phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
@@ -112,6 +100,7 @@ def save_request_data():
         request_data["requestParameters"] = query_request_parameters
 
     if query_filters:
+        reject_if_too_many_filters(query_filters)
         request_data["filters"] = query_filters
 
     if request_bento:
@@ -148,3 +137,8 @@ def validate_request():
 
 def summary_stats_requested():
     return g.request_data.get("bento", {}).get("showSummaryStatistics")
+
+
+def verify_permissions():
+    # can do much more here in the future
+    g.permission_query_data = check_permission(PERMISSION_QUERY_DATA)
