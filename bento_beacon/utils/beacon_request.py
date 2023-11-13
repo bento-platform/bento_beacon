@@ -1,8 +1,9 @@
-from flask import current_app, request, g
 import jsonschema
+from bento_lib.auth.permissions import P_QUERY_DATA
+from flask import current_app, request, g
 from .exceptions import InvalidQuery
 from .censorship import reject_if_too_many_filters
-from ..authz.middleware import check_permission, PERMISSION_QUERY_DATA
+from ..authz.middleware import check_permission
 
 
 def request_defaults():
@@ -141,4 +142,4 @@ def summary_stats_requested():
 
 def verify_permissions():
     # can do much more here in the future
-    g.permission_query_data = check_permission(PERMISSION_QUERY_DATA)
+    g.permission_query_data = check_permission(P_QUERY_DATA)
