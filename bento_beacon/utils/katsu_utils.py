@@ -1,6 +1,6 @@
+import requests
 from flask import current_app
 from json import JSONDecodeError
-import requests
 from urllib.parse import urlsplit, urlunsplit
 from .exceptions import APIException, InvalidQuery
 from functools import reduce
@@ -70,8 +70,8 @@ def katsu_network_call(payload, endpoint=None):
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
-        current_app.logger.error("katsu error")
-        raise APIException()
+        current_app.logger.error(f"katsu error: JSON decode error with POST {url}")
+        raise APIException(message="invalid non-JSON response from katsu")
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"katsu error: {e}")
         raise APIException(message="error calling katsu metadata service")
@@ -105,8 +105,8 @@ def katsu_get(endpoint, id=None, query=""):
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
-        current_app.logger.error("katsu error")
-        raise APIException()
+        current_app.logger.error(f"katsu error: JSON decode error with GET {query_url}")
+        raise APIException(message="invalid non-JSON response from katsu")
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"katsu error: {e}")
         raise APIException(message="error calling katsu metadata service")
@@ -291,7 +291,7 @@ def overview_statistics():
     return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"]).get("data_type_specific", {})
 
 
-def katsu_censorship_settings():
+def katsu_censorship_settings() -> tuple[int | None, int | None]:
     overview = katsu_get(current_app.config["KATSU_PUBLIC_OVERVIEW"])
     max_filters = overview.get("max_query_parameters")
     count_threshold = overview.get("count_threshold")
@@ -299,7 +299,7 @@ def katsu_censorship_settings():
     return max_filters, count_threshold
 
 
-def katsu_not_found(r):
+def katsu_not_found(r) -> bool:
     if "count" in r:
         return r["count"] == 0
 
