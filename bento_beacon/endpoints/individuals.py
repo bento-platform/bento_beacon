@@ -1,9 +1,11 @@
+from bento_lib.auth.permissions import (
+    P_DOWNLOAD_DATA,
+    P_QUERY_DATA,
+)
 from flask import Blueprint
 from functools import reduce
 from ..authz.middleware import (
     authz_middleware,
-    PERMISSION_DOWNLOAD_DATA,
-    PERMISSION_QUERY_DATA,
     check_permission
 )
 from ..utils.beacon_request import (
@@ -94,7 +96,7 @@ def individuals_full_results(ids):
     # if len(ids) > 100:
     #     return {"message": "too many ids for full response"}
 
-    handover_permission = check_permission(PERMISSION_DOWNLOAD_DATA)
+    handover_permission = check_permission(P_DOWNLOAD_DATA)
     handover = handover_for_ids(ids) if handover_permission else {}
     phenopackets_by_result_set = phenopackets_for_ids(ids).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
@@ -121,7 +123,7 @@ def individuals_full_results(ids):
 
 
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
-@authz_middleware.deco_require_permissions_on_resource({PERMISSION_QUERY_DATA})
+@authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
 def individual_by_id(id):
     # forbidden / unauthorized if no permissions
     return beacon_result_set_response([id], 1)

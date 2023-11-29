@@ -72,16 +72,16 @@ with app.app_context():
     retries = 0
     max_retries = current_app.config["MAX_RETRIES_FOR_CENSORSHIP_PARAMS"]
     for tries in range(max_retries+1):
-        current_app.logger.info("calling katsu for censorship parameters")
+        current_app.logger.info(f"calling katsu for censorship parameters (try={tries})")
         try:
             max_filters, count_threshold = katsu_censorship_settings()
-        except APIException:
+            # If we got values successfully, without an API exception being raised, exit early - even if they're None
+            break
+        except APIException as e:
             # katsu down or unavailable, details logged when exception thrown
             # swallow exception and continue retries
-            current_app.logger.error("error calling katsu for censorship settings")
+            current_app.logger.error(f"error calling katsu for censorship settings: {e}")
 
-        if max_filters is not None and count_threshold is not None:
-            break
         sleep(5 + 5*tries)
 
     # either params retrieved or we hit max retries
