@@ -21,3 +21,9 @@ class InvalidQuery(APIException):
         self.message = message
         self.status_code = status_code
 
+
+class NotFoundException(APIException):
+    def __init__(self, message="Not found", status_code=404):
+        super().__init__()
+        self.message = message
+        self.status_code = status_code

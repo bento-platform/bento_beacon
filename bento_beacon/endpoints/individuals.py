@@ -28,6 +28,7 @@ from ..utils.katsu_utils import (
 )
 from ..utils.search import biosample_id_search
 from ..utils.handover_utils import handover_for_ids
+from ..utils.exceptions import NotFoundException
 
 individuals = Blueprint("individuals", __name__)
 
@@ -122,11 +123,18 @@ def individuals_full_results(ids):
     return result_sets, numTotalResults
 
 
+# forbidden / unauthorized if no permissions
 @individuals.route("/individuals/<id>", methods=['GET', 'POST'])
 @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
 def individual_by_id(id):
-    # forbidden / unauthorized if no permissions
-    return beacon_result_set_response([id], 1)
+    result_sets, numTotalResults = individuals_full_results([id])
+
+    # return 404 if not found
+    # only authorized users will get 404 here, so this can't be used to probe ids
+    if not result_sets:
+        raise NotFoundException()
+    
+    return beacon_result_set_response(result_sets, numTotalResults)
 
 
 # -------------------------------------------------------
