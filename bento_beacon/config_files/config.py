@@ -80,10 +80,10 @@ class Config:
             "name": "Individual",
             "ontologyTermForThisType":  {"id": "NCIT:C25190", "label": "Person"},
             "defaultSchema": {
-                "id": "phenopacket-v1",
-                "name": "phenopacket v1",
+                "id": "phenopacket-v2",
+                "name": "phenopacket v2",
                         "referenceToSchemaDefinition": f"{BEACON_BASE_URL}/individual_schema",
-                        "schemaVersion": "v1.0.0"
+                        "schemaVersion": "v2.0.0"
             },
             "partOfSpecification": "Phenopacket v1"
         },
