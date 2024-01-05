@@ -13,7 +13,7 @@ def get_censorship_threshold():
 
 def censored_count(count):
     t = get_censorship_threshold()
-    if count < t:
+    if count <= t:
         return 0
     return count
 
