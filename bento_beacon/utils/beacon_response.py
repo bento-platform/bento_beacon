@@ -10,10 +10,14 @@ def init_response_data():
     g.response_data = {}
     g.response_info = {}
 
-
-# TODO: handle multiple messages
 def add_info_to_response(info):
-    g.response_info["message"] = info
+    add_message({"description": info, "level": "info"}) 
+
+
+def add_message(message_obj):
+    messages = g.response_info.get("messages", [])
+    messages.append(message_obj)
+    g.response_info["messages"] = messages
 
 
 def add_stats_to_response(ids):
