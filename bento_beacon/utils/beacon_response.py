@@ -10,6 +10,7 @@ def init_response_data():
     g.response_data = {}
     g.response_info = {}
 
+
 def add_info_to_response(info):
     add_message({"description": info, "level": "info"}) 
 
