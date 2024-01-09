@@ -2,6 +2,13 @@ from flask import current_app, g
 from .exceptions import APIException, InvalidQuery
 
 
+def no_results_censorship_message():
+    return (
+        "No results. Either none were found, or the query produced results numbering at "
+        f"or below the threshold for censorship ({current_app.config['COUNT_THRESHOLD']} items)"
+    )
+
+
 def get_censorship_threshold():
     if g.permission_query_data:
         return 0
