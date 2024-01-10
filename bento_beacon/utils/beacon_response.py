@@ -108,7 +108,7 @@ def build_query_response(ids=None, numTotalResults=None, full_record_handler=Non
     granularity = response_granularity()
     count = len(ids) if numTotalResults is None else numTotalResults
     returned_count = censored_count(count)
-    if returned_count == 0 and not g.permission_query_data:
+    if returned_count == 0 and get_censorship_threshold() > 0:
         add_info_to_response(no_results_censorship_message())
     if granularity == GRANULARITY_BOOLEAN:
         return beacon_boolean_response(returned_count)
