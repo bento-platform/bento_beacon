@@ -2,11 +2,7 @@ from flask import current_app, g
 from .exceptions import APIException, InvalidQuery
 
 
-def no_results_censorship_message():
-    return (
-        "No results. Either none were found, or the query produced results numbering at "
-        f"or below the threshold for censorship ({current_app.config['COUNT_THRESHOLD']} items)"
-    )
+MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS = "No results. Either none were found, or the query produced results numbering at or below the threshold for censorship."
 
 
 def get_censorship_threshold():
