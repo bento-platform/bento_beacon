@@ -1,6 +1,6 @@
 from flask import current_app, g, request
 from .katsu_utils import search_summary_statistics, overview_statistics
-from .censorship import get_censorship_threshold, censored_count
+from .censorship import get_censorship_threshold, censored_count, MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS
 from .exceptions import InvalidQuery, APIException
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
@@ -10,6 +10,7 @@ def init_response_data():
     g.response_data = {}
     g.response_info = {}
 
+
 def add_info_to_response(info):
     add_message({"description": info, "level": "info"}) 
 
@@ -18,6 +19,11 @@ def add_message(message_obj):
     messages = g.response_info.get("messages", [])
     messages.append(message_obj)
     g.response_info["messages"] = messages
+
+
+def add_no_results_censorship_message_to_response():
+    add_info_to_response(MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS)
+    add_info_to_response(f"censorship threshold: {current_app.config['COUNT_THRESHOLD']}")
 
 
 def add_stats_to_response(ids):
@@ -107,6 +113,8 @@ def build_query_response(ids=None, numTotalResults=None, full_record_handler=Non
     granularity = response_granularity()
     count = len(ids) if numTotalResults is None else numTotalResults
     returned_count = censored_count(count)
+    if returned_count == 0 and get_censorship_threshold() > 0:
+        add_no_results_censorship_message_to_response()
     if granularity == GRANULARITY_BOOLEAN:
         return beacon_boolean_response(returned_count)
     if granularity == GRANULARITY_COUNT:
