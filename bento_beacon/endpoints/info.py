@@ -153,8 +153,8 @@ def build_ga4gh_service_info():
         "name": info["name"],
         "type": {
             "artifact": "Beacon v2",
-             "group": "org.ga4gh",
-             "version": beacon_spec_version
+            "group": "org.ga4gh",
+            "version": beacon_spec_version
         },
         "environment": info["environment"],
         "organization": {
