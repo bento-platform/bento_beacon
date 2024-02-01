@@ -45,14 +45,14 @@ def service_info():
 @info.route("/")
 @authz_middleware.deco_public_endpoint
 def beacon_info():
-    return beacon_info_response(current_app.config.get("SERVICE_INFO", build_service_info()))
+    return beacon_info_response(current_app.config.get("SERVICE_DETAILS", build_service_details()))
 
 
 # as above but with beacon overview details
 @info.route("/info")
 @authz_middleware.deco_public_endpoint
 def beacon_info_with_overview():
-    service_info = current_app.config.get("SERVICE_INFO", build_service_info())
+    service_info = current_app.config.get("SERVICE_DETAILS", build_service_details())
     return beacon_info_response({**service_info, "overview": overview()})
 
 
@@ -88,7 +88,7 @@ def beacon_map():
 @info.route("/overview")
 @authz_middleware.deco_public_endpoint
 def beacon_overview():
-    service_info = current_app.config.get("SERVICE_INFO", build_service_info())
+    service_info = current_app.config.get("SERVICE_DETAILS", build_service_details())
     return beacon_info_response({**service_info, "overview": overview()})
 
 
@@ -114,11 +114,21 @@ def get_experiment_schema():
 # -------------------------------------------------------
 # these return the appropriate response but also save as a side effect
 
-def build_service_info():
-    service_info = deepcopy(current_app.config["BEACON_CONFIG"].get("serviceInfo"))
-    service_info["environment"] = "dev" if current_app.config["DEBUG"] else "prod"
-    service_info["id"] = current_app.config["BEACON_ID"]
-    service_info["name"] = current_app.config["BEACON_NAME"]
+
+def build_service_details():
+    # build info response in beacon format
+    info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
+    s = {
+        "id": current_app.config["BEACON_ID"],
+        "name": current_app.config["BEACON_NAME"],
+        "apiVersion": current_app.config["BENTO_BEACON_VERSION"],
+        "environment": "dev" if current_app.config["DEBUG"] else "prod",
+        "organization": info["organization"]
+    }
+
+    # url for beacon ui
+    if current_app.config["BEACON_UI_ENABLED"]:
+        s["welcomeUrl"] = current_app.config["BEACON_UI_URL"]
 
     # retrieve dataset description from DATS
     # may be multiple datasets, so collect all descriptions into one string
@@ -126,28 +136,44 @@ def build_service_info():
     k_datasets = katsu_datasets()
     dats_array = list(map(lambda d: json.loads(d.get("datsFile", "{}")), k_datasets))
     description = " ".join([d.get("description") for d in dats_array if "description" in d])
-    if description and service_info.get("description") is None:
-        service_info["description"] = description
+    if description and info.get("description") is None:
+        s["description"] = description
 
-    # url for beacon ui
-    if current_app.config["BEACON_UI_ENABLED"]:
-        service_info["welcomeUrl"] = current_app.config["BEACON_UI_URL"]
-
-    current_app.config["SERVICE_INFO"] = service_info
-    return service_info
+    current_app.config["SERVICE_DETAILS"] = s
+    return s
 
 
 def build_ga4gh_service_info():
-    service_info = current_app.config.get("SERVICE_INFO", build_service_info())
-    service_info["type"] = {
-        "artifact": "Beacon v2",
-        "group": "org.ga4gh",
-        "version": current_app.config["BEACON_SPEC_VERSION"]
+    # construct from beacon-format info
+    info = current_app.config.get("SERVICE_DETAILS", build_service_details())
+    beacon_spec_version = current_app.config["BEACON_SPEC_VERSION"]
+
+    s = {
+        "id": info["id"],
+        "name": info["name"],
+        "type": {
+            "artifact": "Beacon v2",
+             "group": "org.ga4gh",
+             "version": beacon_spec_version
+        },
+        "environment": info["environment"],
+        "organization": {
+            "name": info["organization"]["name"],
+            "url": info["organization"]["welcomeUrl"]
+        },
+        "contactUrl": info["organization"]["contactUrl"],
+        "version": info["apiVersion"],
+        "bento": {
+            "serviceKind": "beacon"
+        }
     }
-    service_info["version"] = current_app.config["BENTO_BEACON_VERSION"]
-    service_info["bento"] = {"serviceKind": "beacon"}
-    current_app.config["BEACON_GA4GH_SERVICE_INFO"] = service_info
-    return service_info
+
+    description = info.get("description")
+    if description:
+        s["description"] = description
+    
+    current_app.config["BEACON_GA4GH_SERVICE_INFO"] = s
+    return s
 
 
 def build_configuration_endpoint_response():
@@ -155,7 +181,7 @@ def build_configuration_endpoint_response():
 
     # production status is one of "DEV", "PROD", "TEST"
     # while environment is one of "dev", "prod", "test", "staging".. generally only use "dev" or "prod"
-    production_status = current_app.config.get("SERVICE_INFO", build_service_info()).get("environment", "error").upper()
+    production_status = current_app.config.get("SERVICE_DETAILS", build_service_details()).get("environment", "error").upper()
 
     response = {
         "$schema": JSON_SCHEMA,
