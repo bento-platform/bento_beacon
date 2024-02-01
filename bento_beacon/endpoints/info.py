@@ -121,9 +121,10 @@ def build_service_details():
     s = {
         "id": current_app.config["BEACON_ID"],
         "name": current_app.config["BEACON_NAME"],
-        "apiVersion": current_app.config["BENTO_BEACON_VERSION"],
+        "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "environment": "dev" if current_app.config["DEBUG"] else "prod",
-        "organization": info["organization"]
+        "organization": info["organization"],
+        "version": current_app.config["BENTO_BEACON_VERSION"]
     }
 
     # url for beacon ui
@@ -146,7 +147,6 @@ def build_service_details():
 def build_ga4gh_service_info():
     # construct from beacon-format info
     info = current_app.config.get("SERVICE_DETAILS", build_service_details())
-    beacon_spec_version = current_app.config["BEACON_SPEC_VERSION"]
 
     s = {
         "id": info["id"],
@@ -154,7 +154,7 @@ def build_ga4gh_service_info():
         "type": {
             "artifact": "Beacon v2",
             "group": "org.ga4gh",
-            "version": beacon_spec_version
+            "version": info["apiVersion"]
         },
         "environment": info["environment"],
         "organization": {
@@ -162,7 +162,7 @@ def build_ga4gh_service_info():
             "url": info["organization"]["welcomeUrl"]
         },
         "contactUrl": info["organization"]["contactUrl"],
-        "version": info["apiVersion"],
+        "version": info["version"],
         "bento": {
             "serviceKind": "beacon"
         }
