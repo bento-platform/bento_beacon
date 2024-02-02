@@ -135,7 +135,7 @@ def build_service_details():
     # may be multiple datasets, so collect all descriptions into one string
     # for custom description, add a "description" field to service info in beacon_config.json
     k_datasets = katsu_datasets()
-    dats_array = list(map(lambda d: json.loads(d.get("datsFile", "{}")), k_datasets))
+    dats_array = list(map(lambda d: d.get("datsFile", {}), k_datasets))
     description = " ".join([d.get("description") for d in dats_array if "description" in d])
     if description and info.get("description") is None:
         s["description"] = description
