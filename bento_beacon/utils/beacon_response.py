@@ -203,7 +203,7 @@ def beacon_collections_response(results):
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
         "response": results,
-        "response summary": {"exists": "true" if results else False}
+        "responseSummary": {"exists": "true" if results else False}
     }
     info = response_info()
     if info:
