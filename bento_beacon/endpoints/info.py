@@ -72,7 +72,8 @@ def beacon_configuration():
 @info.route("/entry_types")
 @authz_middleware.deco_public_endpoint
 def entry_types():
-    return beacon_info_response(current_app.config.get("ENTRY_TYPES", build_entry_types()))
+    e_types = current_app.config.get("ENTRY_TYPES", build_entry_types())
+    return beacon_info_response({"entryTypes": e_types})
 
 
 @info.route("/map")
@@ -190,14 +191,14 @@ def build_configuration_endpoint_response():
 
 
 def build_entry_types():
-    entry_types_response = {}
+    entry_types = {}
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     entry_types_details = current_app.config["ENTRY_TYPES_DETAILS"]
     for endpoint_set in endpoint_sets:
         entry = entry_types_details.get(endpoint_set)
         entry_type_name = entry.get("entryType")
 
-        entry_types_response[entry_type_name] = {
+        entry_types[entry_type_name] = {
             "id": entry_type_name,
             "name": entry.get("name"),
             "ontologyTermForThisType": entry.get("ontologyTermForThisType"),
@@ -205,8 +206,8 @@ def build_entry_types():
             "defaultSchema": entry.get("defaultSchema")
         }
 
-    current_app.config["ENTRY_TYPES"] = entry_types_response
-    return entry_types_response
+    current_app.config["ENTRY_TYPES"] = entry_types
+    return entry_types
 
 
 def build_beacon_map():
