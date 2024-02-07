@@ -16,9 +16,6 @@ from ..utils.gohan_utils import gohan_counts_for_overview
 info = Blueprint("info", __name__)
 
 
-JSON_SCHEMA = "https://json-schema.org/draft/2020-12/schema"
-
-
 def overview():
     if current_app.config["BEACON_CONFIG"].get("useGohan"):
         variants_count = gohan_counts_for_overview()
@@ -184,7 +181,7 @@ def build_configuration_endpoint_response():
     production_status = current_app.config.get("SERVICE_DETAILS", build_service_details()).get("environment", "error").upper()
 
     response = {
-        "$schema": JSON_SCHEMA,
+        "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/configuration"]["schema"],
         "entryTypes": entry_types_details,
         "maturityAttributes": {"productionStatus": production_status}
     }
