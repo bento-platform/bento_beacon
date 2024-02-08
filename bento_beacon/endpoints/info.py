@@ -1,5 +1,3 @@
-import json
-from copy import deepcopy
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
