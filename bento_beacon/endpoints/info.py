@@ -1,5 +1,3 @@
-import json
-from copy import deepcopy
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
@@ -14,9 +12,6 @@ from ..utils.gohan_utils import gohan_counts_for_overview
 
 
 info = Blueprint("info", __name__)
-
-
-JSON_SCHEMA = "https://json-schema.org/draft/2020-12/schema"
 
 
 def overview():
@@ -75,7 +70,8 @@ def beacon_configuration():
 @info.route("/entry_types")
 @authz_middleware.deco_public_endpoint
 def entry_types():
-    return beacon_info_response(current_app.config.get("ENTRY_TYPES", build_entry_types()))
+    e_types = current_app.config.get("ENTRY_TYPES", build_entry_types())
+    return beacon_info_response({"entryTypes": e_types})
 
 
 @info.route("/map")
@@ -184,7 +180,7 @@ def build_configuration_endpoint_response():
     production_status = current_app.config.get("SERVICE_DETAILS", build_service_details()).get("environment", "error").upper()
 
     response = {
-        "$schema": JSON_SCHEMA,
+        "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/configuration"]["schema"],
         "entryTypes": entry_types_details,
         "maturityAttributes": {"productionStatus": production_status}
     }
@@ -193,14 +189,14 @@ def build_configuration_endpoint_response():
 
 
 def build_entry_types():
-    entry_types_response = {}
+    entry_types = {}
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     entry_types_details = current_app.config["ENTRY_TYPES_DETAILS"]
     for endpoint_set in endpoint_sets:
         entry = entry_types_details.get(endpoint_set)
         entry_type_name = entry.get("entryType")
 
-        entry_types_response[entry_type_name] = {
+        entry_types[entry_type_name] = {
             "id": entry_type_name,
             "name": entry.get("name"),
             "ontologyTermForThisType": entry.get("ontologyTermForThisType"),
@@ -208,21 +204,24 @@ def build_entry_types():
             "defaultSchema": entry.get("defaultSchema")
         }
 
-    current_app.config["ENTRY_TYPES"] = entry_types_response
-    return entry_types_response
+    current_app.config["ENTRY_TYPES"] = entry_types
+    return entry_types
 
 
 def build_beacon_map():
-    beacon_map = {}
+    beacon_map = {
+        "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/map"]["schema"],
+        "endpointSets": {}
+    }
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     for endpoint_set in endpoint_sets:
         resource_name = "g_variants" if endpoint_set == "variants" else endpoint_set
         root_url = current_app.config["BEACON_BASE_URL"] + "/" + resource_name
         entry_type = current_app.config["ENTRY_TYPES_DETAILS"].get(endpoint_set, {}).get("entryType")
-        beacon_map[entry_type] = {"rootUrl": root_url, "entryType": entry_type}
+        beacon_map["endpointSets"][entry_type] = {"rootUrl": root_url, "entryType": entry_type}
 
         if endpoint_set in ["datasets", "cohorts"]:
-            beacon_map[entry_type]["singleEntryUrl"] = root_url + "/{id}"
+            beacon_map["endpointSets"][entry_type]["singleEntryUrl"] = root_url + "/{id}"
 
     current_app.config["BEACON_MAP"] = beacon_map
     return beacon_map
