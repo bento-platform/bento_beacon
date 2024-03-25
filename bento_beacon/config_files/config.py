@@ -160,7 +160,7 @@ class Config:
         "schema": "phenopackets v1"
     }
 
-    MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 5
+    MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
 # -------------------
 # gohan
 
