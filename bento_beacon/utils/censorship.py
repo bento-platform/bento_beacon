@@ -18,6 +18,8 @@ def censorship_retry() -> tuple[int | None, int | None]:
         raise APIException(message="error reading censorship settings from katsu: "
                            + f"max_filters: {max_filters}, count_threshold: {count_threshold}")
 
+    current_app.logger.info(
+        f"setting censorship parameters max_filters: {max_filters}, count_threshold: {count_threshold}")
     set_censorship_settings(max_filters, count_threshold)
     return max_filters, count_threshold
 
