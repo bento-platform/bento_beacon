@@ -17,6 +17,7 @@ from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request, verify_permissions
 from .utils.beacon_response import init_response_data
 from .utils.katsu_utils import katsu_censorship_settings
+from .utils.censorship import set_censorship_settings
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -92,8 +93,7 @@ with app.app_context():
             f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
 
     # save even if None
-    current_app.config["MAX_FILTERS"] = max_filters
-    current_app.config["COUNT_THRESHOLD"] = count_threshold
+    set_censorship_settings(max_filters, count_threshold)
 
 
 @app.before_request
