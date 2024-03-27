@@ -5,8 +5,14 @@ LABEL devcontainer.metadata='[{ \
   "remoteUser": "bento_user", \
   "customizations": { \
     "vscode": { \
-      "extensions": ["ms-python.python", "eamodio.gitlens"], \
-      "settings": {"workspaceFolder": "/beacon"} \
+      "extensions": ["ms-python.python", "eamodio.gitlens", "ms-python.black-formatter"], \
+      "settings": { \
+        "workspaceFolder": "/beacon", \
+        "[python]": { \
+          "editor.defaultFormatter": "ms-python.black-formatter", \
+          "black-formatter.args": ["--line-length", "120"] \
+        } \
+      } \
     } \
   } \
 }]'
