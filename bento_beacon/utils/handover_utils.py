@@ -15,20 +15,22 @@ def drs_url_components():
 
 def drs_network_call(path, query):
     base_url_components = drs_url_components()
-    url = urlunsplit((
-        base_url_components.scheme,
-        base_url_components.netloc,
-        base_url_components.path + path,
-        query,
-        base_url_components.fragment
-    ))
+    url = urlunsplit(
+        (
+            base_url_components.scheme,
+            base_url_components.netloc,
+            base_url_components.path + path,
+            query,
+            base_url_components.fragment,
+        )
+    )
 
     try:
         r = requests.get(
             url,
             headers=auth_header_from_request(),
             timeout=DRS_TIMEOUT_SECONDS,
-            verify=not current_app.config.get("BENTO_DEBUG")
+            verify=not current_app.config.get("BENTO_DEBUG"),
         )
         drs_response = r.json()
 
@@ -56,7 +58,7 @@ def filenames_by_results_set(ids):
         "data_type": "phenopacket",
         "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]],
         "output": "values_list",
-        "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"]
+        "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"],
     }
 
     response = katsu_network_call(payload)
@@ -81,7 +83,7 @@ def drs_link_from_vcf_filename(filename):
 
     # there may be multiple files with the same filename
     # for now, just return the most recent
-    most_recent = sorted(obj, key=lambda entry: entry['created_time'], reverse=True)[0]
+    most_recent = sorted(obj, key=lambda entry: entry["created_time"], reverse=True)[0]
 
     # return any http access, in the future we may want to return other stuff (Globus, htsget, etc)
     access_methods = most_recent.get("access_methods", [])
@@ -90,8 +92,7 @@ def drs_link_from_vcf_filename(filename):
 
 
 def vcf_handover_entry(url, note=None):
-    entry = {"handoverType": {"id": "NCIT:C172216", "label": "VCF file"},
-             "url": url}
+    entry = {"handoverType": {"id": "NCIT:C172216", "label": "VCF file"}, "url": url}
     # optional field for extra information about this file
     if note:
         entry["note"] = note

@@ -17,13 +17,16 @@ class Config:
         "biosamples": "count",
         "cohorts": "record",
         "datasets": "record",
-        "info": "record"
+        "info": "record",
     }
 
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
-    BENTO_DEBUG = os.environ.get("BENTO_DEBUG", os.environ.get(
-        "FLASK_DEBUG", "false")).strip().lower() in ('true', '1', 't')
+    BENTO_DEBUG = os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")).strip().lower() in (
+        "true",
+        "1",
+        "t",
+    )
 
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
@@ -33,7 +36,7 @@ class Config:
     BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
 
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
-    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED").strip().lower() in ('true', '1', 't')
+    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED").strip().lower() in ("true", "1", "t")
     BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
@@ -44,10 +47,10 @@ class Config:
             "defaultSchema": {
                 "id": "ga4gh-beacon-biosample-v2.0.0",
                 "name": "Default schema for biosamples",
-                    "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
-                    "schemaVersion": "v2.0.0"
+                "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
+                "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Beacon v2.0.0"
+            "partOfSpecification": "Beacon v2.0.0",
         },
         "cohorts": {
             "entryType": "cohort",
@@ -56,84 +59,80 @@ class Config:
             "defaultSchema": {
                 "id": "ga4gh-beacon-cohort-v2.0.0",
                 "name": "Default schema for cohorts",
-                    "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
-                    "schemaVersion": "v2.0.0"
+                "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
+                "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Beacon v2.0.0"
-
+            "partOfSpecification": "Beacon v2.0.0",
         },
         "datasets": {
             "entryType": "dataset",
             "name": "Dataset",
-            "ontologyTermForThisType":  {"id": "NCIT:C47824", "label": "Data set"},
+            "ontologyTermForThisType": {"id": "NCIT:C47824", "label": "Data set"},
             "defaultSchema": {
                 "id": "ga4gh-beacon-dataset-v2.0.0",
                 "name": "Default schema for datasets",
-                        "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
-                        "schemaVersion": "v2.0.0"
+                "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
+                "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Beacon v2.0.0"
-
+            "partOfSpecification": "Beacon v2.0.0",
         },
         "individuals": {
             "entryType": "individual",
             "name": "Individual",
-            "ontologyTermForThisType":  {"id": "NCIT:C25190", "label": "Person"},
+            "ontologyTermForThisType": {"id": "NCIT:C25190", "label": "Person"},
             "defaultSchema": {
                 "id": "phenopacket-v2",
                 "name": "phenopacket v2",
-                        "referenceToSchemaDefinition": f"{BEACON_BASE_URL}/individual_schema",
-                        "schemaVersion": "v2.0.0"
+                "referenceToSchemaDefinition": f"{BEACON_BASE_URL}/individual_schema",
+                "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Phenopacket v1"
+            "partOfSpecification": "Phenopacket v1",
         },
         "variants": {
             "entryType": "genomicVariation",
             "name": "Genomic Variant",
-            "ontologyTermForThisType":  {"id": "ENSGLOSSARY:0000092", "label": "Variant"},
+            "ontologyTermForThisType": {"id": "ENSGLOSSARY:0000092", "label": "Variant"},
             "defaultSchema": {
                 "id": "ga4gh-beacon-variant-v2.0.0",
                 "name": "Default schema for a genomic variation",
-                        "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
-                        "schemaVersion": "v2.0.0"
+                "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
+                "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Beacon v2.0.0"
-
-        }
+            "partOfSpecification": "Beacon v2.0.0",
+        },
     }
 
     INFO_ENDPOINTS_SCHEMAS = {
-        "/":  {
+        "/": {
             "entityType": "info",
-            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconInfoResponse.json"
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconInfoResponse.json",
         },
         "/configuration": {
             "entityType": "configuration",
-            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconConfigurationResponse.json"
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconConfigurationResponse.json",
         },
         "/entry_types": {
             "entityType": "entryType",
-            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconEntryTypesResponse.json"
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconEntryTypesResponse.json",
         },
         "/filtering_terms": {
             "entityType": "filteringTerm",
-            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconFilteringTermsResponse.json"
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconFilteringTermsResponse.json",
         },
         "/info": {
             "entityType": "info",
-            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconInfoResponse.json"
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconInfoResponse.json",
         },
         "/map": {
             "entityType": "map",
-            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconMapResponse.json"
+            "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconMapResponse.json",
         },
-        "/overview": {}
+        "/overview": {},
     }
-# -------------------
-# katsu
+    # -------------------
+    # katsu
 
-    KATSU_BASE_URL = os.environ.get(
-        "KATSU_BASE_URL")
+    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_BATCH_INDIVIDUALS_ENDPOINT = "/api/batch/individuals"
@@ -152,17 +151,13 @@ class Config:
     KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
-    MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get(
-        "MAP_EXTRA_PROPERTIES_TO_INFO", True)
+    MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", True)
 
-    PHENOPACKETS_SCHEMA_REFERENCE = {
-        "entityType": "individual",
-        "schema": "phenopackets v1"
-    }
+    PHENOPACKETS_SCHEMA_REFERENCE = {"entityType": "individual", "schema": "phenopackets v1"}
 
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
-# -------------------
-# gohan
+    # -------------------
+    # gohan
 
     GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
     GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
@@ -170,27 +165,26 @@ class Config:
     GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
 
-# -------------------
-# drs
+    # -------------------
+    # drs
 
     DRS_URL = os.environ.get("DRS_URL")
 
-# -------------------
-# authorization
+    # -------------------
+    # authorization
 
     AUTHZ_URL: str = os.environ.get("BENTO_AUTHZ_SERVICE_URL", "")
     AUTHZ_ENABLED: bool = os.environ.get("AUTHZ_ENABLED", "true").strip().lower() in ("true", "1", "yes")
 
-# -------------------
-# handle injected config files
-#   a) obtain reference to the expected configuration files' location by
-#      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
-#   b) default to using "this file's directory" as the reference to where
-#      configuration files are expected to be located
+    # -------------------
+    # handle injected config files
+    #   a) obtain reference to the expected configuration files' location by
+    #      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
+    #   b) default to using "this file's directory" as the reference to where
+    #      configuration files are expected to be located
     def retrieve_config_json(filename):
         # TODO: abstract out CONFIG_PATH if needed
-        config_path = os.environ.get(
-            "CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
+        config_path = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
         print(f"Searching for file {filename} in {config_path}")
         file_path = os.path.join(config_path, filename)
         try:

@@ -4,10 +4,7 @@ from bento_lib.auth.permissions import (
 )
 from flask import Blueprint
 from functools import reduce
-from ..authz.middleware import (
-    authz_middleware,
-    check_permission
-)
+from ..authz.middleware import authz_middleware, check_permission
 from ..utils.beacon_request import (
     query_parameters_from_request,
     summary_stats_requested,
@@ -18,13 +15,13 @@ from ..utils.beacon_response import (
     add_overview_stats_to_response,
     zero_count_response,
     build_query_response,
-    beacon_result_set_response
+    beacon_result_set_response,
 )
 from ..utils.katsu_utils import (
     katsu_filters_and_sample_ids_query,
     katsu_total_individuals_count,
     search_from_config,
-    phenopackets_for_ids
+    phenopackets_for_ids,
 )
 from ..utils.search import biosample_id_search
 from ..utils.handover_utils import handover_for_ids
@@ -33,7 +30,7 @@ from ..utils.exceptions import NotFoundException
 individuals = Blueprint("individuals", __name__)
 
 
-@individuals.route("/individuals", methods=['GET', 'POST'])
+@individuals.route("/individuals", methods=["GET", "POST"])
 def get_individuals():
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
 
@@ -124,7 +121,7 @@ def individuals_full_results(ids):
 
 
 # forbidden / unauthorized if no permissions
-@individuals.route("/individuals/<id>", methods=['GET', 'POST'])
+@individuals.route("/individuals/<id>", methods=["GET", "POST"])
 @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
 def individual_by_id(id):
     result_sets, numTotalResults = individuals_full_results([id])
@@ -133,7 +130,7 @@ def individual_by_id(id):
     # only authorized users will get 404 here, so this can't be used to probe ids
     if not result_sets:
         raise NotFoundException()
-    
+
     return beacon_result_set_response(result_sets, numTotalResults)
 
 

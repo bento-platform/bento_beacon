@@ -26,21 +26,14 @@ app = Flask(__name__)
 
 # find path for beacon-v2 spec
 app_parent_dir = os.path.dirname(app.root_path)
-beacon_request_spec_uri = urlunsplit(
-    ("file", app_parent_dir, REQUEST_SPEC_RELATIVE_PATH, "", ""))
-app.config.from_mapping(
-    BEACON_REQUEST_SPEC_URI=beacon_request_spec_uri
-)
+beacon_request_spec_uri = urlunsplit(("file", app_parent_dir, REQUEST_SPEC_RELATIVE_PATH, "", ""))
+app.config.from_mapping(BEACON_REQUEST_SPEC_URI=beacon_request_spec_uri)
 
 app.config.from_object(Config)
 
 # all logs are printed in dev mode regardless of level
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler()
-    ]
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()]
 )
 
 # attach authz middleware to the Flask app
@@ -72,7 +65,7 @@ with app.app_context():
     count_threshold = None
     retries = 0
     max_retries = current_app.config["MAX_RETRIES_FOR_CENSORSHIP_PARAMS"]
-    for tries in range(max_retries+1):
+    for tries in range(max_retries + 1):
         current_app.logger.info(f"calling katsu for censorship parameters (try={tries})")
         try:
             max_filters, count_threshold = katsu_censorship_settings()
@@ -83,14 +76,15 @@ with app.app_context():
             # swallow exception and continue retries
             current_app.logger.error(f"error calling katsu for censorship settings: {e}")
 
-        sleep(5 + 5*tries)
+        sleep(5 + 5 * tries)
 
     # either params retrieved or we hit max retries
     if max_filters is None or count_threshold is None:
         current_app.logger.error("unable to retrieve censorship settings from katsu")
     else:
         current_app.logger.info(
-            f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}")
+            f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}"
+        )
 
     # save even if None
     set_censorship_settings(max_filters, count_threshold)

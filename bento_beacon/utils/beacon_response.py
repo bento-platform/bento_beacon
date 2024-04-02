@@ -12,7 +12,7 @@ def init_response_data():
 
 
 def add_info_to_response(info):
-    add_message({"description": info, "level": "info"}) 
+    add_message({"description": info, "level": "info"})
 
 
 def add_message(message_obj):
@@ -56,7 +56,7 @@ def package_biosample_and_experiment_stats(stats):
 
     return {
         "biosamples": {"count": biosamples_count, "sampled_tissue": sampled_tissue_data},
-        "experiments": {"count": experiments_count, "experiment_type": experiment_type_data}
+        "experiments": {"count": experiments_count, "experiment_type": experiment_type_data},
     }
 
 
@@ -104,7 +104,7 @@ def response_granularity():
     # only thing lower than count is boolean
     if max_g == GRANULARITY_COUNT:
         return requested_g if requested_g == GRANULARITY_BOOLEAN else max_g
-    
+
     # no other cases
     raise APIException()
 
@@ -138,7 +138,7 @@ def response_meta(returned_schemas, returned_granularity):
         "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "returnedSchemas": returned_schemas,
         "returnedGranularity": returned_granularity,
-        "receivedRequestSummary": received_request()
+        "receivedRequestSummary": received_request(),
     }
 
 
@@ -162,8 +162,8 @@ def beacon_info_response(info):
         "meta": {
             "beaconId": current_app.config["BEACON_ID"],
             "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
-            "returnedSchemas": info_endpoint_schema()
-        }
+            "returnedSchemas": info_endpoint_schema(),
+        },
     }
 
 
@@ -203,7 +203,7 @@ def beacon_collections_response(results):
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
         "response": results,
-        "responseSummary": {"exists": True if results else False}
+        "responseSummary": {"exists": True if results else False},
     }
     info = response_info()
     if info:
@@ -220,7 +220,7 @@ def beacon_result_set_response(result_sets, numTotalResults):
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
         "responseSummary": {"numTotalResults": numTotalResults, "exists": numTotalResults > 0},
-        "response": {"resultSets": result_sets}
+        "response": {"resultSets": result_sets},
     }
     info = response_info()
     if info:
@@ -229,13 +229,7 @@ def beacon_result_set_response(result_sets, numTotalResults):
 
 
 def beacon_error_response(message, status_code):
-    return {
-        "meta": response_meta([], None),
-        "error": {
-            "errorCode": status_code,
-            "errorMessage": message
-        }
-    }
+    return {"meta": response_meta([], None), "error": {"errorCode": status_code, "errorMessage": message}}
 
 
 def zero_count_response():

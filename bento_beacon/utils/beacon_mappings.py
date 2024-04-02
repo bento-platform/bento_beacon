@@ -3,8 +3,7 @@ from flask import current_app
 # temp hardcoding for beacon required fields missing from katsu
 # TODO: better solution or move to config
 BIOSAMPLE_STATUS = {"id": "BFO:0000040", "label": "material entity"}
-BIOSAMPLE_ORIGIN_TYPE = {"id": "OBI:0001479",
-                         "label": "specimen from organism"}
+BIOSAMPLE_ORIGIN_TYPE = {"id": "OBI:0001479", "label": "specimen from organism"}
 
 # mostly identity, but a few remappings
 katsu_beacon_biosample_mapped_fields = {
@@ -16,7 +15,7 @@ katsu_beacon_biosample_mapped_fields = {
     "tumorGrade": "tumorGrade",
     "histologicalDiagnosis": "histologicalDiagnosis",
     "diagnosticMarkers": "diagnosticMarkers",
-    "phenotypicFeatures": "phenotypicFeatures"
+    "phenotypicFeatures": "phenotypicFeatures",
 }
 
 
@@ -60,5 +59,5 @@ def katsu_to_beacon_dataset_mapping(kd):
             "id": kd.get("identifier"),
             "title": kd.get("title"),
             "description": kd.get("description"),
-            "dataUseConditions": kd.get("dataUse")
+            "dataUseConditions": kd.get("dataUse"),
         }
