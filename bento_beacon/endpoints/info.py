@@ -6,7 +6,7 @@ from ..utils.katsu_utils import (
     get_filtering_term_resources,
     katsu_total_individuals_count,
     katsu_get,
-    katsu_datasets
+    katsu_datasets,
 )
 from ..utils.gohan_utils import gohan_counts_for_overview
 
@@ -20,12 +20,7 @@ def overview():
     else:
         variants_count = {}
 
-    return {
-        "counts": {
-            "individuals": katsu_total_individuals_count(),
-            "variants": variants_count
-        }
-    }
+    return {"counts": {"individuals": katsu_total_individuals_count(), "variants": variants_count}}
 
 
 # service-info in ga4gh format
@@ -64,7 +59,9 @@ def filtering_terms():
 @info.route("/configuration")
 @authz_middleware.deco_public_endpoint
 def beacon_configuration():
-    return beacon_info_response(current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", build_configuration_endpoint_response()))
+    return beacon_info_response(
+        current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", build_configuration_endpoint_response())
+    )
 
 
 @info.route("/entry_types")
@@ -93,13 +90,13 @@ def beacon_overview():
 # -------------------------------------------------------
 
 
-@info.route("/individual_schema", methods=['GET', 'POST'])
+@info.route("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 def get_individual_schema():
     return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
 
 
-@info.route("/experiment_schema", methods=['GET', 'POST'])
+@info.route("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 def get_experiment_schema():
     return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
@@ -120,7 +117,7 @@ def build_service_details():
         "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "environment": "dev" if current_app.config["DEBUG"] else "prod",
         "organization": info["organization"],
-        "version": current_app.config["BENTO_BEACON_VERSION"]
+        "version": current_app.config["BENTO_BEACON_VERSION"],
     }
 
     # url for beacon ui
@@ -147,27 +144,18 @@ def build_ga4gh_service_info():
     s = {
         "id": info["id"],
         "name": info["name"],
-        "type": {
-            "artifact": "Beacon v2",
-            "group": "org.ga4gh",
-            "version": info["apiVersion"]
-        },
+        "type": {"artifact": "Beacon v2", "group": "org.ga4gh", "version": info["apiVersion"]},
         "environment": info["environment"],
-        "organization": {
-            "name": info["organization"]["name"],
-            "url": info["organization"]["welcomeUrl"]
-        },
+        "organization": {"name": info["organization"]["name"], "url": info["organization"]["welcomeUrl"]},
         "contactUrl": info["organization"]["contactUrl"],
         "version": info["version"],
-        "bento": {
-            "serviceKind": "beacon"
-        }
+        "bento": {"serviceKind": "beacon"},
     }
 
     description = info.get("description")
     if description:
         s["description"] = description
-    
+
     current_app.config["BEACON_GA4GH_SERVICE_INFO"] = s
     return s
 
@@ -177,12 +165,14 @@ def build_configuration_endpoint_response():
 
     # production status is one of "DEV", "PROD", "TEST"
     # while environment is one of "dev", "prod", "test", "staging".. generally only use "dev" or "prod"
-    production_status = current_app.config.get("SERVICE_DETAILS", build_service_details()).get("environment", "error").upper()
+    production_status = (
+        current_app.config.get("SERVICE_DETAILS", build_service_details()).get("environment", "error").upper()
+    )
 
     response = {
         "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/configuration"]["schema"],
         "entryTypes": entry_types_details,
-        "maturityAttributes": {"productionStatus": production_status}
+        "maturityAttributes": {"productionStatus": production_status},
     }
     current_app.config["CONFIGURATION_ENDPOINT_RESPONSE"] = response
     return response
@@ -201,7 +191,7 @@ def build_entry_types():
             "name": entry.get("name"),
             "ontologyTermForThisType": entry.get("ontologyTermForThisType"),
             "partOfSpecification": entry.get("partOfSpecification"),
-            "defaultSchema": entry.get("defaultSchema")
+            "defaultSchema": entry.get("defaultSchema"),
         }
 
     current_app.config["ENTRY_TYPES"] = entry_types
@@ -209,10 +199,7 @@ def build_entry_types():
 
 
 def build_beacon_map():
-    beacon_map = {
-        "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/map"]["schema"],
-        "endpointSets": {}
-    }
+    beacon_map = {"$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/map"]["schema"], "endpointSets": {}}
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     for endpoint_set in endpoint_sets:
         resource_name = "g_variants" if endpoint_set == "variants" else endpoint_set

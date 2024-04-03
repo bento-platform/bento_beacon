@@ -15,11 +15,14 @@ def set_censorship_settings(max_filters, count_threshold):
 def censorship_retry() -> tuple[int | None, int | None]:
     max_filters, count_threshold = katsu_censorship_settings()
     if max_filters is None or count_threshold is None:
-        raise APIException(message="error reading censorship settings from katsu: "
-                           + f"max_filters: {max_filters}, count_threshold: {count_threshold}")
+        raise APIException(
+            message="error reading censorship settings from katsu: "
+            + f"max_filters: {max_filters}, count_threshold: {count_threshold}"
+        )
 
     current_app.logger.info(
-        f"setting censorship parameters max_filters: {max_filters}, count_threshold: {count_threshold}")
+        f"setting censorship parameters max_filters: {max_filters}, count_threshold: {count_threshold}"
+    )
     set_censorship_settings(max_filters, count_threshold)
     return max_filters, count_threshold
 

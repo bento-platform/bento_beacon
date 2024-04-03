@@ -1,5 +1,3 @@
-
-
 class APIException(Exception):
     def __init__(self, message="Internal Server Error", status_code=500, payload=None):
         super().__init__()

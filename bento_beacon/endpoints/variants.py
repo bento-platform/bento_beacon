@@ -9,7 +9,7 @@ variants = Blueprint("variants", __name__)
 
 
 # returns count or boolean only
-@variants.route("/g_variants", methods=['GET', 'POST'])
+@variants.route("/g_variants", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint  # TODO: for now. eventually, return more depending on permissions
 def get_variants():
     variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
@@ -25,8 +25,11 @@ def get_variants():
     sample_ids = []
 
     if has_filters:
-        sample_ids = biosample_id_search(phenopacket_filters=phenopacket_filters,
-                                         experiment_filters=experiment_filters, config_filters=config_filters)
+        sample_ids = biosample_id_search(
+            phenopacket_filters=phenopacket_filters,
+            experiment_filters=experiment_filters,
+            config_filters=config_filters,
+        )
         if not sample_ids:
             return zero_count_response()
 

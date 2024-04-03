@@ -11,11 +11,8 @@ def request_defaults():
         "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "granularity": current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint, None),
         "includeResultsetResponses": "HIT",
-        "pagination": {
-            "skip": 0,
-            "limit": current_app.config["DEFAULT_PAGINATION_PAGE_SIZE"]
-        },
-        "requestedSchemas": []
+        "pagination": {"skip": 0, "limit": current_app.config["DEFAULT_PAGINATION_PAGE_SIZE"]},
+        "requestedSchemas": [],
     }
 
 
@@ -32,10 +29,26 @@ def query_parameters_from_request():
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
 
     # strip filter prefixes and convert remaining ids to bento format
-    phenopacket_filters = list(map(lambda f:  {"id": expand_path(f["id"])[len("phenopacket."):],
-                                               "operator": f["operator"], "value": f["value"]}, phenopacket_filters))
-    experiment_filters = list(map(lambda f:  {"id": expand_path(f["id"])[len("experiment."):],
-                                              "operator": f["operator"], "value": f["value"]}, experiment_filters))
+    phenopacket_filters = list(
+        map(
+            lambda f: {
+                "id": expand_path(f["id"])[len("phenopacket.") :],
+                "operator": f["operator"],
+                "value": f["value"],
+            },
+            phenopacket_filters,
+        )
+    )
+    experiment_filters = list(
+        map(
+            lambda f: {
+                "id": expand_path(f["id"])[len("experiment.") :],
+                "operator": f["operator"],
+                "value": f["value"],
+            },
+            experiment_filters,
+        )
+    )
     return variants_query, phenopacket_filters, experiment_filters, config_filters
 
 
@@ -44,9 +57,19 @@ def package_get_params(params):
     param_keys = list(params)
 
     query_params_primitives = ("includeResultsetResponses", "requestedGranularity", "testMode")
-    variant_params_primitives = ("alternateBases", "aminoacidChange", "assemblyId", "geneId", "genomicAlleleShortForm",
-                                 "mateName", "referenceBases", "referenceName", "variantMaxLength", "variantMinLength",
-                                 "variantType")
+    variant_params_primitives = (
+        "alternateBases",
+        "aminoacidChange",
+        "assemblyId",
+        "geneId",
+        "genomicAlleleShortForm",
+        "mateName",
+        "referenceBases",
+        "referenceName",
+        "variantMaxLength",
+        "variantMinLength",
+        "variantType",
+    )
     variant_params_arrays = ("start", "end")
     pagination_params = ("skip", "limit")
 

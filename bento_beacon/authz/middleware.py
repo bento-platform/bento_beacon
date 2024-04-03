@@ -15,7 +15,7 @@ authz_middleware = FlaskAuthMiddleware(
     Config.AUTHZ_URL,
     enabled=Config.AUTHZ_ENABLED,
     beacon_meta_callback=middleware_meta_callback,
-    debug_mode=Config.BENTO_DEBUG
+    debug_mode=Config.BENTO_DEBUG,
 )
 
 

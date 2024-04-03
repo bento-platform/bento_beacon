@@ -8,10 +8,10 @@ import requests
 # -------------------------------------------------------
 
 gohan_beacon_variant_query_mapped_fields = {
-    "referenceBases":  "reference",
+    "referenceBases": "reference",
     "alternateBases": "alternative",
     "assemblyId": "assemblyId",
-    "referenceName": "chromosome"   # TODO: handle accession numbers here, Redmine #1076
+    "referenceName": "chromosome",  # TODO: handle accession numbers here, Redmine #1076
 }
 
 # throw warning if beacon query includes these terms
@@ -23,7 +23,7 @@ beacon_variant_query_not_implemented_params = [
     "mateName",
     "geneId",
     "aminoacidChange",
-    "genomicAlleleShortForm"
+    "genomicAlleleShortForm",
 ]
 
 
@@ -34,10 +34,10 @@ def beacon_to_gohan_generic_mapping(obj):
         if beacon_key in gohan_beacon_variant_query_mapped_fields.keys():
             gohan_query[gohan_beacon_variant_query_mapped_fields[beacon_key]] = beacon_value
         elif beacon_key in beacon_variant_query_not_implemented_params:
-            raise NotImplemented(
-                f"queries with {beacon_key} not implemented")
+            raise NotImplemented(f"queries with {beacon_key} not implemented")
 
     return gohan_query
+
 
 # -------------------------------------------------------
 #       coordinate mapping
@@ -46,11 +46,11 @@ def beacon_to_gohan_generic_mapping(obj):
 
 # TODO: INS issues, see notes
 def zero_to_one(start, end=None):
-    return int(start)+1 if end is None else (int(start)+1, end)
+    return int(start) + 1 if end is None else (int(start) + 1, end)
 
 
 def one_to_zero(start, end):
-    return (int(start)-1, end)
+    return (int(start) - 1, end)
 
 
 # -------------------------------------------------------
@@ -99,13 +99,11 @@ def sequence_query_to_gohan(beacon_args, granularity, ids_only):
 
     alternateBases = beacon_args.get("alternateBases")
     if alternateBases is None:
-        raise InvalidQuery(
-            message="variant query requires either 'end' or 'alternateBases' parameters")
+        raise InvalidQuery(message="variant query requires either 'end' or 'alternateBases' parameters")
 
     referenceBases = beacon_args.get("referenceBases")
     if referenceBases is None:
-        raise InvalidQuery(
-            message="variant sequence query requires 'referenceBases' parameter")
+        raise InvalidQuery(message="variant sequence query requires 'referenceBases' parameter")
 
     gohan_args["lowerBound"] = zero_to_one(beacon_args["start"][0])
     gohan_args["upperBound"] = gohan_args["lowerBound"]
@@ -142,7 +140,7 @@ def geneId_query_to_gohan(beacon_args, granularity, ids_only):
 
 
 def generic_gohan_query(gohan_args, granularity, ids_only):
-    if (ids_only):
+    if ids_only:
         return gohan_ids_only_query(gohan_args, granularity)
 
     if granularity == "record":
@@ -180,19 +178,12 @@ def gohan_results(url, gohan_args):
 def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
-        r = requests.get(
-            url,
-            headers=auth_header_from_request(),
-            timeout=c["GOHAN_TIMEOUT"],
-            params=gohan_args
-        )
+        r = requests.get(url, headers=auth_header_from_request(), timeout=c["GOHAN_TIMEOUT"], params=gohan_args)
 
         # handle gohan errors or any bad responses
         if not r.ok:
-            current_app.logger.warning(
-                 f"gohan error, status: {r.status_code}, message: {r.text}")
-            raise APIException(
-                message="error searching gohan variants service")
+            current_app.logger.warning(f"gohan error, status: {r.status_code}, message: {r.text}")
+            raise APIException(message="error searching gohan variants service")
 
         gohan_response = r.json()
 

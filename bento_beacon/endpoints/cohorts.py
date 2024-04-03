@@ -5,14 +5,14 @@ from ..utils.beacon_response import beacon_collections_response
 cohorts = Blueprint("cohorts", __name__)
 
 
-@cohorts.route("/cohorts", methods=['GET', 'POST'])
+@cohorts.route("/cohorts", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 def get_cohorts():
     cohorts = current_app.config["BEACON_COHORT"]
     return beacon_collections_response({"collections": cohorts})
 
 
-@cohorts.route("/cohorts/<id>", methods=['GET', 'POST'])
+@cohorts.route("/cohorts/<id>", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 def get_cohort_by_id(id):
     cohorts = current_app.config["BEACON_COHORT"]
