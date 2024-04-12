@@ -270,7 +270,7 @@ def search_summary_statistics(ids):
 
 
 def overview_statistics():
-    return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"]).get("data_type_specific", {})
+    return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"])
 
 
 def katsu_censorship_settings() -> tuple[int | None, int | None]:
