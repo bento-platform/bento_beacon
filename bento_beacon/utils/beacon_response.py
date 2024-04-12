@@ -44,14 +44,14 @@ def add_overview_stats_to_response():
 
 def package_biosample_and_experiment_stats(stats):
     phenopacket_dts_stats = stats.get("phenopacket", {}).get("data_type_specific", {})
-    experiment_stats = stats.get("experiment", {})
+    experiment_stats = stats.get("experiment", {}).get("data_type_specific", {}).get("experiments", {})
 
     biosamples = phenopacket_dts_stats.get("biosamples", {})
     biosamples_count = biosamples.get("count", 0)
     sampled_tissue = biosamples.get("sampled_tissue", {})
 
     experiments_count = experiment_stats.get("count", 0)
-    experiment_type = experiment_stats.get("data_type_specific", {}).get("experiment_type", {})
+    experiment_type = experiment_stats.get("experiment_type", {})
 
     # convert to bento_public response format
     sampled_tissue_data = [{"label": key, "value": value} for key, value in sampled_tissue.items()]
