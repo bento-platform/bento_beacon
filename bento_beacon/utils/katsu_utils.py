@@ -239,7 +239,11 @@ def katsu_total_individuals_count():
 def katsu_datasets(id=None):
     c = current_app.config
     endpoint = c["KATSU_DATASETS_ENDPOINT"]
-    response = katsu_get(endpoint, id, query="format=phenopackets")
+    try:
+        response = katsu_get(endpoint, id, query="format=phenopackets")
+    except APIException:
+        return {}
+
     if "detail" in response and response["detail"] == "Not found.":
         return {}
 
