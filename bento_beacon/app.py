@@ -92,10 +92,11 @@ with app.app_context():
 
 @app.before_request
 def before_request():
-    validate_request()
-    verify_permissions()
-    save_request_data()
-    init_response_data()
+    if request.blueprint != "info":
+        validate_request()
+        verify_permissions()
+        save_request_data()
+        init_response_data()
 
 
 @app.errorhandler(Exception)
