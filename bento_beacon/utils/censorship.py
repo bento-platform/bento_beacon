@@ -64,3 +64,8 @@ def reject_if_too_many_filters(filters):
     max_filters = get_max_filters()
     if len(filters) > max_filters:
         raise InvalidQuery(f"too many filters in request, maximum of {max_filters} permitted")
+
+
+def censored_chart_data(data):
+    t = get_censorship_threshold()  # zero with correct permissions
+    return [{"label": d["label"], "value": d["value"]} for d in data if d["value"] > t]
