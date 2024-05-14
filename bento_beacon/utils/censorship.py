@@ -66,7 +66,7 @@ def reject_if_too_many_filters(filters):
         raise InvalidQuery(f"too many filters in request, maximum of {max_filters} permitted")
 
 
-# at some point may want to show fields as zero rather than removing entirely
+# at some point may want to show censored fields as zero rather than removing entirely
 def censored_chart_data(data):
     t = get_censorship_threshold()  # zero with correct permissions
     return [{"label": d["label"], "value": d["value"]} for d in data if d["value"] > t]
