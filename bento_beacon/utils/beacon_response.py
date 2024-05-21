@@ -1,6 +1,11 @@
 from flask import current_app, g, request
 from .katsu_utils import search_summary_statistics, overview_statistics
-from .censorship import get_censorship_threshold, censored_count, MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS
+from .censorship import (
+    get_censorship_threshold,
+    censored_count,
+    censored_chart_data,
+    MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS,
+)
 from .exceptions import InvalidQuery, APIException
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
@@ -58,8 +63,14 @@ def package_biosample_and_experiment_stats(stats):
     experiment_type_data = [{"label": key, "value": value} for key, value in experiment_type.items()]
 
     return {
-        "biosamples": {"count": biosamples_count, "sampled_tissue": sampled_tissue_data},
-        "experiments": {"count": experiments_count, "experiment_type": experiment_type_data},
+        "biosamples": {
+            "count": censored_count(biosamples_count),
+            "sampled_tissue": censored_chart_data(sampled_tissue_data),
+        },
+        "experiments": {
+            "count": censored_count(experiments_count),
+            "experiment_type": censored_chart_data(experiment_type_data),
+        },
     }
 
 
