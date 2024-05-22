@@ -13,7 +13,7 @@ click==8.1.7
 cryptography==42.0.5
 flake8==6.1.0
 Flask==2.2.5
-Flask-Cors==3.0.10
+Flask-Cors==4.0.1
 fqdn==1.5.1
 frozenlist==1.4.0
 idna==3.7
