@@ -22,7 +22,7 @@ def network_beacon_call(method, url, payload=None):
             r = requests.post(url, json=payload, timeout=NETWORK_TIMEOUT)
         beacon_response = r.json()
 
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, JSONDecodeError) as e:
         current_app.logger.error(e)
         msg = f"beacon network error calling url {url}: {e}"
         raise APIException(message=msg)
@@ -43,14 +43,23 @@ def network_beacon_post(root_url, payload={}, endpoint=None):
 def init_network_service_registry():
     current_app.logger.info("registering beacons")
     network_beacons = {}
+    failed_beacons = []
     for url in BEACONS:
-        b = network_beacon_get(url, endpoint="overview")
-        beacon_info = b.get("response")
-        if not beacon_info:
-            msg = f"bad response from network beacon {url}"
-            raise APIException(message=msg)
+        try:
+            b = network_beacon_get(url, endpoint="overview")
+            beacon_info = b.get("response")
 
-        beacon_info["api_url"] = url
+        except APIException:
+            failed_beacons.append(url)
+            current_app.logger.error(f"error contacting network beacon {url}")
+            continue
+
+        if not beacon_info:
+            failed_beacons.append(url)
+            current_app.logger.error(f"bad response from network beacon {url}")
+            continue
+
+        beacon_info["apiUrl"] = url
 
         # organize overview stats
         # TODO (Redmine #2170) modify beacon /overview so we don't have to make two calls here, with different response formats
@@ -70,6 +79,15 @@ def init_network_service_registry():
         b_id = beacon_info.get("id")
         network_beacons[b_id] = beacon_info
         network_beacons[b_id]["overview"] = overview
+
+        
+        "s" if len(network_beacons) == 1 else ""
+
+        # make a merged overview? 
+        # what about merged filtering_terms?
+    current_app.logger.info(f"registered {len(network_beacons)} beacon{'' if len(network_beacons) == 1 else 's'} in network: {', '.join(network_beacons)}")
+    if failed_beacons:
+        current_app.logger.error(f"{len(failed_beacons)} network beacon{'' if len(failed_beacons) == 1 else 's'} failed to respond: {', '.join(failed_beacons)}")
 
     current_app.config["NETWORK_BEACONS"] = network_beacons
 
@@ -102,7 +120,6 @@ def sum_network_responses(beacon_responses):
             experiment_type_chart, stats.get("experiments", {}).get("experiment_type", [])
         )
 
-    # count be parameterized but currently hardcoded in bento_public
     bento_stats = {
         "biosamples": {"count": biosamples_count, "sampled_tissue": sampled_tissue_chart},
         "experiments": {"count": experiments_count, "experiment_type": experiment_type_chart},
@@ -116,13 +133,13 @@ def chart_to_dict(chart):
 
 
 def dict_to_chart(d):
-    return [{"label": key, "value": d[key]} for key in d]
+    return [{"label": label, "value": value} for label, value in d.items()]
 
 
 def merge_charts(c1, c2):
     """
-    add data from two categorical charts together
-    any categories with identical names are merged into a single field with the sum from both charts
+    combine data from two categorical charts
+    any categories with identical names are merged into a single field with the sum of their values
     """
     merged = chart_to_dict(c1)
     for cat in c2:
