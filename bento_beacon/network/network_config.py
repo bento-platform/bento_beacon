@@ -1,5 +1,5 @@
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-# temp file, all of this to be handled elsewhere in final version 
+# temp file, all of this to be handled elsewhere in final version
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 BEACONS = [
