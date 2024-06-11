@@ -80,14 +80,19 @@ def init_network_service_registry():
         network_beacons[b_id] = beacon_info
         network_beacons[b_id]["overview"] = overview
 
-        
-        "s" if len(network_beacons) == 1 else ""
+        # TODO, katsu calls are inconsistent here
+        # qs = get_public_search_fields(url)
+        # network_beacons[b_id]["querySections"] = get_public_search_fields(url)  # temp
 
-        # make a merged overview? 
+        # make a merged overview?
         # what about merged filtering_terms?
-    current_app.logger.info(f"registered {len(network_beacons)} beacon{'' if len(network_beacons) == 1 else 's'} in network: {', '.join(network_beacons)}")
+    current_app.logger.info(
+        f"registered {len(network_beacons)} beacon{'' if len(network_beacons) == 1 else 's'} in network: {', '.join(network_beacons)}"
+    )
     if failed_beacons:
-        current_app.logger.error(f"{len(failed_beacons)} network beacon{'' if len(failed_beacons) == 1 else 's'} failed to respond: {', '.join(failed_beacons)}")
+        current_app.logger.error(
+            f"{len(failed_beacons)} network beacon{'' if len(failed_beacons) == 1 else 's'} failed to respond: {', '.join(failed_beacons)}"
+        )
 
     current_app.config["NETWORK_BEACONS"] = network_beacons
 
@@ -148,3 +153,24 @@ def merge_charts(c1, c2):
         merged[label] = merged.get(label, 0) + value
 
     return dict_to_chart(merged)
+
+
+def get_public_search_fields(beacon_url):
+    fields_url = public_search_fields_url(beacon_url)
+    fields = network_beacon_get(fields_url)
+    return fields
+
+
+def public_search_fields_url(beacon_url):
+    split_url = urlsplit(beacon_url)
+    return urlunsplit(
+        (split_url.scheme, "portal." + split_url.netloc, "/api/metadata/api/public_search_fields", "", "")
+    )
+
+
+def filtersUnion():
+    pass
+
+
+def filtersIntersection():
+    pass
