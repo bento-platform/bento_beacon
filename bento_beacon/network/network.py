@@ -4,15 +4,15 @@ import requests
 from urllib.parse import urlsplit, urlunsplit
 from ..utils.exceptions import APIException, NotFoundException
 from .utils import beacon_network_response, network_beacon_get, network_beacon_post
-from .network_config import VALID_ENDPOINTS
+from .network_config import VALID_ENDPOINTS, KATSU_CONFIG_UNION, KATSU_CONFIG_INTERSECTION
 
 network = Blueprint("network", __name__, url_prefix="/network")
 
 
 # TODOs:
 # filtering terms XXXXXXXXXXXXXXXXXXXXXXXXXXX
-# front end federating code (get beacon proxy urls, call all of them)
-# only need to know network url + ids for each beacon
+# /service-info? there's already one at beacon root
+# async calls
 
 # standard beacon info endpoints at the network level: /map, /configuration, etc
 # handle GET args
@@ -23,11 +23,15 @@ network = Blueprint("network", __name__, url_prefix="/network")
 def network_beacons():
     beacons = current_app.config["NETWORK_BEACONS"]
 
-    # all beacons
-    # filters: copy from ?
-    # also want overview stats from empty individuals query
-    # filters??
-    return beacons
+    # temp, fake
+    filters_union = KATSU_CONFIG_UNION
+    filters_intersection = KATSU_CONFIG_INTERSECTION
+
+    return {
+        "filtersUnion": filters_union,
+        "filtersIntersection": filters_intersection,
+        "beacons": list(beacons.values()),
+    }
 
 
 @network.route("/query/<endpoint>", methods=["POST"])
@@ -43,7 +47,7 @@ def dumb_network_query(endpoint):
 
     responses = {}
     for b in beacons:
-        url = beacons[b].get("api_url")
+        url = beacons[b].get("apiUrl")
         try:
             r = network_beacon_post(
                 url,
@@ -76,7 +80,7 @@ def query(beacon_id, endpoint="overview"):
     if endpoint not in VALID_ENDPOINTS:
         raise NotFoundException()
 
-    api_url = beacon.get("api_url")
+    api_url = beacon.get("apiUrl")
 
     if request.method == "POST":
         payload = request.get_json()
