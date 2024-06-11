@@ -6,7 +6,7 @@ from ..utils.exceptions import APIException, NotFoundException
 from .utils import beacon_network_response, network_beacon_get, network_beacon_post
 from .network_config import VALID_ENDPOINTS, KATSU_CONFIG_UNION, KATSU_CONFIG_INTERSECTION
 
-network = Blueprint("network", __name__, url_prefix="/network")
+network = Blueprint("network", __name__)
 
 
 # TODOs:
@@ -18,8 +18,8 @@ network = Blueprint("network", __name__, url_prefix="/network")
 # handle GET args
 
 
-@network.route("/")
-@network.route("/beacons")
+@network.route("/network")
+@network.route("/network/beacons")
 def network_beacons():
     beacons = current_app.config["NETWORK_BEACONS"]
 
@@ -34,7 +34,7 @@ def network_beacons():
     }
 
 
-@network.route("/query/<endpoint>", methods=["POST"])
+@network.route("/network/query/<endpoint>", methods=["POST"])
 def dumb_network_query(endpoint):
     """
     Beacon network query in a single request and single response.
@@ -70,8 +70,8 @@ def dumb_network_query(endpoint):
     return beacon_network_response(responses)
 
 
-@network.route("/beacons/<beacon_id>")
-@network.route("/beacons/<beacon_id>/<endpoint>", methods=["GET", "POST"])
+@network.route("/network/beacons/<beacon_id>")
+@network.route("/network/beacons/<beacon_id>/<endpoint>", methods=["GET", "POST"])
 def query(beacon_id, endpoint="overview"):
     beacon = current_app.config["NETWORK_BEACONS"].get(beacon_id)
     if not beacon:
