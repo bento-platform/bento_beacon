@@ -6,6 +6,7 @@ from .network_config import BEACONS, NETWORK_TIMEOUT
 from ..utils.exceptions import APIException, InvalidQuery
 from ..utils.beacon_response import beacon_count_response
 
+PUBLIC_SEARCH_FIELDS_PATH = "/api/metadata/api/public_search_fields"
 DEFAULT_ENDPOINT = "individuals"
 OVERVIEW_STATS_QUERY = {
     "meta": {"apiVersion": "2.0.0"},
@@ -80,9 +81,9 @@ def init_network_service_registry():
         network_beacons[b_id] = beacon_info
         network_beacons[b_id]["overview"] = overview
 
-        # TODO, katsu calls are inconsistent here
-        # qs = get_public_search_fields(url)
-        # network_beacons[b_id]["querySections"] = get_public_search_fields(url)  # temp
+        # TODO, katsu calls are inconsistent here (v15 katsu does not respond)
+        # TODO (longer): serve beacon spec filtering terms instead of bento public querySections
+        network_beacons[b_id]["querySections"] = get_public_search_fields(url).get("sections", [])  # temp
 
         # make a merged overview?
         # what about merged filtering_terms?
@@ -157,6 +158,8 @@ def merge_charts(c1, c2):
 
 def get_public_search_fields(beacon_url):
     fields_url = public_search_fields_url(beacon_url)
+    current_app.logger.info(f"trying public fields url {fields_url}")
+
     fields = network_beacon_get(fields_url)
     return fields
 
@@ -164,7 +167,7 @@ def get_public_search_fields(beacon_url):
 def public_search_fields_url(beacon_url):
     split_url = urlsplit(beacon_url)
     return urlunsplit(
-        (split_url.scheme, "portal." + split_url.netloc, "/api/metadata/api/public_search_fields", "", "")
+        (split_url.scheme, "portal." + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", "")
     )
 
 
