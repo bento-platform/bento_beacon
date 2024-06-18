@@ -204,23 +204,34 @@ def katsu_resources_to_beacon_resource(r):
     return {key: value for (key, value) in r.items() if key != "created" and key != "updated"}
 
 
-# construct filtering terms collection from katsu autocomplete endpoints
-# note: katsu autocomplete endpoints are paginated
-# TODO: these could be memoized, either at startup or the first time they're requested
+# filtering terms for katsu public config search only
+# possible TODOs:
+#  - ontology term filters (needs better ontology support)
+#  - filters for general phenopacket / experiment search
+#  - memoize?
 def get_filtering_terms():
-    c = current_app.config
-    pheno_features = katsu_autocomplete_terms(c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
-    disease_terms = katsu_autocomplete_terms(c["KATSU_DISEASES_TERMS_ENDPOINT"])
-    sampled_tissue_terms = katsu_autocomplete_terms(c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
-    filtering_terms = pheno_features + disease_terms + sampled_tissue_terms
-    return list(map(katsu_autocomplete_to_beacon_filter, filtering_terms))
+    fields_nested = get_katsu_config_search_fields().get("sections", [])
+    fields = []
+    for f in fields_nested:
+        fields.extend(f["fields"])
 
+    filtering_terms = []
+    for f in fields:
+        filtering_term = {
+            "type": "alphanumeric",
+            "id": f["id"],
+            "label": f["title"],
+            "options": f["options"],  # unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/issues/79
+            "description": f.get("description", ""),
+            # "modelPath": f["mapping"] unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/issues/115
+            # proposal is for path in beacon spec, so our mapping does not match exactly
+            #
+            # "scopes": scope for us is always all queryable entities in this beacon, but that can vary per beacon
+            # we can infer this from the endpoints / blueprints that are active
+        }
+        filtering_terms.append(filtering_term)
 
-def get_filtering_term_resources():
-    r = katsu_get(current_app.config["KATSU_RESOURCES_ENDPOINT"])
-    resources = r.get("results", [])
-    resources = list(map(katsu_resources_to_beacon_resource, resources))
-    return resources
+    return filtering_terms
 
 
 # -------------------------------------------------------
