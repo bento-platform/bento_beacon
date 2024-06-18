@@ -1,6 +1,8 @@
+from flask import current_app
 from functools import reduce
 from .gohan_utils import query_gohan
 from .katsu_utils import katsu_filters_query, search_from_config, biosample_ids_for_individuals
+from .beacon_response import add_info_to_response
 
 
 # TODO: search by linked field set elements instead of hardcoding
@@ -11,6 +13,10 @@ def biosample_id_search(variants_query=None, phenopacket_filters=None, experimen
         return []
 
     if variants_query:
+        if not current_app.config["BEACON_CONFIG"].get("useGohan"):
+            # variants query even though there are no variants in this beacon, this can happen in a network context
+            add_info_to_response("No variants available at this beacon, query by metadata values only")
+            return []
         variant_sample_ids = query_gohan(variants_query, "count", ids_only=True)
         if not variant_sample_ids:
             return []
