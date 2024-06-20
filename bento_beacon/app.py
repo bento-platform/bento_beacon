@@ -9,6 +9,8 @@ from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
+from .network.network import network
+from .network.utils import init_network_service_registry
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware
@@ -21,6 +23,10 @@ from .utils.censorship import set_censorship_settings
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
+
+# temp
+# add to config
+USE_BEACON_NETWORK = True
 
 app = Flask(__name__)
 
@@ -43,6 +49,11 @@ authz_middleware.attach(app)
 # always load info endpoints, load everything else based on config
 
 app.register_blueprint(info)
+
+if USE_BEACON_NETWORK:
+    app.register_blueprint(network)
+    with app.app_context():
+        init_network_service_registry()
 
 blueprints = {
     "biosamples": biosamples,
