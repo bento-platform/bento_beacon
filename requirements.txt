@@ -49,4 +49,4 @@ urllib3==1.26.19
 webcolors==1.12
 Werkzeug==2.2.3
 yarl==1.9.3
-zipp==3.17.0
+zipp==3.19.1
