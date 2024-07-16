@@ -278,9 +278,10 @@ def overview_statistics():
 
 
 def katsu_censorship_settings() -> tuple[int | None, int | None]:
-    overview = katsu_get(current_app.config["KATSU_PUBLIC_OVERVIEW"])
-    max_filters = overview.get("max_query_parameters")
-    count_threshold = overview.get("count_threshold")
+    # TODO: should be project-dataset scoped
+    rules = katsu_get(current_app.config["KATSU_PUBLIC_RULES"])
+    max_filters = rules.get("max_query_parameters")
+    count_threshold = rules.get("count_threshold")
     # return even if None
     return max_filters, count_threshold
 
