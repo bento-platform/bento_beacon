@@ -22,7 +22,6 @@ NETWORK_QUERY_WITHOUT_VARIANTS_TIMEOUT = 30
 VALID_ENDPOINTS = ["analyses", "biosamples", "cohorts", "datasets", "g_variants", "individuals", "runs", "overview"]
 
 
-
 KATSU_CONFIG_INTERSECTION = [
     {
         "section_title": "Common Filters",
@@ -34,43 +33,27 @@ KATSU_CONFIG_INTERSECTION = [
                     "minimum": 0,
                     "taper_left": 10,
                     "taper_right": 100,
-                    "units": "years"
+                    "units": "years",
                 },
                 "datatype": "number",
                 "description": "Age at arrival",
                 "id": "age",
                 "mapping": "individual/age_numeric",
-                "options": [
-                    "[30, 40)",
-                    "[40, 50)",
-                    "[50, 60)",
-                    "[60, 70)",
-                    "[70, 80)",
-                    "[80, 90)"
-                ],
-                "title": "Age"
+                "options": ["[30, 40)", "[40, 50)", "[50, 60)", "[60, 70)", "[70, 80)", "[80, 90)"],
+                "title": "Age",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Sex at birth",
                 "id": "sex",
                 "mapping": "individual/sex",
-                "options": [
-                    "MALE",
-                    "FEMALE"
-                ],
-                "title": "Sex"
-            }
-        ]
+                "options": ["MALE", "FEMALE"],
+                "title": "Sex",
+            },
+        ],
     }
 ]
-
-
-
-
 
 
 KATSU_CONFIG_UNION = [
@@ -78,9 +61,7 @@ KATSU_CONFIG_UNION = [
         "section_title": "All Filters",
         "fields": [
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Phenotypic features of the individual",
                 "id": "phenotypic_features_type",
@@ -109,9 +90,9 @@ KATSU_CONFIG_UNION = [
                     "Pneumothorax",
                     "Dementia",
                     "Hypertension",
-                    "Loss of sense of smell"
+                    "Loss of sense of smell",
                 ],
-                "title": "Phenotypic Features"
+                "title": "Phenotypic Features",
             },
             {
                 "config": {
@@ -120,7 +101,7 @@ KATSU_CONFIG_UNION = [
                     "minimum": 0,
                     "taper_left": 10,
                     "taper_right": 100,
-                    "units": "years"
+                    "units": "years",
                 },
                 "datatype": "number",
                 "description": "Age at arrival",
@@ -139,29 +120,21 @@ KATSU_CONFIG_UNION = [
                     "[90, 100)",
                     "< 18",
                     "[18, 30)",
-                    "≥ 90"
+                    "≥ 90",
                 ],
-                "title": "Age"
+                "title": "Age",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Sex at birth",
                 "id": "sex",
                 "mapping": "individual/sex",
-                "options": [
-                    "MALE",
-                    "FEMALE",
-                    "UNKNOWN_SEX"
-                ],
-                "title": "Sex"
+                "options": ["MALE", "FEMALE", "UNKNOWN_SEX"],
+                "title": "Sex",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Measurements performed",
                 "group_by": "assay/label",
@@ -174,9 +147,9 @@ KATSU_CONFIG_UNION = [
                     "Histological Eosinophils",
                     "Histological Neutrophils",
                     "Immunoglobulin E",
-                    "Neutrophils Percentage"
+                    "Neutrophils Percentage",
                 ],
-                "title": "Measurement types"
+                "title": "Measurement types",
             },
             {
                 "config": {
@@ -185,7 +158,7 @@ KATSU_CONFIG_UNION = [
                     "minimum": 0,
                     "taper_left": 0,
                     "taper_right": 50,
-                    "units": "kg/m^2"
+                    "units": "kg/m^2",
                 },
                 "datatype": "number",
                 "description": "Measurements performed",
@@ -193,23 +166,12 @@ KATSU_CONFIG_UNION = [
                 "group_by_value": "NCIT:C16358",
                 "id": "measurement_bmi",
                 "mapping": "individual/phenopackets/measurements",
-                "options": [
-                    "[0, 10)",
-                    "[10, 20)",
-                    "[20, 30)",
-                    "[30, 40)",
-                    "[40, 50)",
-                    "< 18",
-                    "[18, 30)",
-                    "≥ 30"
-                ],
+                "options": ["[0, 10)", "[10, 20)", "[20, 30)", "[30, 40)", "[40, 50)", "< 18", "[18, 30)", "≥ 30"],
                 "title": "BMI",
-                "value_mapping": "value/quantity/value"
+                "value_mapping": "value/quantity/value",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Visits where measurements were performed",
                 "group_by": "extra_properties/visit_index",
@@ -248,9 +210,9 @@ KATSU_CONFIG_UNION = [
                     "6",
                     "7",
                     "8",
-                    "9"
+                    "9",
                 ],
-                "title": "Recurring visits"
+                "title": "Recurring visits",
             },
             {
                 "config": {
@@ -259,7 +221,7 @@ KATSU_CONFIG_UNION = [
                     "minimum": 0,
                     "taper_left": 50,
                     "taper_right": 500,
-                    "units": "years"
+                    "units": "years",
                 },
                 "datatype": "number",
                 "description": "Measurements performed x",
@@ -278,10 +240,10 @@ KATSU_CONFIG_UNION = [
                     "[350, 400)",
                     "[400, 450)",
                     "[450, 500)",
-                    "≥ 500"
+                    "≥ 500",
                 ],
                 "title": "Immunoglobulin E",
-                "value_mapping": "value/quantity/value"
+                "value_mapping": "value/quantity/value",
             },
             {
                 "config": {
@@ -290,7 +252,7 @@ KATSU_CONFIG_UNION = [
                     "minimum": 0,
                     "taper_left": 10,
                     "taper_right": 100,
-                    "units": "years"
+                    "units": "years",
                 },
                 "datatype": "number",
                 "description": "Measurements performed Cp20",
@@ -309,15 +271,13 @@ KATSU_CONFIG_UNION = [
                     "[70, 80)",
                     "[80, 90)",
                     "[90, 100)",
-                    "≥ 100"
+                    "≥ 100",
                 ],
                 "title": "Cp20",
-                "value_mapping": "value/quantity/value"
+                "value_mapping": "value/quantity/value",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Tissue from which the specimen was collected",
                 "id": "sampled_tissue",
@@ -388,14 +348,12 @@ KATSU_CONFIG_UNION = [
                     "Optic Chiasm",
                     "Cerebello-Pontine Angle",
                     "Pons",
-                    "Parieto-Occipital Lobe"
+                    "Parieto-Occipital Lobe",
                 ],
-                "title": "Biosample Tissue Location"
+                "title": "Biosample Tissue Location",
             },
             {
-                "config": {
-                    "bin_by": "month"
-                },
+                "config": {"bin_by": "month"},
                 "datatype": "date",
                 "description": "Date of initial verbal consent (participant, legal representative or tutor), yyyy-mm-dd",
                 "id": "date_of_consent",
@@ -448,9 +406,9 @@ KATSU_CONFIG_UNION = [
                     "Sep 2023",
                     "Oct 2023",
                     "Nov 2023",
-                    "Dec 2023"
+                    "Dec 2023",
                 ],
-                "title": "Verbal consent date"
+                "title": "Verbal consent date",
             },
             {
                 "config": {
@@ -459,7 +417,7 @@ KATSU_CONFIG_UNION = [
                         "I have slight problems in walking about",
                         "I have moderate problems in walking about",
                         "I have severe problems in walking about",
-                        "I am unable to walk about"
+                        "I am unable to walk about",
                     ]
                 },
                 "datatype": "string",
@@ -471,37 +429,21 @@ KATSU_CONFIG_UNION = [
                     "I have slight problems in walking about",
                     "I have moderate problems in walking about",
                     "I have severe problems in walking about",
-                    "I am unable to walk about"
+                    "I am unable to walk about",
                 ],
-                "title": "Functional status"
+                "title": "Functional status",
             },
             {
-                "config": {
-                    "enum": [
-                        "Uninfected",
-                        "Mild",
-                        "Moderate",
-                        "Severe",
-                        "Dead"
-                    ]
-                },
+                "config": {"enum": ["Uninfected", "Mild", "Moderate", "Severe", "Dead"]},
                 "datatype": "string",
                 "description": "Covid severity",
                 "id": "covid_severity",
                 "mapping": "individual/extra_properties/covid_severity",
-                "options": [
-                    "Uninfected",
-                    "Mild",
-                    "Moderate",
-                    "Severe",
-                    "Dead"
-                ],
-                "title": "Covid severity"
+                "options": ["Uninfected", "Mild", "Moderate", "Severe", "Dead"],
+                "title": "Covid severity",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Diseases observed as either present or absent",
                 "id": "diseases",
@@ -588,39 +530,22 @@ KATSU_CONFIG_UNION = [
                     "Ependymoma",
                     "Choroid Plexus Carcinoma",
                     "Oral Squamous Cell Carcinoma (OSCC)",
-                    "Chondroblastoma"
+                    "Chondroblastoma",
                 ],
-                "title": "Diseases"
+                "title": "Diseases",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Tissue from which the biosample was extracted",
                 "id": "tissues",
                 "mapping": "biosample/sampled_tissue/label",
                 "mapping_for_search_filter": "individual/biosamples/sampled_tissue/label",
-                "options": [
-                    "Plasma",
-                    "blood",
-                    "Serum"
-                ],
-                "title": "Sampled Tissues"
+                "options": ["Plasma", "blood", "Serum"],
+                "title": "Sampled Tissues",
             },
             {
-                "config": {
-                    "bins": [
-                        200,
-                        300,
-                        500,
-                        1000,
-                        1500,
-                        2000
-                    ],
-                    "minimum": 0,
-                    "units": "mg/L"
-                },
+                "config": {"bins": [200, 300, 500, 1000, 1500, 2000], "minimum": 0, "units": "mg/L"},
                 "datatype": "number",
                 "description": "Numeric measures from a laboratory test",
                 "id": "lab_test_result_value",
@@ -632,14 +557,12 @@ KATSU_CONFIG_UNION = [
                     "[500, 1000)",
                     "[1000, 1500)",
                     "[1500, 2000)",
-                    "≥ 2000"
+                    "≥ 2000",
                 ],
-                "title": "Lab Test Result"
+                "title": "Lab Test Result",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "A clinical procedure performed on a subject",
                 "group_by": "procedure/code/label",
@@ -650,56 +573,40 @@ KATSU_CONFIG_UNION = [
                     "Magnetic Resonance Imaging",
                     "Positron Emission Tomography",
                     "Punch Biopsy",
-                    "X-Ray Imaging"
+                    "X-Ray Imaging",
                 ],
-                "title": "Medical Procedures"
+                "title": "Medical Procedures",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Treatment with an agent such as a drug",
                 "group_by": "treatment/agent/label",
                 "id": "medical_treatments",
                 "mapping": "individual/phenopackets/medical_actions",
-                "options": [
-                    "Acetaminophen",
-                    "Ibuprofen",
-                    "NCIT:C1119"
-                ],
-                "title": "Medical Treatments"
+                "options": ["Acetaminophen", "Ibuprofen", "NCIT:C1119"],
+                "title": "Medical Treatments",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Interpretation for an individual variant or gene (CANDIDATE, CONTRIBUTORY, etc)",
                 "id": "interpretation_status",
                 "mapping": "individual/phenopackets/interpretations/diagnosis/genomic_interpretations/interpretation_status",
-                "options": [
-                    "CONTRIBUTORY"
-                ],
-                "title": "Genomic Interpretations"
+                "options": ["CONTRIBUTORY"],
+                "title": "Genomic Interpretations",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "ACMG Pathogenicity category for a particular variant (BENIGN, PATHOGENIC, etc)",
                 "id": "acmg_pathogenicity_classification",
                 "mapping": "individual/phenopackets/interpretations/diagnosis/genomic_interpretations/variant_interpretation/acmg_pathogenicity_classification",
-                "options": [
-                    "PATHOGENIC"
-                ],
-                "title": "Variant Pathogenicity"
+                "options": ["PATHOGENIC"],
+                "title": "Variant Pathogenicity",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Types of experiments performed on a sample",
                 "id": "experiment_type",
@@ -712,55 +619,32 @@ KATSU_CONFIG_UNION = [
                     "RNA-Seq",
                     "WGS",
                     "Proteomic profiling",
-                    "WES"
+                    "WES",
                 ],
-                "title": "Experiment Types"
+                "title": "Experiment Types",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "Study type of the experiment (e.g. Genomics, Transcriptomics, etc.)",
                 "id": "experiment_study_type",
                 "mapping": "experiment/study_type",
                 "mapping_for_search_filter": "individual/biosamples/experiment/study_type",
-                "options": [
-                    "Serology",
-                    "Other",
-                    "Genomics",
-                    "Proteomics",
-                    "Transcriptomics",
-                    "Metabolomics"
-                ],
-                "title": "Study Types"
+                "options": ["Serology", "Other", "Genomics", "Proteomics", "Transcriptomics", "Metabolomics"],
+                "title": "Study Types",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "File type of experiment results files",
                 "id": "experiment_results_file_type",
                 "mapping": "experiment/experiment_results/file_format",
                 "mapping_for_search_filter": "individual/biosamples/experiment/experiment_results/file_format",
-                "options": [
-                    "PDF",
-                    "XLSX",
-                    "JPEG",
-                    "CRAM",
-                    "VCF",
-                    "MP4",
-                    "DOCX",
-                    "CSV",
-                    "MARKDOWN"
-                ],
-                "title": "Results File Types"
+                "options": ["PDF", "XLSX", "JPEG", "CRAM", "VCF", "MP4", "DOCX", "CSV", "MARKDOWN"],
+                "title": "Results File Types",
             },
             {
-                "config": {
-                    "bin_by": "month"
-                },
+                "config": {"bin_by": "month"},
                 "datatype": "date",
                 "description": "Date of initial verbal consent (participant, legal representative or tutor)",
                 "id": "dconsverbpa",
@@ -807,150 +691,72 @@ KATSU_CONFIG_UNION = [
                     "May 2023",
                     "Jun 2023",
                     "Jul 2023",
-                    "Aug 2023"
+                    "Aug 2023",
                 ],
-                "title": "Verbal consent date"
+                "title": "Verbal consent date",
             },
             {
-                "config": {
-                    "enum": [
-                        "Hospitalized",
-                        "Outpatient"
-                    ]
-                },
+                "config": {"enum": ["Hospitalized", "Outpatient"]},
                 "datatype": "string",
                 "description": "Has the participant been hospitalized or is the participant seen as an outpatient?",
                 "id": "type_partic",
                 "mapping": "individual/extra_properties/type_partic",
-                "options": [
-                    "Hospitalized",
-                    "Outpatient"
-                ],
-                "title": "Hospitalization"
+                "options": ["Hospitalized", "Outpatient"],
+                "title": "Hospitalization",
             },
             {
-                "config": {
-                    "enum": [
-                        "Non-smoker",
-                        "Smoker",
-                        "Former smoker",
-                        "Passive smoker",
-                        "Not specified"
-                    ]
-                },
+                "config": {"enum": ["Non-smoker", "Smoker", "Former smoker", "Passive smoker", "Not specified"]},
                 "datatype": "string",
                 "description": "Smoking status",
                 "id": "smoking",
                 "mapping": "individual/extra_properties/smoking",
-                "options": [
-                    "Non-smoker",
-                    "Smoker",
-                    "Former smoker",
-                    "Passive smoker",
-                    "Not specified"
-                ],
-                "title": "Smoking"
+                "options": ["Non-smoker", "Smoker", "Former smoker", "Passive smoker", "Not specified"],
+                "title": "Smoking",
             },
             {
-                "config": {
-                    "enum": [
-                        "Positive",
-                        "Negative",
-                        "Indeterminate"
-                    ]
-                },
+                "config": {"enum": ["Positive", "Negative", "Indeterminate"]},
                 "datatype": "string",
                 "description": "Final COVID status according to the PCR test",
                 "id": "covidstatus",
                 "mapping": "individual/extra_properties/covidstatus",
-                "options": [
-                    "Positive",
-                    "Negative",
-                    "Indeterminate"
-                ],
-                "title": "COVID status"
+                "options": ["Positive", "Negative", "Indeterminate"],
+                "title": "COVID status",
             },
             {
-                "config": {
-                    "enum": [
-                        "Alive",
-                        "Deceased"
-                    ]
-                },
+                "config": {"enum": ["Alive", "Deceased"]},
                 "datatype": "string",
                 "description": "Vital status at discharge",
                 "id": "death_dc",
                 "mapping": "individual/extra_properties/death_dc",
-                "options": [
-                    "Alive",
-                    "Deceased"
-                ],
-                "title": "Vital status"
+                "options": ["Alive", "Deceased"],
+                "title": "Vital status",
             },
             {
-                "config": {
-                    "bins": [
-                        20,
-                        25,
-                        27,
-                        30,
-                        35,
-                        40
-                    ],
-                    "units": "kg/m^2"
-                },
+                "config": {"bins": [20, 25, 27, 30, 35, 40], "units": "kg/m^2"},
                 "datatype": "number",
                 "description": "BMI",
                 "id": "bmi",
                 "mapping": "individual/extra_properties/bmi",
-                "options": [
-                    "< 20",
-                    "[20, 25)",
-                    "[25, 27)",
-                    "[27, 30)",
-                    "[30, 35)",
-                    "[35, 40)",
-                    "≥ 40"
-                ],
-                "title": "BMI"
+                "options": ["< 20", "[20, 25)", "[25, 27)", "[27, 30)", "[30, 35)", "[35, 40)", "≥ 40"],
+                "title": "BMI",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Intensive Care Unit admission?",
                 "id": "icu",
                 "mapping": "individual/extra_properties/icu",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "ICU"
+                "options": ["Yes", "No"],
+                "title": "ICU",
             },
             {
-                "config": {
-                    "enum": [
-                        "Hospitalized adult",
-                        "Adult outpatient",
-                        "Pediatric",
-                        "Pregnant woman"
-                    ]
-                },
+                "config": {"enum": ["Hospitalized adult", "Adult outpatient", "Pediatric", "Pregnant woman"]},
                 "datatype": "string",
                 "description": "To which category the participant belongs?",
                 "id": "core_cohorte",
                 "mapping": "individual/extra_properties/core_cohorte",
-                "options": [
-                    "Hospitalized adult",
-                    "Adult outpatient",
-                    "Pediatric",
-                    "Pregnant woman"
-                ],
-                "title": "Participant category"
+                "options": ["Hospitalized adult", "Adult outpatient", "Pediatric", "Pregnant woman"],
+                "title": "Participant category",
             },
             {
                 "config": {
@@ -960,7 +766,7 @@ KATSU_CONFIG_UNION = [
                         "Nursing home (CHSLD)",
                         "In intermediate and family-type resources",
                         "In rooming house",
-                        "Homeless"
+                        "Homeless",
                     ]
                 },
                 "datatype": "string",
@@ -973,47 +779,27 @@ KATSU_CONFIG_UNION = [
                     "Nursing home (CHSLD)",
                     "In intermediate and family-type resources",
                     "In rooming house",
-                    "Homeless"
+                    "Homeless",
                 ],
-                "title": "Domicile"
+                "title": "Domicile",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Has the participant been vaccinated?",
                 "id": "vaccinate",
                 "mapping": "individual/extra_properties/vaccinate",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Vaccinal status"
+                "options": ["Yes", "No"],
+                "title": "Vaccinal status",
             },
             {
-                "config": {
-                    "enum": [
-                        "1",
-                        "2",
-                        "3",
-                        "4"
-                    ]
-                },
+                "config": {"enum": ["1", "2", "3", "4"]},
                 "datatype": "string",
                 "description": "Number of doses received",
                 "id": "vaccin_dosenum",
                 "mapping": "individual/extra_properties/vaccin_dosenum",
-                "options": [
-                    "1",
-                    "2",
-                    "3",
-                    "4"
-                ],
-                "title": "Vaccine dose"
+                "options": ["1", "2", "3", "4"],
+                "title": "Vaccine dose",
             },
             {
                 "config": {
@@ -1022,7 +808,7 @@ KATSU_CONFIG_UNION = [
                         "I have slight problem washing or dressing myself",
                         "I have moderate problems washing or dressing myself",
                         "I have severe problems washing or dressing myself",
-                        "I am unable to wash or dress myself"
+                        "I am unable to wash or dress myself",
                     ]
                 },
                 "datatype": "string",
@@ -1034,473 +820,237 @@ KATSU_CONFIG_UNION = [
                     "I have slight problem washing or dressing myself",
                     "I have moderate problems washing or dressing myself",
                     "I have severe problems washing or dressing myself",
-                    "I am unable to wash or dress myself"
+                    "I am unable to wash or dress myself",
                 ],
-                "title": "Self-care"
+                "title": "Self-care",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Other chronic cardiac disease?",
                 "id": "phx_cardiac",
                 "mapping": "individual/extra_properties/phx_cardiac",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Cardiac history"
+                "options": ["Yes", "No"],
+                "title": "Cardiac history",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Prior transient ischemic attack (TIA)?",
                 "id": "phx_tia",
                 "mapping": "individual/extra_properties/phx_tia",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "TIA"
+                "options": ["Yes", "No"],
+                "title": "TIA",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Asthma?",
                 "id": "phx_asthma",
                 "mapping": "individual/extra_properties/phx_asthma",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Asthma"
+                "options": ["Yes", "No"],
+                "title": "Asthma",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Prior stroke?",
                 "id": "phx_cva",
                 "mapping": "individual/extra_properties/phx_cva",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Stroke"
+                "options": ["Yes", "No"],
+                "title": "Stroke",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Diabetes?",
                 "id": "phx_diabetes",
                 "mapping": "individual/extra_properties/phx_diabetes",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Diabetes"
+                "options": ["Yes", "No"],
+                "title": "Diabetes",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Malignant neoplasm?",
                 "id": "phx_cancer",
                 "mapping": "individual/extra_properties/phx_cancer",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Cancer"
+                "options": ["Yes", "No"],
+                "title": "Cancer",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Dementia?",
                 "id": "phx_dementia",
                 "mapping": "individual/extra_properties/phx_dementia",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Dementia"
+                "options": ["Yes", "No"],
+                "title": "Dementia",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Atrial fibrillation or flutter?",
                 "id": "phx_afib",
                 "mapping": "individual/extra_properties/phx_afib",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Atrial fibrillation"
+                "options": ["Yes", "No"],
+                "title": "Atrial fibrillation",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "HIV or AIDS?",
                 "id": "phx_hiv",
                 "mapping": "individual/extra_properties/phx_hiv",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "HIV"
+                "options": ["Yes", "No"],
+                "title": "HIV",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Arterial Hypertension?",
                 "id": "phx_htn",
                 "mapping": "individual/extra_properties/phx_htn",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Arterial Hypertension"
+                "options": ["Yes", "No"],
+                "title": "Arterial Hypertension",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Immunosuppressed state?",
                 "id": "phx_imm",
                 "mapping": "individual/extra_properties/phx_imm",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Immunosupression"
+                "options": ["Yes", "No"],
+                "title": "Immunosupression",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Prior myocardial infarction?",
                 "id": "phx_mi",
                 "mapping": "individual/extra_properties/phx_mi",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Myocardial infarction"
+                "options": ["Yes", "No"],
+                "title": "Myocardial infarction",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Heart failure?",
                 "id": "phx_chf",
                 "mapping": "individual/extra_properties/phx_chf",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Heart failure"
+                "options": ["Yes", "No"],
+                "title": "Heart failure",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Coronary artery disease?",
                 "id": "phx_cad",
                 "mapping": "individual/extra_properties/phx_cad",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Coronary artery disease"
+                "options": ["Yes", "No"],
+                "title": "Coronary artery disease",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Liver disease?",
                 "id": "phx_liver",
                 "mapping": "individual/extra_properties/phx_liver",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Liver disease"
+                "options": ["Yes", "No"],
+                "title": "Liver disease",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Chronic obstructive pulmonary disease (emphysema, chronic bronchitis)?",
                 "id": "phx_copd",
                 "mapping": "individual/extra_properties/phx_copd",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "COPD"
+                "options": ["Yes", "No"],
+                "title": "COPD",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Psychiatric disease?",
                 "id": "phx_psych",
                 "mapping": "individual/extra_properties/phx_psych",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Psychiatric disease"
+                "options": ["Yes", "No"],
+                "title": "Psychiatric disease",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Chronic kidney disease?",
                 "id": "phx_ckd",
                 "mapping": "individual/extra_properties/phx_ckd",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Chronic kidney disease"
+                "options": ["Yes", "No"],
+                "title": "Chronic kidney disease",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Dialysis?",
                 "id": "phx_dialysis",
                 "mapping": "individual/extra_properties/phx_dialysis",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Dialysis"
+                "options": ["Yes", "No"],
+                "title": "Dialysis",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Rheumatologic disease?",
                 "id": "phx_rheum",
                 "mapping": "individual/extra_properties/phx_rheum",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Rheumatologic disease"
+                "options": ["Yes", "No"],
+                "title": "Rheumatologic disease",
             },
             {
-                "config": {
-                    "bins": [
-                        5,
-                        10,
-                        50,
-                        100
-                    ],
-                    "units": "mg/L"
-                },
+                "config": {"bins": [5, 10, 50, 100], "units": "mg/L"},
                 "datatype": "number",
                 "description": "C-reactive protein (CRP)",
                 "id": "lab_crp",
                 "mapping": "individual/extra_properties/lab_crp",
-                "options": [
-                    "< 5",
-                    "[5, 10)",
-                    "[10, 50)",
-                    "[50, 100)",
-                    "≥ 100"
-                ],
-                "title": "CRP"
+                "options": ["< 5", "[5, 10)", "[10, 50)", "[50, 100)", "≥ 100"],
+                "title": "CRP",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Chest X-ray?",
                 "id": "cxr",
                 "mapping": "individual/extra_properties/cxr",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Chest X-ray"
+                "options": ["Yes", "No"],
+                "title": "Chest X-ray",
             },
             {
-                "config": {
-                    "bins": [
-                        4,
-                        10,
-                        15
-                    ],
-                    "units": "×10^9/L"
-                },
+                "config": {"bins": [4, 10, 15], "units": "×10^9/L"},
                 "datatype": "number",
                 "description": "Total White Blood Cell (WBC) count",
                 "id": "lab_wbc",
                 "mapping": "individual/extra_properties/lab_wbc",
-                "options": [
-                    "< 4",
-                    "[4, 10)",
-                    "[10, 15)",
-                    "≥ 15"
-                ],
-                "title": "WBC"
+                "options": ["< 4", "[4, 10)", "[10, 15)", "≥ 15"],
+                "title": "WBC",
             },
             {
-                "config": {
-                    "bins": [
-                        70,
-                        90,
-                        110,
-                        130,
-                        150
-                    ],
-                    "units": "g/L"
-                },
+                "config": {"bins": [70, 90, 110, 130, 150], "units": "g/L"},
                 "datatype": "number",
                 "description": "Haemoglobin",
                 "id": "lab_hg",
                 "mapping": "individual/extra_properties/lab_hg",
-                "options": [
-                    "< 70",
-                    "[70, 90)",
-                    "[90, 110)",
-                    "[110, 130)",
-                    "[130, 150)",
-                    "≥ 150"
-                ],
-                "title": "Haemoglobin"
+                "options": ["< 70", "[70, 90)", "[90, 110)", "[110, 130)", "[130, 150)", "≥ 150"],
+                "title": "Haemoglobin",
             },
             {
-                "config": {
-                    "bins": [
-                        50,
-                        90,
-                        120,
-                        200,
-                        300
-                    ],
-                    "units": "μmol/L"
-                },
+                "config": {"bins": [50, 90, 120, 200, 300], "units": "μmol/L"},
                 "datatype": "number",
                 "description": "Creatinine",
                 "id": "lab_cr",
                 "mapping": "individual/extra_properties/lab_cr",
-                "options": [
-                    "< 50",
-                    "[50, 90)",
-                    "[90, 120)",
-                    "[120, 200)",
-                    "[200, 300)",
-                    "≥ 300"
-                ],
-                "title": "Creatinine"
+                "options": ["< 50", "[50, 90)", "[90, 120)", "[120, 200)", "[200, 300)", "≥ 300"],
+                "title": "Creatinine",
             },
             {
-                "config": {
-                    "bins": [
-                        200,
-                        300,
-                        500,
-                        1000,
-                        1500,
-                        2000
-                    ],
-                    "units": "ng/mL"
-                },
+                "config": {"bins": [200, 300, 500, 1000, 1500, 2000], "units": "ng/mL"},
                 "datatype": "number",
                 "description": "NT-proBNP",
                 "id": "lab_ntprobnp",
@@ -1512,283 +1062,140 @@ KATSU_CONFIG_UNION = [
                     "[500, 1000)",
                     "[1000, 1500)",
                     "[1500, 2000)",
-                    "≥ 2000"
+                    "≥ 2000",
                 ],
-                "title": "NT-proBNP"
+                "title": "NT-proBNP",
             },
             {
-                "config": {
-                    "bins": [
-                        200,
-                        500,
-                        1000,
-                        1500,
-                        2000
-                    ],
-                    "units": "U/L"
-                },
+                "config": {"bins": [200, 500, 1000, 1500, 2000], "units": "U/L"},
                 "datatype": "number",
                 "description": "Lactate Dehydrogenase",
                 "id": "lab_ldh",
                 "mapping": "individual/extra_properties/lab_ldh",
-                "options": [
-                    "< 200",
-                    "[200, 500)",
-                    "[500, 1000)",
-                    "[1000, 1500)",
-                    "[1500, 2000)",
-                    "≥ 2000"
-                ],
-                "title": "LDH"
+                "options": ["< 200", "[200, 500)", "[500, 1000)", "[1000, 1500)", "[1500, 2000)", "≥ 2000"],
+                "title": "LDH",
             },
             {
-                "config": {
-                    "bins": [
-                        500,
-                        1000,
-                        2000,
-                        5000
-                    ],
-                    "units": "μg/L"
-                },
+                "config": {"bins": [500, 1000, 2000, 5000], "units": "μg/L"},
                 "datatype": "number",
                 "description": "D-Dimer",
                 "id": "lab_ddimer",
                 "mapping": "individual/extra_properties/lab_ddimer",
-                "options": [
-                    "< 500",
-                    "[500, 1000)",
-                    "[1000, 2000)",
-                    "[2000, 5000)",
-                    "≥ 5000"
-                ],
-                "title": "D-Dimer"
+                "options": ["< 500", "[500, 1000)", "[1000, 2000)", "[2000, 5000)", "≥ 5000"],
+                "title": "D-Dimer",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Did or does the patient receive ventilatory support?",
                 "id": "repsupport_yesno",
                 "mapping": "individual/extra_properties/repsupport_yesno",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Respiratory support"
+                "options": ["Yes", "No"],
+                "title": "Respiratory support",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Have you been diagnosed with a new or recurrent case of COVID since your last follow-up?",
                 "id": "newcovid",
                 "mapping": "individual/extra_properties/newcovid",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Reinfection"
+                "options": ["Yes", "No"],
+                "title": "Reinfection",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Does the participant report persistent symptoms related to SARS-CoV-2 infection?",
                 "id": "sx_report",
                 "mapping": "individual/extra_properties/sx_report",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Persisting symptoms"
+                "options": ["Yes", "No"],
+                "title": "Persisting symptoms",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No",
-                        "Not available"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No", "Not available"]},
                 "datatype": "string",
                 "description": "Systemic corticosteroid?",
                 "id": "rx_roid",
                 "mapping": "individual/extra_properties/rx_roid",
-                "options": [
-                    "Yes",
-                    "No",
-                    "Not available"
-                ],
-                "title": "Systemic corticosteroid"
+                "options": ["Yes", "No", "Not available"],
+                "title": "Systemic corticosteroid",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No",
-                        "Not available"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No", "Not available"]},
                 "datatype": "string",
                 "description": "Antocoagulants?",
                 "id": "rx_aco",
                 "mapping": "individual/extra_properties/rx_aco",
-                "options": [
-                    "Yes",
-                    "No",
-                    "Not available"
-                ],
-                "title": "Antocoagulants"
+                "options": ["Yes", "No", "Not available"],
+                "title": "Antocoagulants",
             },
             {
-                "config": {
-                    "enum": [
-                        "Worse",
-                        "Same",
-                        "Better",
-                        "Indeterminate"
-                    ]
-                },
+                "config": {"enum": ["Worse", "Same", "Better", "Indeterminate"]},
                 "datatype": "string",
                 "description": "Ability to self-care at discharge versus pre-COVID",
                 "id": "selfcare_dc",
                 "mapping": "individual/extra_properties/selfcare_dc",
-                "options": [
-                    "Worse",
-                    "Same",
-                    "Better",
-                    "Indeterminate"
-                ],
-                "title": "Self-care post covid"
+                "options": ["Worse", "Same", "Better", "Indeterminate"],
+                "title": "Self-care post covid",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Acute kidney injury?",
                 "id": "c_aki",
                 "mapping": "individual/extra_properties/c_aki",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Acute kidney injury"
+                "options": ["Yes", "No"],
+                "title": "Acute kidney injury",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Acute Respiratory Distress Syndrome (ARDS)?",
                 "id": "c_ards",
                 "mapping": "individual/extra_properties/c_ards",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "ARDS"
+                "options": ["Yes", "No"],
+                "title": "ARDS",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Deep vein thrombosis (DVT)?",
                 "id": "c_dvt",
                 "mapping": "individual/extra_properties/c_dvt",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Deep vein thrombosis"
+                "options": ["Yes", "No"],
+                "title": "Deep vein thrombosis",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Stroke?",
                 "id": "c_stroke",
                 "mapping": "individual/extra_properties/c_stroke",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Stroke"
+                "options": ["Yes", "No"],
+                "title": "Stroke",
             },
             {
-                "config": {
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ]
-                },
+                "config": {"enum": ["Yes", "No"]},
                 "datatype": "string",
                 "description": "Pulmonary embolism?",
                 "id": "c_pe",
                 "mapping": "individual/extra_properties/c_pe",
-                "options": [
-                    "Yes",
-                    "No"
-                ],
-                "title": "Pulmonary embolism"
+                "options": ["Yes", "No"],
+                "title": "Pulmonary embolism",
             },
             {
-                "config": {
-                    "enum": None
-                },
+                "config": {"enum": None},
                 "datatype": "string",
                 "description": "The type of molecule that was extracted from the biological material.",
                 "id": "molecule",
                 "mapping": "experiment/molecule",
                 "mapping_for_search_filter": "individual/phenopackets/biosamples/experiment/molecule",
-                "options": [
-                    "genomic DNA"
-                ],
-                "title": "Molecules Used"
-            }
-        ]
+                "options": ["genomic DNA"],
+                "title": "Molecules Used",
+            },
+        ],
     }
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # KATSU_CONFIG_UNION = [

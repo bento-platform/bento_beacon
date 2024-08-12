@@ -166,9 +166,7 @@ def get_public_search_fields(beacon_url):
 
 def public_search_fields_url(beacon_url):
     split_url = urlsplit(beacon_url)
-    return urlunsplit(
-        (split_url.scheme, "portal." + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", "")
-    )
+    return urlunsplit((split_url.scheme, "portal." + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", ""))
 
 
 def filtersUnion():
