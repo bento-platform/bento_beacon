@@ -6,11 +6,11 @@ async-timeout==4.0.3
 attrs==22.2.0
 autopep8==1.6.0
 bento-lib==10.1.1
-certifi==2024.2.2
+certifi==2024.7.4
 cffi==1.15.1
 charset-normalizer==2.1.1
 click==8.1.7
-cryptography==42.0.5
+cryptography==42.0.8
 flake8==6.1.0
 Flask==2.2.5
 Flask-Cors==4.0.1
@@ -45,8 +45,8 @@ six==1.16.0
 toml==0.10.2
 typing_extensions==4.8.0
 uri-template==1.2.0
-urllib3==1.26.18
+urllib3==1.26.19
 webcolors==1.12
 Werkzeug==2.2.3
 yarl==1.9.3
-zipp==3.17.0
+zipp==3.19.1
