@@ -8,7 +8,7 @@ BEACONS = [
     # "https://staging.bqc19.bento.sd4h.ca/api/beacon",
     "https://staging.bento.sd4h.ca/api/beacon",
     "https://ichange.bento.sd4h.ca/api/beacon",
-    # "https://qa.bento.sd4h.ca/api/beacon/",
+    "https://qa.bento.sd4h.ca/api/beacon/",
     # "https://bentov2.local/api/beacon",
     "https://renata.bento.sd4h.ca/api/beacon",
     "https://signature.bento.sd4h.ca/api/beacon",
