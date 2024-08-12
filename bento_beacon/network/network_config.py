@@ -10,10 +10,14 @@ BEACONS = [
     "https://ichange.bento.sd4h.ca/api/beacon",
     # "https://qa.bento.sd4h.ca/api/beacon/",
     # "https://bentov2.local/api/beacon",
-    # "https://renata.bento.sd4h.ca/api/beacon",
+    "https://renata.bento.sd4h.ca/api/beacon",
+    "https://signature.bento.sd4h.ca/api/beacon",
+    # "https://bentov2.local/api/beacon"
 ]
 
-NETWORK_TIMEOUT = 30
+NETWORK_INIT_TIMEOUT = 30
+NETWORK_QUERY_WITH_VARIANTS_TIMEOUT = 2 * 60
+NETWORK_QUERY_WITHOUT_VARIANTS_TIMEOUT = 30
 
 VALID_ENDPOINTS = ["analyses", "biosamples", "cohorts", "datasets", "g_variants", "individuals", "runs", "overview"]
 

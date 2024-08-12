@@ -2,7 +2,7 @@ from flask import current_app, g
 import requests
 from urllib.parse import urlsplit, urlunsplit
 from json import JSONDecodeError
-from .network_config import BEACONS, NETWORK_TIMEOUT
+from .network_config import BEACONS, NETWORK_INIT_TIMEOUT
 from ..utils.exceptions import APIException, InvalidQuery
 from ..utils.beacon_response import beacon_count_response
 
@@ -18,9 +18,9 @@ OVERVIEW_STATS_QUERY = {
 def network_beacon_call(method, url, payload=None):
     try:
         if method == "GET":
-            r = requests.get(url, timeout=NETWORK_TIMEOUT)
+            r = requests.get(url, timeout=NETWORK_INIT_TIMEOUT)
         else:
-            r = requests.post(url, json=payload, timeout=NETWORK_TIMEOUT)
+            r = requests.post(url, json=payload, timeout=NETWORK_INIT_TIMEOUT)
         beacon_response = r.json()
 
     except (requests.exceptions.RequestException, JSONDecodeError) as e:
