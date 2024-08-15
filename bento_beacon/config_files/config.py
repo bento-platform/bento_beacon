@@ -215,11 +215,8 @@ class Config:
     NETWORK_CONFIG = retrieve_config_json("network_config.json")
 
     NETWORK_URLS = NETWORK_CONFIG.get("beacons", [])
-    NETWORK_INIT_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_init_timeout_seconds", 30)
-    NETWORK_QUERY_WITH_VARIANTS_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_query_with_variants_timeout_seconds", 120)
-    NETWORK_QUERY_WITHOUT_VARIANTS_TIMEOUT_SECONDS = NETWORK_CONFIG.get(
-        "network_query_without_variants_timeout_seconds", 30
-    )
+    NETWORK_DEFAULT_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_default_timeout_seconds", 30)
+    NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_variants_query_timeout_seconds", GOHAN_TIMEOUT)
     NETWORK_VALID_QUERY_ENDPOINTS = [
         "analyses",
         "biosamples",

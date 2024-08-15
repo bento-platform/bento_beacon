@@ -57,17 +57,25 @@ def host_beacon_response(endpoint):
     return HOST_VIEWS_BY_ENDPOINT[endpoint]()
 
 
+def has_variants_query(payload):
+    if not payload:
+        return False
+    query = payload.get("requestParameters", {}).get("g_variant")
+    return bool(query)
+
+
 # TODO: timeout param
 def network_beacon_call(method, url, payload=None):
-    timeout = current_app.config["NETWORK_INIT_TIMEOUT_SECONDS"]
-
     current_app.logger.info(f"Calling network url: {url}")
-
-    # remove "verify" below, useful only for dev #############
+    timeout = (
+        current_app.config["NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS"]
+        if has_variants_query(payload)
+        else current_app.config["NETWORK_DEFAULT_TIMEOUT_SECONDS"]
+    )
 
     try:
         if method == "GET":
-            r = requests.get(url, timeout=timeout)  ##############
+            r = requests.get(url, timeout=timeout)
         else:
             r = requests.post(url, json=payload, timeout=timeout)
         beacon_response = r.json()
