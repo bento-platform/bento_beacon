@@ -1,12 +1,8 @@
-from flask import current_app, g, request, Blueprint
-from json import JSONDecodeError
-import requests
-from urllib.parse import urlsplit, urlunsplit
-from ..utils.exceptions import APIException, NotFoundException
-from .utils import beacon_network_response, network_beacon_get, network_beacon_post
-from .network_config import VALID_ENDPOINTS, KATSU_CONFIG_UNION, KATSU_CONFIG_INTERSECTION
+from flask import current_app, request, Blueprint
+from ..utils.exceptions import NotFoundException
+from .utils import network_beacon_get, network_beacon_post, host_beacon_response, filters_intersection, filters_union
 
-network = Blueprint("network", __name__)
+network = Blueprint("network", __name__, url_prefix="/network")
 
 
 # TODOs:
@@ -17,69 +13,40 @@ network = Blueprint("network", __name__)
 # standard beacon info endpoints at the network level: /map, /configuration, etc
 # handle GET args
 
+# timeout param
+# clean up bento config file
 
-@network.route("/network")
-@network.route("/network/beacons")
+
+@network.route("")
+@network.route("/beacons")
 def network_beacons():
-    beacons = current_app.config["NETWORK_BEACONS"]
+    beacons_dict = current_app.config["NETWORK_BEACONS"]
 
-    # temp, fake
-    filters_union = KATSU_CONFIG_UNION
-    filters_intersection = KATSU_CONFIG_INTERSECTION
-
+    # filters handling still experimental
     return {
-        "filtersUnion": filters_union,
-        "filtersIntersection": filters_intersection,
-        "beacons": list(beacons.values()),
+        "filtersUnion": current_app.config["ALL_NETWORK_FILTERS"],
+        "filtersIntersection": current_app.config["COMMON_NETWORK_FILTERS"],
+        "beacons": list(beacons_dict.values()),
     }
 
 
-@network.route("/network/query/<endpoint>", methods=["POST"])
-def dumb_network_query(endpoint):
-    """
-    Beacon network query in a single request and single response.
-    Returns an aggregate response as well as an array of individual beacon responses.
-    As slow as the slowest beacon.
-    """
-    beacons = current_app.config["NETWORK_BEACONS"]
-    if not beacons:
-        raise APIException(message="beacon network error, network is empty")
-
-    responses = {}
-    for b in beacons:
-        url = beacons[b].get("apiUrl")
-        try:
-            r = network_beacon_post(
-                url,
-                request.json,
-                endpoint,
-            )
-        except APIException as e:
-            r["error"] = {"errorMessage": e.message}
-            continue
-
-        # discard beacon "meta" response field
-        # it's the same for all requests, including this network request
-        r.pop("meta", None)
-
-        responses[b] = r
-
-    if not responses:
-        raise APIException(message="No response from beacon network")
-
-    return beacon_network_response(responses)
-
-
-@network.route("/network/beacons/<beacon_id>")
-@network.route("/network/beacons/<beacon_id>/<endpoint>", methods=["GET", "POST"])
-def query(beacon_id, endpoint="overview"):
+# returns 404 if endpoint missing
+@network.route("/beacons/<beacon_id>/<endpoint>", methods=["GET", "POST"])
+def query(beacon_id, endpoint):
     beacon = current_app.config["NETWORK_BEACONS"].get(beacon_id)
+
     if not beacon:
         raise NotFoundException(message=f"no beacon found with id {beacon_id}")
 
-    if endpoint not in VALID_ENDPOINTS:
+    if endpoint not in current_app.config["NETWORK_VALID_QUERY_ENDPOINTS"]:
         raise NotFoundException()
 
+    # special handling for host beacon, avoid circular http calls
+    host_id = current_app.config["BEACON_ID"]
+    if beacon_id == host_id:
+        return host_beacon_response(endpoint)
+
+    # all other beacons
     api_url = beacon.get("apiUrl")
 
     if request.method == "POST":
