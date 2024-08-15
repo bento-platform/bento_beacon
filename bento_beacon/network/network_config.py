@@ -2,24 +2,9 @@
 # temp file, all of this to be handled elsewhere in final version
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-BEACONS = [
-    "https://rsrq.bento.sd4h.ca/api/beacon",
-    "https://bqc19.bento.sd4h.ca/api/beacon",
-    # "https://staging.bqc19.bento.sd4h.ca/api/beacon",
-    "https://staging.bento.sd4h.ca/api/beacon",
-    "https://ichange.bento.sd4h.ca/api/beacon",
-    "https://qa.bento.sd4h.ca/api/beacon/",
-    # "https://bentov2.local/api/beacon",
-    "https://renata.bento.sd4h.ca/api/beacon",
-    "https://signature.bento.sd4h.ca/api/beacon",
-    # "https://bentov2.local/api/beacon"
-]
-
 NETWORK_INIT_TIMEOUT = 30
 NETWORK_QUERY_WITH_VARIANTS_TIMEOUT = 2 * 60
 NETWORK_QUERY_WITHOUT_VARIANTS_TIMEOUT = 30
-
-VALID_ENDPOINTS = ["analyses", "biosamples", "cohorts", "datasets", "g_variants", "individuals", "runs", "overview"]
 
 
 KATSU_CONFIG_INTERSECTION = [
