@@ -221,7 +221,7 @@ def get_filtering_terms():
             "type": "alphanumeric",
             "id": f["id"],
             "label": f["title"],
-            "options": f["options"],  # unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/issues/79
+            "values": f["options"],  # unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/pull/160,
             "description": f.get("description", ""),
             # "modelPath": f["mapping"] unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/issues/115
             # proposal is for path in beacon spec, so our mapping does not match exactly
