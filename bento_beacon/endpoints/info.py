@@ -143,7 +143,7 @@ def build_ga4gh_service_info():
         "name": info["name"],
         "type": {"artifact": "Beacon v2", "group": "org.ga4gh", "version": info["apiVersion"]},
         "environment": info["environment"],
-        "organization": {"name": info["organization"]["name"], "url": info["organization"]["welcomeUrl"]},
+        "organization": {"name": info["organization"]["name"], "url": info["organization"].get("welcomeUrl", "")},
         "contactUrl": info["organization"]["contactUrl"],
         "version": info["version"],
         "bento": {"serviceKind": "beacon"},
