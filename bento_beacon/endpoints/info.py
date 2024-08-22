@@ -3,7 +3,6 @@ from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import (
     get_filtering_terms,
-    get_filtering_term_resources,
     katsu_total_individuals_count,
     katsu_get,
     katsu_datasets,
