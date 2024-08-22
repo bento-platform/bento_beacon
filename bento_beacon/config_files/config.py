@@ -86,7 +86,7 @@ class Config:
                 "referenceToSchemaDefinition": f"{BEACON_BASE_URL}/individual_schema",
                 "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Phenopacket v1",
+            "partOfSpecification": "Phenopacket v2",
         },
         "variants": {
             "entryType": "genomicVariation",
