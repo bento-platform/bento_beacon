@@ -64,7 +64,6 @@ def has_variants_query(payload):
     return bool(query)
 
 
-# TODO: timeout param
 def network_beacon_call(method, url, payload=None):
     current_app.logger.info(f"Calling network url: {url}")
     timeout = (
