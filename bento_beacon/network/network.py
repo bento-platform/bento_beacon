@@ -13,8 +13,6 @@ network = Blueprint("network", __name__, url_prefix="/network")
 # standard beacon info endpoints at the network level: /map, /configuration, etc
 # handle GET args
 
-# clean up bento config file
-
 
 @network.route("")
 @network.route("/beacons")
