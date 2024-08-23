@@ -213,6 +213,7 @@ def katsu_config_filtering_terms():
                 "type": "alphanumeric",
                 "id": field["id"],
                 "label": field["title"],
+                #
                 # longer lablel / helptext
                 "description": field.get("description", ""),
                 #
@@ -229,7 +230,7 @@ def katsu_config_filtering_terms():
                 #
                 # TODO: scopes
                 # filter scope for us is always all queryable entities in this beacon, but that can vary per beacon
-                # we can infer this from the endpoints / blueprints that are active
+                # we can infer this from the queryable endpoints / blueprints that are active
             }
             filtering_terms.append(filtering_term)
 
