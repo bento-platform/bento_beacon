@@ -204,23 +204,44 @@ def katsu_resources_to_beacon_resource(r):
     return {key: value for (key, value) in r.items() if key != "created" and key != "updated"}
 
 
-# construct filtering terms collection from katsu autocomplete endpoints
-# note: katsu autocomplete endpoints are paginated
-# TODO: these could be memoized, either at startup or the first time they're requested
+def katsu_config_filtering_terms():
+    filtering_terms = []
+    sections = get_katsu_config_search_fields().get("sections", [])
+    for section in sections:
+        for field in section["fields"]:
+            filtering_term = {
+                "type": "alphanumeric",
+                "id": field["id"],
+                "label": field["title"],
+                #
+                # longer lablel / helptext
+                "description": field.get("description", ""),
+                #
+                # bento internal use fields, more to come
+                "bento": {"section": section["section_title"]},
+                #
+                # unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/pull/160
+                # optionally move to "bento" field if never adopted
+                "values": field["options"],
+                #
+                # another unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/issues/115
+                # proposal is for path in beacon spec, so our mapping does not match exactly
+                # "target": f["mapping"]
+                #
+                # TODO: scopes
+                # filter scope for us is always all queryable entities in this beacon, but that can vary per beacon
+                # we can infer this from the queryable endpoints / blueprints that are active
+            }
+            filtering_terms.append(filtering_term)
+
+    return filtering_terms
+
+
+#  memoize?
 def get_filtering_terms():
-    c = current_app.config
-    pheno_features = katsu_autocomplete_terms(c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
-    disease_terms = katsu_autocomplete_terms(c["KATSU_DISEASES_TERMS_ENDPOINT"])
-    sampled_tissue_terms = katsu_autocomplete_terms(c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
-    filtering_terms = pheno_features + disease_terms + sampled_tissue_terms
-    return list(map(katsu_autocomplete_to_beacon_filter, filtering_terms))
-
-
-def get_filtering_term_resources():
-    r = katsu_get(current_app.config["KATSU_RESOURCES_ENDPOINT"])
-    resources = r.get("results", [])
-    resources = list(map(katsu_resources_to_beacon_resource, resources))
-    return resources
+    # add ontology filters here when we start supporting ontologies
+    # could also add filters for phenopacket and experiment queries
+    return katsu_config_filtering_terms()
 
 
 # -------------------------------------------------------

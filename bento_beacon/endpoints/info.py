@@ -3,7 +3,6 @@ from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import (
     get_filtering_terms,
-    get_filtering_term_resources,
     katsu_total_individuals_count,
     katsu_get,
     katsu_datasets,
@@ -48,11 +47,9 @@ def beacon_info_with_overview():
 
 @info.route("/filtering_terms")
 @authz_middleware.deco_public_endpoint
-# TODO
 def filtering_terms():
-    resources = get_filtering_term_resources()
     filtering_terms = get_filtering_terms()
-    return beacon_info_response({"resources": resources, "filteringTerms": filtering_terms})
+    return beacon_info_response({"resources": [], "filteringTerms": filtering_terms})
 
 
 # distinct from "BEACON_CONFIG"
