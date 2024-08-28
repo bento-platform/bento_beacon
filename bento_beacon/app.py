@@ -50,12 +50,7 @@ authz_middleware.attach(app)
 
 app.register_blueprint(info)
 
-if USE_BEACON_NETWORK:
-    app.register_blueprint(network)
-    with app.app_context():
-        init_network_service_registry()
-
-blueprints = {
+endpoint_blueprints = {
     "biosamples": biosamples,
     "cohorts": cohorts,
     "datasets": datasets,
@@ -64,12 +59,17 @@ blueprints = {
 }
 
 with app.app_context():
-    # load blueprints
+    # load blueprints for endpoints
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     for endpoint_set in endpoint_sets:
         if endpoint_set not in BEACON_MODELS:
             raise APIException(message="beacon config contains unknown endpoint set")
-        app.register_blueprint(blueprints[endpoint_set])
+        app.register_blueprint(endpoint_blueprints[endpoint_set])
+
+    # load blueprint for network
+    if current_app.config["USE_BEACON_NETWORK"]:
+        app.register_blueprint(network)
+        init_network_service_registry()
 
     # get censorship settings from katsu
     max_filters = None

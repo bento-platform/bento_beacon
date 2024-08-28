@@ -107,6 +107,10 @@ def make_network_filtering_terms(beacons):
 def init_network_service_registry():
     current_app.logger.info("registering beacons")
     urls = current_app.config["NETWORK_URLS"]
+    if not urls:
+        current_app.logger.error("can't find urls for beacon network, did you forget a config file?")
+        # this isn't driven by a request, so no point serving API error response here
+        return
     network_beacons = {}
     failed_beacons = []
     host_beacon_url = current_app.config["BEACON_BASE_URL"]

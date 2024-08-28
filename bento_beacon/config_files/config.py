@@ -212,6 +212,8 @@ class Config:
     # -------------------
     # network
 
+    USE_BEACON_NETWORK = os.environ.get("BENTO_BEACON_NETWORK_ENABLED", "false").strip().lower() in ("true", "1", "t")
+
     NETWORK_CONFIG = retrieve_config_json("network_config.json")
 
     NETWORK_URLS = NETWORK_CONFIG.get("beacons", [])
