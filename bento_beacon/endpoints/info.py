@@ -127,7 +127,10 @@ def build_service_details():
     k_datasets = katsu_datasets()
     dats_array = list(map(lambda d: d.get("datsFile", {}), k_datasets))
     description = " ".join([d.get("description") for d in dats_array if "description" in d])
-    if description and info.get("description") is None:
+    custom_description = info.get("description")
+    if custom_description:
+        s["description"] = custom_description
+    if description and custom_description is None:
         s["description"] = description
 
     current_app.config["SERVICE_DETAILS"] = s
