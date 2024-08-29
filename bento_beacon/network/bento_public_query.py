@@ -84,7 +84,7 @@ def fields_intersection(searchFields):
         entry = {}
         entry = copy.deepcopy(f[0])  # arbitrarily get name, description, etc from first entry
         options = options_intersection([e["options"] for e in f])
-        if options: 
+        if options:
             entry["options"] = options
             intersection_fields.append(entry)
 
