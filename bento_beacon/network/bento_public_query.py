@@ -15,13 +15,13 @@ def flatten(nested_list):
     return [item for nested_items in nested_list for item in nested_items]
 
 
-def fields_dict(searchFields):
+def fields_dict(search_fields):
     """
     Given a list of bento_public search fields, one for each instance,
     return a dictionary of search fields keyed to phenopackets mapping, with an array of all fields for that mapping
     """
     # create a single array of all search fields for all instances, removing nesting
-    copy = searchFields[:]
+    copy = search_fields[:]
 
     all_fields = []
     for sf in copy:
@@ -58,8 +58,8 @@ def options_intersection(options_list):
 # bins should be joined also, although some ordering may disappear
 # still unclear if this is an useful feature or not
 # shortcomings here can be addressed by keeping our configs consistent where possible
-def fields_union(searchFields):
-    fields = fields_dict(searchFields)
+def fields_union(search_fields):
+    fields = fields_dict(search_fields)
 
     # create one entry for each mapping
     union_fields = []
@@ -71,9 +71,9 @@ def fields_union(searchFields):
     return union_fields
 
 
-def fields_intersection(searchFields):
-    num_instances = len(searchFields)
-    fields = fields_dict(searchFields)
+def fields_intersection(search_fields):
+    num_instances = len(search_fields)
+    fields = fields_dict(search_fields)
 
     # remove any fields not in all entries
     intersection_dict = {mapping: entries for mapping, entries in fields.items() if len(entries) == num_instances}
