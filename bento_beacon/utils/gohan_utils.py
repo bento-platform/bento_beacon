@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, request
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from ..authz.headers import auth_header_from_request
 import requests
@@ -177,8 +177,12 @@ def gohan_results(url, gohan_args):
 
 def gohan_network_call(url, gohan_args):
     c = current_app.config
+
+    # beacon network setup calls gohan for overview data outside of request context
+    headers = auth_header_from_request() if request else None
+
     try:
-        r = requests.get(url, headers=auth_header_from_request(), timeout=c["GOHAN_TIMEOUT"], params=gohan_args)
+        r = requests.get(url, headers=headers, timeout=c["GOHAN_TIMEOUT"], params=gohan_args)
 
         # handle gohan errors or any bad responses
         if not r.ok:

@@ -2,9 +2,6 @@ from flask import request, Request
 
 
 def auth_header_getter(r: Request) -> dict[str, str]:
-    if not request:
-        # edge case for beacon network init, calling katsu / gohan with no request context
-        return None
     token = r.headers.get("authorization")
     return {"Authorization": token} if token else {}
 
