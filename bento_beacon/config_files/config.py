@@ -153,11 +153,7 @@ class Config:
     KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
     KATSU_PUBLIC_RULES = "/api/public_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
-
     MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", True)
-
-    PHENOPACKETS_SCHEMA_REFERENCE = {"entityType": "individual", "schema": "phenopackets v2"}
-
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
     # -------------------
     # gohan
