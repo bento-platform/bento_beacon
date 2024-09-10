@@ -13,51 +13,51 @@ from ..utils.gohan_utils import gohan_counts_for_overview
 info = Blueprint("info", __name__)
 
 
-def overview():
+async def overview():
     if current_app.config["BEACON_CONFIG"].get("useGohan"):
-        variants_count = gohan_counts_for_overview()
+        variants_count = await gohan_counts_for_overview()
     else:
         variants_count = {}
 
-    return {"counts": {"individuals": katsu_total_individuals_count(), "variants": variants_count}}
+    return {"counts": {"individuals": await katsu_total_individuals_count(), "variants": variants_count}}
 
 
 # service-info in ga4gh format
 @info.route("/service-info")
 @authz_middleware.deco_public_endpoint
-def service_info():
+async def service_info():
     # plain response without beacon wrappers
-    return current_app.config.get("BEACON_GA4GH_SERVICE_INFO", build_ga4gh_service_info())
+    return current_app.config.get("BEACON_GA4GH_SERVICE_INFO", await build_ga4gh_service_info())
 
 
 # service info in beacon format
 @info.route("/")
 @authz_middleware.deco_public_endpoint
-def beacon_info():
-    return beacon_info_response(current_app.config.get("SERVICE_DETAILS", build_service_details()))
+async def beacon_info():
+    return beacon_info_response(current_app.config.get("SERVICE_DETAILS", await build_service_details()))
 
 
 # as above but with beacon overview details
 @info.route("/info")
 @authz_middleware.deco_public_endpoint
-def beacon_info_with_overview():
-    service_info = current_app.config.get("SERVICE_DETAILS", build_service_details())
-    return beacon_info_response({**service_info, "overview": overview()})
+async def beacon_info_with_overview():
+    service_info = current_app.config.get("SERVICE_DETAILS", await build_service_details())
+    return beacon_info_response({**service_info, "overview": await overview()})
 
 
 @info.route("/filtering_terms")
 @authz_middleware.deco_public_endpoint
-def filtering_terms():
-    filtering_terms = get_filtering_terms()
+async def filtering_terms():
+    filtering_terms = await get_filtering_terms()
     return beacon_info_response({"resources": [], "filteringTerms": filtering_terms})
 
 
 # distinct from "BEACON_CONFIG"
 @info.route("/configuration")
 @authz_middleware.deco_public_endpoint
-def beacon_configuration():
+async def beacon_configuration():
     return beacon_info_response(
-        current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", build_configuration_endpoint_response())
+        current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", await build_configuration_endpoint_response())
     )
 
 
@@ -77,9 +77,9 @@ def beacon_map():
 # custom endpoint not in beacon spec
 @info.route("/overview")
 @authz_middleware.deco_public_endpoint
-def beacon_overview():
-    service_info = current_app.config.get("SERVICE_DETAILS", build_service_details())
-    return beacon_info_response({**service_info, "overview": overview()})
+async def beacon_overview():
+    service_info = current_app.config.get("SERVICE_DETAILS", await build_service_details())
+    return beacon_info_response({**service_info, "overview": await overview()})
 
 
 # -------------------------------------------------------
@@ -89,14 +89,14 @@ def beacon_overview():
 
 @info.route("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
-def get_individual_schema():
-    return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
+async def get_individual_schema():
+    return await katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
 
 
 @info.route("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
-def get_experiment_schema():
-    return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
+async def get_experiment_schema():
+    return await katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
 
 
 # -------------------------------------------------------
@@ -105,7 +105,7 @@ def get_experiment_schema():
 # these return the appropriate response but also save as a side effect
 
 
-def build_service_details():
+async def build_service_details():
     # build info response in beacon format
     info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
     s = {
@@ -124,7 +124,7 @@ def build_service_details():
     # retrieve dataset description from DATS
     # may be multiple datasets, so collect all descriptions into one string
     # for custom description, add a "description" field to service info in beacon_config.json
-    k_datasets = katsu_datasets()
+    k_datasets = await katsu_datasets()
     dats_array = list(map(lambda d: d.get("datsFile", {}), k_datasets))
     description = " ".join([d.get("description") for d in dats_array if "description" in d])
     if description and info.get("description") is None:
@@ -134,9 +134,9 @@ def build_service_details():
     return s
 
 
-def build_ga4gh_service_info():
+async def build_ga4gh_service_info():
     # construct from beacon-format info
-    info = current_app.config.get("SERVICE_DETAILS", build_service_details())
+    info = current_app.config.get("SERVICE_DETAILS", await build_service_details())
 
     s = {
         "id": info["id"],
@@ -157,13 +157,13 @@ def build_ga4gh_service_info():
     return s
 
 
-def build_configuration_endpoint_response():
+async def build_configuration_endpoint_response():
     entry_types_details = current_app.config.get("ENTRY_TYPES", build_entry_types())
 
     # production status is one of "DEV", "PROD", "TEST"
     # while environment is one of "dev", "prod", "test", "staging".. generally only use "dev" or "prod"
     production_status = (
-        current_app.config.get("SERVICE_DETAILS", build_service_details()).get("environment", "error").upper()
+        current_app.config.get("SERVICE_DETAILS", await build_service_details()).get("environment", "error").upper()
     )
 
     response = {

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from flask import Flask, current_app, request
@@ -68,7 +69,7 @@ with app.app_context():
     for tries in range(max_retries + 1):
         current_app.logger.info(f"calling katsu for censorship parameters (try={tries})")
         try:
-            max_filters, count_threshold = katsu_censorship_settings()
+            max_filters, count_threshold = asyncio.run(katsu_censorship_settings())
             # If we got values successfully, without an API exception being raised, exit early - even if they're None
             break
         except APIException as e:
@@ -91,10 +92,10 @@ with app.app_context():
 
 
 @app.before_request
-def before_request():
+async def before_request():
     if request.blueprint != "info":
         validate_request()
-        verify_permissions()
+        await verify_permissions()
         save_request_data()
         init_response_data()
 
