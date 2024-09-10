@@ -45,7 +45,7 @@ def info_for_host_beacon():
         "b_id": current_app.config["BEACON_ID"],
         "overview": {
             "individuals": {"count": bento_overview.get("counts", {}).get("individuals")},
-            "variants": bento_overview.get("variants", {}),
+            "variants": bento_overview.get("counts", {}).get("variants", {}),
             **biosample_and_experiment_stats,
         },
         "querySections": get_katsu_config_search_fields().get("sections", []),
