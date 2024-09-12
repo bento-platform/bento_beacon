@@ -12,8 +12,8 @@ def set_censorship_settings(max_filters, count_threshold):
 
 
 # saves settings to config as a side effect
-def censorship_retry() -> tuple[int | None, int | None]:
-    max_filters, count_threshold = katsu_censorship_settings()
+async def censorship_retry() -> tuple[int | None, int | None]:
+    max_filters, count_threshold = await katsu_censorship_settings()
     if max_filters is None or count_threshold is None:
         raise APIException(
             message="error reading censorship settings from katsu: "
@@ -27,25 +27,25 @@ def censorship_retry() -> tuple[int | None, int | None]:
     return max_filters, count_threshold
 
 
-def threshold_retry() -> int | None:
-    _, count_threshold = censorship_retry()
+async def threshold_retry() -> int | None:
+    _, count_threshold = await censorship_retry()
     return count_threshold
 
 
-def max_filters_retry() -> int | None:
-    max_filters, _ = censorship_retry()
+async def max_filters_retry() -> int | None:
+    max_filters, _ = await censorship_retry()
     return max_filters
 
 
-def get_censorship_threshold():
+async def get_censorship_threshold():
     if g.permission_query_data:
         return 0
     threshold = current_app.config["COUNT_THRESHOLD"]
-    return threshold if threshold is not None else threshold_retry()
+    return threshold if threshold is not None else (await threshold_retry())
 
 
-def censored_count(count):
-    t = get_censorship_threshold()
+async def censored_count(count):
+    t = await get_censorship_threshold()
     if count <= t:
         return 0
     return count

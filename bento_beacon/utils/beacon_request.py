@@ -163,6 +163,6 @@ def summary_stats_requested():
     return g.request_data.get("bento", {}).get("showSummaryStatistics")
 
 
-def verify_permissions():
+async def verify_permissions():
     # can do much more here in the future
-    g.permission_query_data = check_permission(P_QUERY_DATA)
+    g.permission_query_data = await check_permission(P_QUERY_DATA)

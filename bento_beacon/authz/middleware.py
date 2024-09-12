@@ -19,5 +19,5 @@ authz_middleware = FlaskAuthMiddleware(
 )
 
 
-def check_permission(permission: Permission) -> bool:
-    return authz_middleware.evaluate_one(request, RESOURCE_EVERYTHING, permission, mark_authz_done=True)
+async def check_permission(permission: Permission) -> bool:
+    return await authz_middleware.async_evaluate_one(request, RESOURCE_EVERYTHING, permission, mark_authz_done=True)

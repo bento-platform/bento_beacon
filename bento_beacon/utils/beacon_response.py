@@ -31,23 +31,23 @@ def add_no_results_censorship_message_to_response():
     add_info_to_response(f"censorship threshold: {current_app.config['COUNT_THRESHOLD']}")
 
 
-def add_stats_to_response(ids):
-    if ids is not None and len(ids) <= get_censorship_threshold():
+async def add_stats_to_response(ids):
+    if ids is not None and len(ids) <= (await get_censorship_threshold()):
         return
 
     if ids is None:
-        stats = overview_statistics()
+        stats = await overview_statistics()
     else:
-        stats = search_summary_statistics(ids)
+        stats = await search_summary_statistics(ids)
     packaged_stats = package_biosample_and_experiment_stats(stats)
     g.response_info["bento"] = packaged_stats
 
 
-def add_overview_stats_to_response():
-    add_stats_to_response(None)
+async def add_overview_stats_to_response():
+    await add_stats_to_response(None)
 
 
-def package_biosample_and_experiment_stats(stats):
+async def package_biosample_and_experiment_stats(stats):
     phenopacket_dts_stats = stats.get("phenopacket", {}).get("data_type_specific", {})
     experiment_stats = stats.get("experiment", {}).get("data_type_specific", {}).get("experiments", {})
 
@@ -64,11 +64,11 @@ def package_biosample_and_experiment_stats(stats):
 
     return {
         "biosamples": {
-            "count": censored_count(biosamples_count),
+            "count": await censored_count(biosamples_count),
             "sampled_tissue": censored_chart_data(sampled_tissue_data),
         },
         "experiments": {
-            "count": censored_count(experiments_count),
+            "count": await censored_count(experiments_count),
             "experiment_type": censored_chart_data(experiment_type_data),
         },
     }
@@ -123,11 +123,11 @@ def response_granularity():
     raise APIException()
 
 
-def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
+async def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
     granularity = response_granularity()
     count = len(ids) if numTotalResults is None else numTotalResults
-    returned_count = censored_count(count)
-    if returned_count == 0 and get_censorship_threshold() > 0:
+    returned_count = await censored_count(count)
+    if returned_count == 0 and (await get_censorship_threshold()) > 0:
         add_no_results_censorship_message_to_response()
     if granularity == GRANULARITY_BOOLEAN:
         return beacon_boolean_response(returned_count)
