@@ -36,7 +36,7 @@ class Config:
     BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
 
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
-    BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED"))
+    BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED", ""))
     BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
@@ -152,7 +152,7 @@ class Config:
     KATSU_PUBLIC_RULES = "/api/public_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
-    MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO"))
+    MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))
 
     PHENOPACKETS_SCHEMA_REFERENCE = {"entityType": "individual", "schema": "phenopackets v1"}
 
