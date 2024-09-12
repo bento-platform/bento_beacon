@@ -21,14 +21,14 @@ def get_token_endpoint_from_openid_config_url(url: str, validate_ssl: bool = Tru
 def get_access_token() -> str | None:
     logger = current_app.logger
 
-    oidc_config_url = current_app.config["BENTO_OPENID_CONFIG_URL"]
+    oidc_config_url = current_app.config["OPENID_CONFIG_URL"]
     client_id = current_app.config["CLIENT_ID"]
     client_secret = current_app.config["CLIENT_SECRET"]
-    validate_ssl = not current_app.config["BENTO_DEBUG"]
+    validate_ssl = current_app.config["BENTO_VALIDATE_SSL"]
 
     if not all((oidc_config_url, client_id, client_secret)):
         logger.error(
-            "Could not retrieve access token; one of BENTO_OPENID_CONFIG_URL | CLIENT_ID | CLIENT_SECRET is not set"
+            "Could not retrieve access token; one of OPENID_CONFIG_URL | CLIENT_ID | CLIENT_SECRET is not set"
         )
         return None
 
@@ -48,6 +48,10 @@ def get_access_token() -> str | None:
         },
     )
 
+    if not token_res.ok:
+        logger.error(f"Could not retrieve access token; got error response: {token_res.json()}")
+        return None
+
     return token_res.json()["access_token"]
 
 
@@ -60,7 +64,7 @@ def create_access_header_or_fall_back():
 
     access_token = get_access_token()
     if access_token is None:
-        logger.error("Could not retrieve access token; falling back to request headers")
+        logger.error("create_access_header_or_fall_back: falling back to request headers")
         return auth_header_from_request()
     else:
         return {"Authorization": f"Bearer {access_token}"}

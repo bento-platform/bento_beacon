@@ -54,7 +54,13 @@ def katsu_network_call(payload, endpoint=None):
     current_app.logger.debug(f"calling katsu url {url}")
 
     try:
-        r = requests.post(url, headers=create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload)
+        r = requests.post(
+            url,
+            headers=create_access_header_or_fall_back(),
+            json=payload,
+            timeout=c["KATSU_TIMEOUT"],
+            verify=c["BENTO_VALIDATE_SSL"],
+        )
 
         katsu_response = r.json()
         if not r.ok:
@@ -78,7 +84,7 @@ def katsu_network_call(payload, endpoint=None):
 def katsu_get(endpoint, id=None, query="", requires_auth: Literal["none", "forwarded", "full"] = "none"):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
-    timeout = current_app.config["KATSU_TIMEOUT"]
+    timeout = c["KATSU_TIMEOUT"]
 
     # construct request url
     url_components = urlsplit(katsu_base_url)
@@ -99,7 +105,7 @@ def katsu_get(endpoint, id=None, query="", requires_auth: Literal["none", "forwa
             headers = auth_header_from_request()
         elif requires_auth == "full":
             headers = create_access_header_or_fall_back()
-        r = requests.get(query_url, headers=headers, timeout=timeout)
+        r = requests.get(query_url, headers=headers, timeout=timeout, verify=c["BENTO_VALIDATE_SSL"])
         katsu_response = r.json()
 
     except JSONDecodeError:
@@ -309,7 +315,9 @@ def overview_statistics():
 
 def katsu_censorship_settings() -> tuple[int | None, int | None]:
     # TODO: should be project-dataset scoped
-    rules = katsu_get(current_app.config["KATSU_PUBLIC_RULES"], requires_auth="forwarded")
+    # TODO: should be called on-the-fly and pass request authorization headers onward, since this can change based on
+    #  scoping and the token's particular permissions.
+    rules = katsu_get(current_app.config["KATSU_PUBLIC_RULES"], requires_auth="none")
     max_filters = rules.get("max_query_parameters")
     count_threshold = rules.get("count_threshold")
     # return even if None

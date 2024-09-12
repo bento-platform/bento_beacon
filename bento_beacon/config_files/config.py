@@ -1,11 +1,22 @@
 import json
 import os
+import urllib3
+
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
 
 
 def str_to_bool(value: str) -> bool:
     return value.strip().lower() in ("true", "1", "t", "yes")
+
+
+DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
+VALIDATE_SSL = str_to_bool(os.environ.get("BENTO_VALIDATE_SSL", str(not DEBUG)))
+
+if not VALIDATE_SSL:
+    # Don't let urllib3 spam us with SSL validation warnings if we're operating with SSL validation off, most likely in
+    # a development/test context where we're using self-signed certificates.
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Config:
@@ -26,7 +37,8 @@ class Config:
 
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
-    BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
+    BENTO_DEBUG = DEBUG
+    BENTO_VALIDATE_SSL = VALIDATE_SSL
 
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")

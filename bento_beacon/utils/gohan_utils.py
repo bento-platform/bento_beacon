@@ -179,7 +179,11 @@ def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
         r = requests.get(
-            url, headers=create_access_header_or_fall_back(), timeout=c["GOHAN_TIMEOUT"], params=gohan_args
+            url,
+            headers=create_access_header_or_fall_back(),
+            params=gohan_args,
+            timeout=c["GOHAN_TIMEOUT"],
+            verify=c["BENTO_VALIDATE_SSL"],
         )
 
         # handle gohan errors or any bad responses
