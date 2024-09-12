@@ -90,13 +90,13 @@ def beacon_overview():
 @info.route("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 def get_individual_schema():
-    return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
+    return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
 @info.route("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 def get_experiment_schema():
-    return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
+    return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
 # -------------------------------------------------------
