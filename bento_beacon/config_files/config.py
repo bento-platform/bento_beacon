@@ -145,7 +145,7 @@ class Config:
     KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/public_search_fields"
     KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
     KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
-    KATSU_BEACON_SEARCH = "/api/beacon_search"
+    KATSU_BEACON_SEARCH = "/api/public"
     KATSU_SEARCH_OVERVIEW = "/api/search_overview"
     KATSU_PRIVATE_OVERVIEW = "/api/overview"
     KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
