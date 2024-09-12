@@ -4,7 +4,7 @@ from json import JSONDecodeError
 from urllib.parse import urlsplit, urlunsplit
 from .exceptions import APIException, InvalidQuery
 from functools import reduce
-from ..authz.headers import auth_header_from_request
+from ..authz.access import create_access_header_or_fall_back
 
 
 def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
@@ -52,7 +52,7 @@ def katsu_network_call(payload, endpoint=None):
     current_app.logger.debug(f"calling katsu url {url}")
 
     try:
-        r = requests.post(url, headers=auth_header_from_request(), timeout=c["KATSU_TIMEOUT"], json=payload)
+        r = requests.post(url, headers=create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload)
 
         katsu_response = r.json()
         if not r.ok:
@@ -92,7 +92,7 @@ def katsu_get(endpoint, id=None, query=""):
     )
 
     try:
-        r = requests.get(query_url, timeout=timeout)
+        r = requests.get(query_url, headers=create_access_header_or_fall_back(), timeout=timeout)
         katsu_response = r.json()
 
     except JSONDecodeError:

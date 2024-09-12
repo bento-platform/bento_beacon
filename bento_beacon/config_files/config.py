@@ -4,6 +4,10 @@ import os
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
 
 
+def str_to_bool(value: str) -> bool:
+    return value.strip().lower() in ("true", "1", "t", "yes")
+
+
 class Config:
     BEACON_SPEC_VERSION = "v2.0.0"
 
@@ -22,11 +26,7 @@ class Config:
 
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
-    BENTO_DEBUG = os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")).strip().lower() in (
-        "true",
-        "1",
-        "t",
-    )
+    BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
 
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
@@ -36,7 +36,7 @@ class Config:
     BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
 
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
-    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED").strip().lower() in ("true", "1", "t")
+    BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED"))
     BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
@@ -152,7 +152,7 @@ class Config:
     KATSU_PUBLIC_RULES = "/api/public_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
-    MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", True)
+    MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO"))
 
     PHENOPACKETS_SCHEMA_REFERENCE = {"entityType": "individual", "schema": "phenopackets v1"}
 
@@ -174,8 +174,15 @@ class Config:
     # -------------------
     # authorization
 
+    #  - for contacting the Bento authorization service
     AUTHZ_URL: str = os.environ.get("BENTO_AUTHZ_SERVICE_URL", "")
-    AUTHZ_ENABLED: bool = os.environ.get("AUTHZ_ENABLED", "true").strip().lower() in ("true", "1", "yes")
+    AUTHZ_ENABLED: bool = str_to_bool(os.environ.get("AUTHZ_ENABLED", "true"))
+    #  - for retrieving a token from an OAuth2 IdP in order to make authorized requests to Katsu
+    #     --> if this is disabled, <Authorization: ...> headers from the requestor will be forwarded instead.
+    AUTHZ_BENTO_REQUESTS_ENABLED: bool = str_to_bool(os.environ.get("BEACON_AUTHZ_BENTO_REQUESTS_ENABLED", "true"))
+    OPENID_CONFIG_URL: str = os.environ.get("BENTO_OPENID_CONFIG_URL", "")
+    CLIENT_ID: str = os.environ.get("BEACON_CLIENT_ID", "")
+    CLIENT_SECRET: str = os.environ.get("BEACON_CLIENT_SECRET", "")
 
     # -------------------
     # handle injected config files
@@ -183,6 +190,7 @@ class Config:
     #      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
     #   b) default to using "this file's directory" as the reference to where
     #      configuration files are expected to be located
+    @staticmethod
     def retrieve_config_json(filename):
         # TODO: abstract out CONFIG_PATH if needed
         config_path = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
