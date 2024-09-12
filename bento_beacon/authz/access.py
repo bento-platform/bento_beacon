@@ -27,9 +27,7 @@ def get_access_token() -> str | None:
     validate_ssl = current_app.config["BENTO_VALIDATE_SSL"]
 
     if not all((oidc_config_url, client_id, client_secret)):
-        logger.error(
-            "Could not retrieve access token; one of OPENID_CONFIG_URL | CLIENT_ID | CLIENT_SECRET is not set"
-        )
+        logger.error("Could not retrieve access token; one of OPENID_CONFIG_URL | CLIENT_ID | CLIENT_SECRET is not set")
         return None
 
     try:
