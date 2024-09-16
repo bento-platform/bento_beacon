@@ -1,6 +1,6 @@
 from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
-from ..authz.headers import auth_header_from_request
+from ..authz.access import create_access_header_or_fall_back
 import requests
 
 # -------------------------------------------------------
@@ -178,7 +178,13 @@ def gohan_results(url, gohan_args):
 def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
-        r = requests.get(url, headers=auth_header_from_request(), timeout=c["GOHAN_TIMEOUT"], params=gohan_args)
+        r = requests.get(
+            url,
+            headers=create_access_header_or_fall_back(),
+            params=gohan_args,
+            timeout=c["GOHAN_TIMEOUT"],
+            verify=c["BENTO_VALIDATE_SSL"],
+        )
 
         # handle gohan errors or any bad responses
         if not r.ok:

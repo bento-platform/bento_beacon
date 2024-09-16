@@ -114,5 +114,5 @@ def generic_exception_handler(e):
         current_app.logger.error(f"HTTP Exception: {e}")
         return beacon_error_response(e.name, e.code), e.code
 
-    current_app.logger.error(f"Server Error: {e}")
+    current_app.logger.error(f"Server Error: {repr(e)}")
     return beacon_error_response("Server Error", 500), 500
