@@ -135,7 +135,10 @@ def save_request_data():
     if request_bento:
         request_data["bento"] = request_bento
 
+    # raw request data, this is echoed in response "meta" field
     g.request_data = request_data
+
+    # parsed query components
     g.beacon_query_parameters = parse_query_params(request_data)
 
 
