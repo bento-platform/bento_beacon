@@ -169,6 +169,9 @@ class Config:
     PHENOPACKETS_SCHEMA_REFERENCE = {"entityType": "individual", "schema": "phenopackets v1"}
 
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
+
+    # don't let anonymous users query arbitrary phenopacket or experiment fields
+    ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
     # -------------------
     # gohan
 

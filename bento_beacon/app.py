@@ -17,7 +17,7 @@ from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request, verify_permissions
 from .utils.beacon_response import init_response_data
 from .utils.katsu_utils import katsu_censorship_settings
-from .utils.censorship import set_censorship_settings
+from .utils.censorship import set_censorship_settings, reject_query_if_not_permitted
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -96,6 +96,7 @@ def before_request():
         validate_request()
         verify_permissions()
         save_request_data()
+        reject_query_if_not_permitted()
         init_response_data()
 
 
