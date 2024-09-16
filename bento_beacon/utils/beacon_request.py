@@ -21,9 +21,9 @@ def expand_path(id):
     return id.replace("/", ".[item].")
 
 
-def query_parameters_from_request():
-    variants_query = g.request_data.get("requestParameters", {}).get("g_variant") or {}
-    filters = g.request_data.get("filters") or []
+def parse_query_params(request_data):
+    variants_query = request_data.get("requestParameters", {}).get("g_variant") or {}
+    filters = request_data.get("filters") or []
     phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
@@ -49,7 +49,12 @@ def query_parameters_from_request():
             experiment_filters,
         )
     )
-    return variants_query, phenopacket_filters, experiment_filters, config_filters
+    return {
+        "variants_query": variants_query,
+        "phenopacket_filters": phenopacket_filters,
+        "experiment_filters": experiment_filters,
+        "config_filters": config_filters,
+    }
 
 
 # structure GET params so they match the nested structure in POST
@@ -130,7 +135,11 @@ def save_request_data():
     if request_bento:
         request_data["bento"] = request_bento
 
+    # raw request data, this is echoed in response "meta" field
     g.request_data = request_data
+
+    # parsed query components
+    g.beacon_query_parameters = parse_query_params(request_data)
 
 
 def validate_request():

@@ -2,13 +2,10 @@ from bento_lib.auth.permissions import (
     P_DOWNLOAD_DATA,
     P_QUERY_DATA,
 )
-from flask import Blueprint
+from flask import Blueprint, g
 from functools import reduce
 from ..authz.middleware import authz_middleware, check_permission
-from ..utils.beacon_request import (
-    query_parameters_from_request,
-    summary_stats_requested,
-)
+from ..utils.beacon_request import summary_stats_requested
 from ..utils.beacon_response import (
     add_info_to_response,
     add_stats_to_response,
@@ -32,7 +29,10 @@ individuals = Blueprint("individuals", __name__)
 
 @individuals.route("/individuals", methods=["GET", "POST"])
 def get_individuals():
-    variants_query, phenopacket_filters, experiment_filters, config_filters = query_parameters_from_request()
+    variants_query = g.beacon_query_parameters["variants_query"]
+    phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
+    experiment_filters = g.beacon_query_parameters["experiment_filters"]
+    config_filters = g.beacon_query_parameters["config_filters"]
 
     no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
     search_sample_ids = variants_query or experiment_filters
