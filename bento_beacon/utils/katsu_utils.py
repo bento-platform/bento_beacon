@@ -1,9 +1,11 @@
 import requests
 from flask import current_app
+from functools import reduce
 from json import JSONDecodeError
 from urllib.parse import urlsplit, urlunsplit
+from typing import Literal
 from .exceptions import APIException, InvalidQuery
-from functools import reduce
+from ..authz.access import create_access_header_or_fall_back
 from ..authz.headers import auth_header_from_request
 
 
@@ -52,7 +54,13 @@ def katsu_network_call(payload, endpoint=None):
     current_app.logger.debug(f"calling katsu url {url}")
 
     try:
-        r = requests.post(url, headers=auth_header_from_request(), timeout=c["KATSU_TIMEOUT"], json=payload)
+        r = requests.post(
+            url,
+            headers=create_access_header_or_fall_back(),
+            json=payload,
+            timeout=c["KATSU_TIMEOUT"],
+            verify=c["BENTO_VALIDATE_SSL"],
+        )
 
         katsu_response = r.json()
         if not r.ok:
@@ -73,10 +81,10 @@ def katsu_network_call(payload, endpoint=None):
 
 
 # used for GET calls at particular katsu endpoints, eg /biosamples
-def katsu_get(endpoint, id=None, query=""):
+def katsu_get(endpoint, id=None, query="", requires_auth: Literal["none", "forwarded", "full"] = "none"):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
-    timeout = current_app.config["KATSU_TIMEOUT"]
+    timeout = c["KATSU_TIMEOUT"]
 
     # construct request url
     url_components = urlsplit(katsu_base_url)
@@ -92,7 +100,12 @@ def katsu_get(endpoint, id=None, query=""):
     )
 
     try:
-        r = requests.get(query_url, timeout=timeout)
+        headers = {}
+        if requires_auth == "forwarded":
+            headers = auth_header_from_request()
+        elif requires_auth == "full":
+            headers = create_access_header_or_fall_back()
+        r = requests.get(query_url, headers=headers, timeout=timeout, verify=c["BENTO_VALIDATE_SSL"])
         katsu_response = r.json()
 
     except JSONDecodeError:
@@ -114,12 +127,13 @@ def katsu_get(endpoint, id=None, query=""):
 def search_from_config(config_filters):
     # query error checking handled in katsu
     query_string = "&".join(f'{cf["id"]}{cf["operator"]}{cf["value"]}' for cf in config_filters)
-    response = katsu_get(current_app.config["KATSU_BEACON_SEARCH"], query=query_string)
+    response = katsu_get(current_app.config["KATSU_BEACON_SEARCH"], query=query_string, requires_auth="full")
     return response.get("matches", [])
 
 
 def get_katsu_config_search_fields():
-    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"])
+    # Use forwarded auth for getting available search fields, which may be limited based on access level
+    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth="forwarded")
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
 
@@ -204,23 +218,44 @@ def katsu_resources_to_beacon_resource(r):
     return {key: value for (key, value) in r.items() if key != "created" and key != "updated"}
 
 
-# construct filtering terms collection from katsu autocomplete endpoints
-# note: katsu autocomplete endpoints are paginated
-# TODO: these could be memoized, either at startup or the first time they're requested
+def katsu_config_filtering_terms():
+    filtering_terms = []
+    sections = get_katsu_config_search_fields().get("sections", [])
+    for section in sections:
+        for field in section["fields"]:
+            filtering_term = {
+                "type": "alphanumeric",
+                "id": field["id"],
+                "label": field["title"],
+                #
+                # longer lablel / helptext
+                "description": field.get("description", ""),
+                #
+                # bento internal use fields, more to come
+                "bento": {"section": section["section_title"]},
+                #
+                # unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/pull/160
+                # optionally move to "bento" field if never adopted
+                "values": field["options"],
+                #
+                # another unimplemented proposal: https://github.com/ga4gh-beacon/beacon-v2/issues/115
+                # proposal is for path in beacon spec, so our mapping does not match exactly
+                # "target": f["mapping"]
+                #
+                # TODO: scopes
+                # filter scope for us is always all queryable entities in this beacon, but that can vary per beacon
+                # we can infer this from the queryable endpoints / blueprints that are active
+            }
+            filtering_terms.append(filtering_term)
+
+    return filtering_terms
+
+
+#  memoize?
 def get_filtering_terms():
-    c = current_app.config
-    pheno_features = katsu_autocomplete_terms(c["KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT"])
-    disease_terms = katsu_autocomplete_terms(c["KATSU_DISEASES_TERMS_ENDPOINT"])
-    sampled_tissue_terms = katsu_autocomplete_terms(c["KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT"])
-    filtering_terms = pheno_features + disease_terms + sampled_tissue_terms
-    return list(map(katsu_autocomplete_to_beacon_filter, filtering_terms))
-
-
-def get_filtering_term_resources():
-    r = katsu_get(current_app.config["KATSU_RESOURCES_ENDPOINT"])
-    resources = r.get("results", [])
-    resources = list(map(katsu_resources_to_beacon_resource, resources))
-    return resources
+    # add ontology filters here when we start supporting ontologies
+    # could also add filters for phenopacket and experiment queries
+    return katsu_config_filtering_terms()
 
 
 # -------------------------------------------------------
@@ -231,7 +266,7 @@ def get_filtering_term_resources():
 def katsu_total_individuals_count():
     c = current_app.config
     endpoint = c["KATSU_INDIVIDUALS_ENDPOINT"]
-    count_response = katsu_get(endpoint, query="page_size=1")
+    count_response = katsu_get(endpoint, query="page_size=1", requires_auth="full")
     count = count_response.get("count")
     return count
 
@@ -240,7 +275,8 @@ def katsu_datasets(id=None):
     c = current_app.config
     endpoint = c["KATSU_DATASETS_ENDPOINT"]
     try:
-        response = katsu_get(endpoint, id, query="format=phenopackets")
+        # right now, the datasets endpoint doesn't need any authorization for listing
+        response = katsu_get(endpoint, id, query="format=phenopackets", requires_auth="none")
     except APIException:
         return {}
 
@@ -274,12 +310,14 @@ def search_summary_statistics(ids):
 
 
 def overview_statistics():
-    return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"])
+    return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"], requires_auth="full")
 
 
 def katsu_censorship_settings() -> tuple[int | None, int | None]:
     # TODO: should be project-dataset scoped
-    rules = katsu_get(current_app.config["KATSU_PUBLIC_RULES"])
+    # TODO: should be called on-the-fly and pass request authorization headers onward, since this can change based on
+    #  scoping and the token's particular permissions.
+    rules = katsu_get(current_app.config["KATSU_PUBLIC_RULES"], requires_auth="none")
     max_filters = rules.get("max_query_parameters")
     count_threshold = rules.get("count_threshold")
     # return even if None

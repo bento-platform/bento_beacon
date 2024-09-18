@@ -1,8 +1,23 @@
 import json
 import os
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
+import urllib3
+
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
+
+
+def str_to_bool(value: str) -> bool:
+    return value.strip().lower() in ("true", "1", "t", "yes")
+
+
+BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
+BENTO_VALIDATE_SSL = str_to_bool(os.environ.get("BENTO_VALIDATE_SSL", str(not BENTO_DEBUG)))
+
+if not BENTO_VALIDATE_SSL:
+    # Don't let urllib3 spam us with SSL validation warnings if we're operating with SSL validation off, most likely in
+    # a development/test context where we're using self-signed certificates.
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Config:
@@ -24,11 +39,8 @@ class Config:
 
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
-    BENTO_DEBUG = os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")).strip().lower() in (
-        "true",
-        "1",
-        "t",
-    )
+    BENTO_DEBUG = BENTO_DEBUG
+    BENTO_VALIDATE_SSL = BENTO_VALIDATE_SSL
 
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
@@ -38,7 +50,7 @@ class Config:
     BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
 
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
-    BEACON_UI_ENABLED = os.environ.get("BENTO_BEACON_UI_ENABLED").strip().lower() in ("true", "1", "t")
+    BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED", ""))
     BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
@@ -88,7 +100,7 @@ class Config:
                 "referenceToSchemaDefinition": f"{BEACON_BASE_URL}/individual_schema",
                 "schemaVersion": "v2.0.0",
             },
-            "partOfSpecification": "Phenopacket v1",
+            "partOfSpecification": "Phenopacket v2",
         },
         "variants": {
             "entryType": "genomicVariation",
@@ -147,14 +159,19 @@ class Config:
     KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/public_search_fields"
     KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
     KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
-    KATSU_BEACON_SEARCH = "/api/beacon_search"
+    KATSU_BEACON_SEARCH = "/api/public"
     KATSU_SEARCH_OVERVIEW = "/api/search_overview"
     KATSU_PRIVATE_OVERVIEW = "/api/overview"
     KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
     KATSU_PUBLIC_RULES = "/api/public_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
-    MAP_EXTRA_PROPERTIES_TO_INFO = os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", True)
+
+    MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))
+
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
+
+    # don't let anonymous users query arbitrary phenopacket or experiment fields
+    ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
     # -------------------
     # gohan
 
@@ -172,8 +189,15 @@ class Config:
     # -------------------
     # authorization
 
+    #  - for contacting the Bento authorization service
     AUTHZ_URL: str = os.environ.get("BENTO_AUTHZ_SERVICE_URL", "")
-    AUTHZ_ENABLED: bool = os.environ.get("AUTHZ_ENABLED", "true").strip().lower() in ("true", "1", "yes")
+    AUTHZ_ENABLED: bool = str_to_bool(os.environ.get("AUTHZ_ENABLED", "true"))
+    #  - for retrieving a token from an OAuth2 IdP in order to make authorized requests to Katsu
+    #     --> if this is disabled, <Authorization: ...> headers from the requestor will be forwarded instead.
+    AUTHZ_BENTO_REQUESTS_ENABLED: bool = str_to_bool(os.environ.get("BEACON_AUTHZ_BENTO_REQUESTS_ENABLED", "true"))
+    OPENID_CONFIG_URL: str = os.environ.get("BENTO_OPENID_CONFIG_URL", "")
+    CLIENT_ID: str = os.environ.get("BEACON_CLIENT_ID", "")
+    CLIENT_SECRET: str = os.environ.get("BEACON_CLIENT_SECRET", "")
 
     # -------------------
     # handle injected config files
@@ -181,6 +205,7 @@ class Config:
     #      using the programmable env variable `CONFIG_ABSOLUTE_PATH` if it exists, or
     #   b) default to using "this file's directory" as the reference to where
     #      configuration files are expected to be located
+    @staticmethod
     def retrieve_config_json(filename):
         # TODO: abstract out CONFIG_PATH if needed
         config_path = os.environ.get("CONFIG_ABSOLUTE_PATH", os.path.dirname(os.path.abspath(__file__)))
