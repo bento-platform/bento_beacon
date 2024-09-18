@@ -131,9 +131,11 @@ def search_from_config(config_filters):
     return response.get("matches", [])
 
 
-def get_katsu_config_search_fields():
-    # Use forwarded auth for getting available search fields, which may be limited based on access level
-    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth="forwarded")
+def get_katsu_config_search_fields(requires_auth="forwarded"):
+    # standard forwarded auth for normal beacon requests
+    # "full" auth for beacon network init, which does not have a request context
+    # any network-specific search field censorship should be managed at the token level (or here)
+    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth=requires_auth)
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
 
