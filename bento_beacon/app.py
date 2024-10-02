@@ -24,10 +24,6 @@ from .utils.censorship import set_censorship_settings, reject_query_if_not_permi
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
 
-# temp
-# add to config
-USE_BEACON_NETWORK = True
-
 app = Flask(__name__)
 
 # find path for beacon-v2 spec
@@ -69,7 +65,11 @@ with app.app_context():
     # load blueprint for network
     if current_app.config["USE_BEACON_NETWORK"]:
         app.register_blueprint(network)
-        init_network_service_registry()
+        try:
+            init_network_service_registry()
+        except APIException:
+            # trouble setting up network, swallow for now 
+            current_app.logger.error("API Error when initializing beacon network")
 
     # get censorship settings from katsu
     max_filters = None
