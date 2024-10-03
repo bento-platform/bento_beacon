@@ -1,7 +1,7 @@
 import json
 import os
-from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
 import urllib3
+from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
