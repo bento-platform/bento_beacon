@@ -10,6 +10,7 @@ from ..authz.headers import auth_header_from_request
 
 RequiresAuthOptions = Literal["none", "forwarded", "full"]
 
+
 def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
     payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
     response = katsu_network_call(payload)
