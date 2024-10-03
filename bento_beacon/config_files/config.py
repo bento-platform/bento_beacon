@@ -1,6 +1,7 @@
 import json
 import os
 import urllib3
+from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
@@ -27,12 +28,13 @@ class Config:
 
     # default when no requested granularity, as well as max granularity for anonymous users
     DEFAULT_GRANULARITY = {
-        "individuals": "count",
-        "variants": "count",
-        "biosamples": "count",
-        "cohorts": "record",
-        "datasets": "record",
-        "info": "record",
+        "individuals": GRANULARITY_COUNT,
+        "variants": GRANULARITY_COUNT,
+        "biosamples": GRANULARITY_COUNT,
+        "cohorts": GRANULARITY_RECORD,
+        "datasets": GRANULARITY_RECORD,
+        "info": GRANULARITY_RECORD,
+        "network": GRANULARITY_COUNT,
     }
 
     DEFAULT_PAGINATION_PAGE_SIZE = 10
@@ -166,8 +168,6 @@ class Config:
 
     MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))
 
-    PHENOPACKETS_SCHEMA_REFERENCE = {"entityType": "individual", "schema": "phenopackets v1"}
-
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
 
     # don't let anonymous users query arbitrary phenopacket or experiment fields
@@ -229,3 +229,23 @@ class Config:
     BEACON_COHORT = retrieve_config_json("beacon_cohort.json")
 
     BEACON_CONFIG = retrieve_config_json("beacon_config.json")
+
+    # -------------------
+    # network
+
+    USE_BEACON_NETWORK = os.environ.get("BENTO_BEACON_NETWORK_ENABLED", "false").strip().lower() in ("true", "1", "t")
+
+    NETWORK_CONFIG = retrieve_config_json("beacon_network_config.json")
+
+    NETWORK_URLS = NETWORK_CONFIG.get("beacons", [])
+    NETWORK_DEFAULT_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_default_timeout_seconds", 30)
+    NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_variants_query_timeout_seconds", GOHAN_TIMEOUT)
+    NETWORK_VALID_QUERY_ENDPOINTS = [
+        "analyses",
+        "biosamples",
+        "cohorts",
+        "datasets",
+        "g_variants",
+        "individuals",
+        "runs",
+    ]

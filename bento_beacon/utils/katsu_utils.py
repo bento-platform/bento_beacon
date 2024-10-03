@@ -8,6 +8,8 @@ from .exceptions import APIException, InvalidQuery
 from ..authz.access import create_access_header_or_fall_back
 from ..authz.headers import auth_header_from_request
 
+RequiresAuthOptions = Literal["none", "forwarded", "full"]
+
 
 def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
     payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
@@ -81,7 +83,7 @@ def katsu_network_call(payload, endpoint=None):
 
 
 # used for GET calls at particular katsu endpoints, eg /biosamples
-def katsu_get(endpoint, id=None, query="", requires_auth: Literal["none", "forwarded", "full"] = "none"):
+def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOptions = "none"):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
     timeout = c["KATSU_TIMEOUT"]
@@ -131,9 +133,10 @@ def search_from_config(config_filters):
     return response.get("matches", [])
 
 
-def get_katsu_config_search_fields():
-    # Use forwarded auth for getting available search fields, which may be limited based on access level
-    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth="forwarded")
+def get_katsu_config_search_fields(requires_auth: RequiresAuthOptions):
+    # standard forwarded auth for normal beacon requests
+    # "none" auth for beacon network init, which does not have a request context
+    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth=requires_auth)
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
 
@@ -220,7 +223,7 @@ def katsu_resources_to_beacon_resource(r):
 
 def katsu_config_filtering_terms():
     filtering_terms = []
-    sections = get_katsu_config_search_fields().get("sections", [])
+    sections = get_katsu_config_search_fields(required_auth="forwarded").get("sections", [])
     for section in sections:
         for field in section["fields"]:
             filtering_term = {

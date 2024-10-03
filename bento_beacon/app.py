@@ -9,6 +9,8 @@ from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
+from .network.network import network
+from .network.utils import init_network_service_registry
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware
@@ -44,7 +46,7 @@ authz_middleware.attach(app)
 
 app.register_blueprint(info)
 
-blueprints = {
+endpoint_blueprints = {
     "biosamples": biosamples,
     "cohorts": cohorts,
     "datasets": datasets,
@@ -53,12 +55,21 @@ blueprints = {
 }
 
 with app.app_context():
-    # load blueprints
+    # load blueprints for endpoints
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     for endpoint_set in endpoint_sets:
         if endpoint_set not in BEACON_MODELS:
             raise APIException(message="beacon config contains unknown endpoint set")
-        app.register_blueprint(blueprints[endpoint_set])
+        app.register_blueprint(endpoint_blueprints[endpoint_set])
+
+    # load blueprint for network
+    if current_app.config["USE_BEACON_NETWORK"]:
+        app.register_blueprint(network)
+        try:
+            init_network_service_registry()
+        except APIException:
+            # trouble setting up network, swallow for now
+            current_app.logger.error("API Error when initializing beacon network")
 
     # get censorship settings from katsu
     max_filters = None
