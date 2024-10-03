@@ -235,7 +235,7 @@ class Config:
 
     USE_BEACON_NETWORK = os.environ.get("BENTO_BEACON_NETWORK_ENABLED", "false").strip().lower() in ("true", "1", "t")
 
-    NETWORK_CONFIG = retrieve_config_json("network_config.json")
+    NETWORK_CONFIG = retrieve_config_json("beacon_network_config.json")
 
     NETWORK_URLS = NETWORK_CONFIG.get("beacons", [])
     NETWORK_DEFAULT_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_default_timeout_seconds", 30)
