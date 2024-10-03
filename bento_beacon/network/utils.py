@@ -12,7 +12,11 @@ from ..endpoints.individuals import get_individuals
 from ..endpoints.variants import get_variants
 from .bento_public_query import fields_intersection, fields_union
 
+# future versions will pull metadata query info directly from network beacons instead of network katsus
+# to deprecate in Bento 18
 PUBLIC_SEARCH_FIELDS_PATH = "/api/metadata/api/public_search_fields"
+
+
 DEFAULT_ENDPOINT = "individuals"
 OVERVIEW_STATS_QUERY = {
     "meta": {"apiVersion": "2.0.0"},
@@ -181,6 +185,7 @@ def init_network_service_registry():
 # Temp utils for bento public search terms
 
 
+# deprecate in Bento 18
 def get_public_search_fields(beacon_url):
     fields_url = public_search_fields_url(beacon_url)
     current_app.logger.info(f"trying public fields url {fields_url}")
@@ -188,6 +193,7 @@ def get_public_search_fields(beacon_url):
     return fields
 
 
+# deprecate in Bento 18
 def public_search_fields_url(beacon_url):
     split_url = urlsplit(beacon_url)
     return urlunsplit((split_url.scheme, "portal." + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", ""))
