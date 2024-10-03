@@ -68,7 +68,7 @@ with app.app_context():
         try:
             init_network_service_registry()
         except APIException:
-            # trouble setting up network, swallow for now 
+            # trouble setting up network, swallow for now
             current_app.logger.error("API Error when initializing beacon network")
 
     # get censorship settings from katsu
