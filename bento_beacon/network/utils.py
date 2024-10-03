@@ -40,7 +40,15 @@ def info_for_host_beacon():
     # TODO: fix ugly overlapping overview functions
     # requires rolling out changes to all beacons first
     bento_overview = overview()
-    biosample_and_experiment_stats = overview_statistics()
+    bento_private_overview = overview_statistics()
+    experiment_stats = {"count": bento_private_overview.get("count", 0)}
+    biosample_stats = {
+        "count": bento_private_overview.get("phenopacket", {})
+        .get("data_type_specific", {})
+        .get("biosamples", {})
+        .get("count", 0)
+    }
+
     api_url = current_app.config["BEACON_BASE_URL"]
 
     return {
@@ -50,7 +58,8 @@ def info_for_host_beacon():
         "overview": {
             "individuals": {"count": bento_overview.get("counts", {}).get("individuals")},
             "variants": bento_overview.get("counts", {}).get("variants", {}),
-            **biosample_and_experiment_stats,
+            "biosamples": biosample_stats,
+            "experiments": experiment_stats,
         },
         "querySections": get_katsu_config_search_fields(requires_auth="none").get("sections", []),
     }
