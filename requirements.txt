@@ -19,7 +19,6 @@ cleo                 2.1.0
 click                8.1.7
 crashtest            0.4.1
 cryptography         43.0.1
-debugpy              1.8.6
 distlib              0.3.8
 dulwich              0.21.7
 fastjsonschema       2.19.1
