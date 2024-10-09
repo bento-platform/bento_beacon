@@ -223,7 +223,7 @@ def katsu_resources_to_beacon_resource(r):
 
 def katsu_config_filtering_terms():
     filtering_terms = []
-    sections = get_katsu_config_search_fields(required_auth="forwarded").get("sections", [])
+    sections = get_katsu_config_search_fields(requires_auth="forwarded").get("sections", [])
     for section in sections:
         for field in section["fields"]:
             filtering_term = {
