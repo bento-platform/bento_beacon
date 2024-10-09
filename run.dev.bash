@@ -4,12 +4,11 @@
 
 cd /beacon || exit
 
+# Update dependencies and install module locally
+/poetry_user_install_dev.bash
+
+export FLASK_ENV='development'
 export FLASK_APP='bento_beacon.app:app'
-
-# Update dependencies if necessary
-pip install --no-cache-dir --user -r requirements.txt
-
-# For below command structure, see https://stackoverflow.com/questions/4437573/bash-assign-default-value
 
 # Set default internal port to 5000
 : "${INTERNAL_PORT:=5000}"
