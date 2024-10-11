@@ -21,7 +21,6 @@ beacon_variant_query_not_implemented_params = [
     "variantMinLength",
     "variantMaxLength",
     "mateName",
-    "geneId",
     "aminoacidChange",
     "genomicAlleleShortForm",
 ]
@@ -77,8 +76,8 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     bracket_query = numStart == 2 and numEnd == 2
     geneId_query = geneId is not None
 
-    if not (sequence_query or range_query or bracket_query or geneId_query):
-        raise InvalidQuery()
+    if geneId_query and (start or end):
+        raise InvalidQuery("geneId query does not take start or end parameters")
 
     if bracket_query:
         return bracket_query_to_gohan(beacon_args, granularity, ids_only)
@@ -89,12 +88,15 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     if geneId_query:
         return geneId_query_to_gohan(beacon_args, granularity, ids_only)
 
-    # else range query, no other cases
-    return range_query_to_gohan(beacon_args, granularity, ids_only)
+    if range_query:
+        return range_query_to_gohan(beacon_args, granularity, ids_only)
+
+    # no other cases
+    raise InvalidQuery()
 
 
 def sequence_query_to_gohan(beacon_args, granularity, ids_only):
-    print("SEQUENCE QUERY")
+    current_app.logger.debug("SEQUENCE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
     alternateBases = beacon_args.get("alternateBases")
@@ -117,7 +119,7 @@ def sequence_query_to_gohan(beacon_args, granularity, ids_only):
 # variantMinLength
 # variantMaxLength
 def range_query_to_gohan(beacon_args, granularity, ids_only):
-    print("RANGE QUERY")
+    current_app.logger.debug("RANGE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
     gohan_args["lowerBound"] = zero_to_one(beacon_args["start"][0])
     gohan_args["upperBound"] = zero_to_one(beacon_args["end"][0])
@@ -126,16 +128,21 @@ def range_query_to_gohan(beacon_args, granularity, ids_only):
 
 
 def bracket_query_to_gohan(beacon_args, granularity, ids_only):
-    print("BRACKET QUERY")
+    current_app.logger.debug("BRACKET QUERY")
     # TODO
     # either implement here by filtering full results, or implement directly in gohan
     raise NotImplemented(message="variant bracket query not implemented")
 
 
 def geneId_query_to_gohan(beacon_args, granularity, ids_only):
-    print("GENE ID QUERY")
-    # TODO
+    current_app.logger.debug("GENE ID QUERY")
     # determine assembly, call gohan for gene coordinates, launch search
+
+    # use assemblyId if present in query
+    # otherwise iterate through all assemblies present in gohan:
+    #   - for each assembly, call reference service for gene stop/start positions
+    #   - launch gohan query with appropriate assembly / stop  / start
+
     raise NotImplemented(message="variant geneId query not implemented")
 
 
@@ -249,6 +256,7 @@ def gohan_counts_for_overview():
 #   2      2      bracket query
 
 # ... other combinations of the number of "start" and "end" params are not meaningful
+# a fourth query type, GENE ID SEARCH, uses a gene symbol insted of numeric stop/start positions
 
 
 # --------------------------------------------
@@ -323,6 +331,7 @@ def gohan_counts_for_overview():
 #     (assemblyId)
 
 # what about alternateBases, aminoacidChange? These are optional in range queries but not here? why not?
+# ... seems like this is a docs issue, the spec itself does not mark any of these values are required or optional
 
 # brackets are not supported by gohan, so as above, the main options are to:
 # (1) implement in gohan
@@ -339,3 +348,17 @@ def gohan_counts_for_overview():
 # call all matching variants between lowerBound, upperBound
 # filter out start and end positions not matching brackets
 # filter out variants not matching variant type (when type present)
+
+
+# --------------------------------------------
+# GENE ID QUERY is a variant of range query
+# takes an HGNC gene symbol instead of numeric stop/start positions
+
+# query params:
+#     geneId
+# optional params:
+#     variantType OR alternateBases OR aminoacidChange
+#     variantMinLength
+#     variantMaxLength
+
+# obviously assemblyId may be useful here as well as an optional parameter, although docs ignore it
