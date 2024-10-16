@@ -5,7 +5,7 @@ from ..authz.access import create_access_header_or_fall_back
 import requests
 
 
-def gene_position_lookup(geneId, assemblyId) -> dict[str, str | int | None]:
+def gene_position_lookup(geneId: str, assemblyId: str) -> dict[str, str | int | None]:
     reference_url = current_app.config["REFERENCE_URL"] + f"/genomes/{assemblyId}/features?name={geneId}"
     try:
         r = requests.get(
@@ -13,6 +13,10 @@ def gene_position_lookup(geneId, assemblyId) -> dict[str, str | int | None]:
             headers=create_access_header_or_fall_back(),
             verify=current_app.config["BENTO_VALIDATE_SSL"],
         )
+
+        if not r.ok:
+            current_app.logger.warning(f"reference service error, status: {r.status_code}, message: {r.text}")
+            raise APIException(message="error searching reference service")
 
         results = r.json().get("results")
         if not results:
@@ -25,7 +29,7 @@ def gene_position_lookup(geneId, assemblyId) -> dict[str, str | int | None]:
 
     except JSONDecodeError:
         current_app.logger.error(f"error reading response from reference service")
-        raise APIException(message="invalid non-JSON response from katsu")
+        raise APIException(message="invalid non-JSON response from reference service")
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"reference service error: {e}")
         raise APIException(message="error calling reference service")
