@@ -1,4 +1,4 @@
-from flask import current_app, request
+from flask import current_app
 import requests
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from ..authz.access import create_access_header_or_fall_back
@@ -59,10 +59,6 @@ def one_to_zero(start, end):
 
 
 def query_gohan(beacon_args, granularity, ids_only=False):
-
-    # if beacon_args.get("referenceName") is None:
-    #     raise InvalidQuery(message="referenceName parameter required")
-
     # control flow for beacon variant query types
     # http://docs.genomebeacons.org/variant-queries/
     start = beacon_args.get("start")
@@ -77,17 +73,20 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     bracket_query = numStart == 2 and numEnd == 2
     geneId_query = geneId is not None
 
-    if geneId_query and (start is not None or end is not None):
-        raise InvalidQuery("invalid mix of geneId and start/end parameters")
+    if geneId_query:
+        if start is not None or end is not None:
+            raise InvalidQuery("invalid mix of geneId and start/end parameters")
+        return geneId_query_to_gohan(beacon_args, granularity, ids_only)
+
+    # required everywhere except geneId query
+    if beacon_args.get("referenceName") is None:
+        raise InvalidQuery(message="referenceName parameter required")
 
     if sequence_query:
         return sequence_query_to_gohan(beacon_args, granularity, ids_only)
 
     if range_query:
         return range_query_to_gohan(beacon_args, granularity, ids_only)
-
-    if geneId_query:
-        return geneId_query_to_gohan(beacon_args, granularity, ids_only)
 
     if bracket_query:
         return bracket_query_to_gohan(beacon_args, granularity, ids_only)
@@ -137,7 +136,6 @@ def bracket_query_to_gohan(beacon_args, granularity, ids_only):
 
 def geneId_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("GENE ID QUERY")
-
     gene_id = beacon_args.get("geneId")
     assembly_from_query = beacon_args.get("assemblyId")
 
@@ -233,7 +231,6 @@ def gohan_full_record_query(gohan_args):
     return response.get("calls")
 
 
-# @functools.cache
 def gohan_overview():
     config = current_app.config
     url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
