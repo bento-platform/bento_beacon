@@ -141,6 +141,7 @@ def geneId_query_to_gohan(beacon_args, granularity, ids_only):
 
     # query all assemblies present in gohan if not specified
     assemblies = [assembly_from_query] if assembly_from_query is not None else gohan_assemblies()
+    gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
     gohan_results = []
     for assembly in assemblies:
@@ -148,7 +149,8 @@ def geneId_query_to_gohan(beacon_args, granularity, ids_only):
         if not gene_info:
             continue
 
-        gohan_args = {
+        gohan_args_this_query = {
+            **gohan_args,
             "assemblyId": assembly,
             "chromosome": gene_info.get("chromosome"),
             "lowerBound": gene_info.get("start"),
@@ -156,7 +158,7 @@ def geneId_query_to_gohan(beacon_args, granularity, ids_only):
             "getSampleIdsOnly": ids_only,
         }
 
-        gohan_results.extend(generic_gohan_query(gohan_args, granularity, ids_only))
+        gohan_results.extend(generic_gohan_query(gohan_args_this_query, granularity, ids_only))
 
     return gohan_results
 
