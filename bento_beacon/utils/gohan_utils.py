@@ -1,7 +1,8 @@
 from flask import current_app, request
+import requests
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from ..authz.access import create_access_header_or_fall_back
-import requests
+from .reference import gene_position_lookup
 
 # -------------------------------------------------------
 #       query mapping
@@ -11,7 +12,7 @@ gohan_beacon_variant_query_mapped_fields = {
     "referenceBases": "reference",
     "alternateBases": "alternative",
     "assemblyId": "assemblyId",
-    "referenceName": "chromosome",  # TODO: handle accession numbers here, Redmine #1076
+    "referenceName": "chromosome",  # could handle accession numbers here, Redmine #1076
 }
 
 # throw warning if beacon query includes these terms
@@ -59,8 +60,8 @@ def one_to_zero(start, end):
 
 def query_gohan(beacon_args, granularity, ids_only=False):
 
-    if beacon_args.get("referenceName") is None:
-        raise InvalidQuery(message="referenceName parameter required")
+    # if beacon_args.get("referenceName") is None:
+    #     raise InvalidQuery(message="referenceName parameter required")
 
     # control flow for beacon variant query types
     # http://docs.genomebeacons.org/variant-queries/
@@ -76,20 +77,20 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     bracket_query = numStart == 2 and numEnd == 2
     geneId_query = geneId is not None
 
-    if geneId_query and (start or end):
-        raise InvalidQuery("geneId query does not take start or end parameters")
-
-    if bracket_query:
-        return bracket_query_to_gohan(beacon_args, granularity, ids_only)
+    if geneId_query and (start is not None or end is not None):
+        raise InvalidQuery("invalid mix of geneId and start/end parameters")
 
     if sequence_query:
         return sequence_query_to_gohan(beacon_args, granularity, ids_only)
 
+    if range_query:
+        return range_query_to_gohan(beacon_args, granularity, ids_only)
+
     if geneId_query:
         return geneId_query_to_gohan(beacon_args, granularity, ids_only)
 
-    if range_query:
-        return range_query_to_gohan(beacon_args, granularity, ids_only)
+    if bracket_query:
+        return bracket_query_to_gohan(beacon_args, granularity, ids_only)
 
     # no other cases
     raise InvalidQuery()
@@ -136,14 +137,30 @@ def bracket_query_to_gohan(beacon_args, granularity, ids_only):
 
 def geneId_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("GENE ID QUERY")
-    # determine assembly, call gohan for gene coordinates, launch search
 
-    # use assemblyId if present in query
-    # otherwise iterate through all assemblies present in gohan:
-    #   - for each assembly, call reference service for gene stop/start positions
-    #   - launch gohan query with appropriate assembly / stop  / start
+    gene_id = beacon_args.get("geneId")
+    assembly_from_query = beacon_args.get("assemblyId")
 
-    raise NotImplemented(message="variant geneId query not implemented")
+    # query all assemblies present in gohan if not specified
+    assemblies = [assembly_from_query] if assembly_from_query is not None else gohan_assemblies()
+
+    gohan_results = []
+    for assembly in assemblies:
+        gene_info = gene_position_lookup(gene_id, assembly)
+        if not gene_info:
+            continue
+
+        gohan_args = {
+            "assemblyId": assembly,
+            "chromosome": gene_info.get("chromosome"),
+            "lowerBound": gene_info.get("start"),
+            "upperBound": gene_info.get("end"),
+            "getSampleIdsOnly": ids_only,
+        }
+
+        gohan_results.extend(generic_gohan_query(gohan_args, granularity, ids_only))
+
+    return gohan_results
 
 
 def generic_gohan_query(gohan_args, granularity, ids_only):
@@ -208,7 +225,7 @@ def gohan_network_call(url, gohan_args):
     return gohan_response
 
 
-# used internally only
+# currently used internally only
 def gohan_full_record_query(gohan_args):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
@@ -216,6 +233,7 @@ def gohan_full_record_query(gohan_args):
     return response.get("calls")
 
 
+# @functools.cache
 def gohan_overview():
     config = current_app.config
     url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
@@ -235,10 +253,12 @@ def gohan_counts_by_assembly_id():
     return gohan_overview().get("assemblyIDs", {})
 
 
+def gohan_assemblies():
+    return list(gohan_overview().get("assemblyIDs", {}).keys())
+
+
 # only runs if "useGohan" true
 def gohan_counts_for_overview():
-    # TODO: call gohan to see if elasticsearch down before calling gohan_counts_by_assembly_id()
-    # ... was previously possible with /tables, may need a fresh gohan endpoint
     return gohan_counts_by_assembly_id()
 
 
