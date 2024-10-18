@@ -172,6 +172,7 @@ class Config:
 
     # don't let anonymous users query arbitrary phenopacket or experiment fields
     ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
+
     # -------------------
     # gohan
 
@@ -185,6 +186,10 @@ class Config:
     # drs
 
     DRS_URL = os.environ.get("DRS_URL")
+
+    # -------------------
+    # reference
+    REFERENCE_URL = os.environ.get("REFERENCE_URL")
 
     # -------------------
     # authorization
