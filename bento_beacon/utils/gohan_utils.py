@@ -144,6 +144,7 @@ def geneId_query_to_gohan(beacon_args, granularity, ids_only):
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
     gohan_results = []
+    # TODO: async
     for assembly in assemblies:
         gene_info = gene_position_lookup(gene_id, assembly)
         if not gene_info:
