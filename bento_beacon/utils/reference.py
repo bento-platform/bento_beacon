@@ -5,8 +5,8 @@ from ..authz.access import create_access_header_or_fall_back
 import requests
 
 
-def gene_position_lookup(geneId: str, assemblyId: str) -> dict[str, str | int | None]:
-    reference_url = current_app.config["REFERENCE_URL"] + f"/genomes/{assemblyId}/features?name={geneId}"
+def gene_position_lookup(gene_id: str, assembly_id: str) -> dict[str, str | int | None]:
+    reference_url = current_app.config["REFERENCE_URL"] + f"/genomes/{assembly_id}/features?name={gene_id}"
     try:
         r = requests.get(
             reference_url,
