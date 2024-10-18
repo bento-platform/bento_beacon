@@ -1,8 +1,8 @@
+import requests
 from json import JSONDecodeError
 from flask import current_app
 from .exceptions import APIException
 from ..authz.access import create_access_header_or_fall_back
-import requests
 
 
 def gene_position_lookup(gene_id: str, assembly_id: str) -> dict[str, str | int | None]:

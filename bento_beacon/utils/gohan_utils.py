@@ -1,5 +1,5 @@
-from flask import current_app
 import requests
+from flask import current_app
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from ..authz.access import create_access_header_or_fall_back
 from .reference import gene_position_lookup
