@@ -1,11 +1,20 @@
-from unittest.mock import patch
-from .data.service_responses import (
-    katsu_datasets_response,
-    katsu_total_individuals_count_response,
-    gohan_counts_for_overview_response,
-    katsu_config_search_fields_response,
+import responses
+
+from .conftest import (
+    validate_response,
+    authz_everything_true,
+    authz_everything_false,
+    auth_get_oidc_token,
+    katsu_config_response,
+    katsu_datasets,
+    katsu_private_search,
+    katsu_private_overview,
+    katsu_private_search_overview,
+    katsu_individuals,
+    katsu_public_search,
+    gohan_search,
+    gohan_overview,
 )
-from .conftest import client, validate_response
 
 
 RESPONSE_SPEC_FILENAMES = {
@@ -26,27 +35,25 @@ RESPONSE_SPEC_FILENAMES = {
 # --------------------------------------------------------
 
 
-@patch("bento_beacon.endpoints.info.katsu_datasets")
-def test_service_info(mock_fn, client):
-    mock_fn.return_value = katsu_datasets_response
+@responses.activate
+def test_service_info(client):
+    katsu_datasets()
     response = client.get("/service-info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["service-info"])
 
 
-@patch("bento_beacon.endpoints.info.katsu_datasets")
-def test_root(mock_fn, client):
-    mock_fn.return_value = katsu_datasets_response
+@responses.activate
+def test_root(client):
+    katsu_datasets()
     response = client.get("/")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
 
 
-@patch("bento_beacon.endpoints.info.katsu_total_individuals_count")
-@patch("bento_beacon.endpoints.info.gohan_counts_for_overview")
-@patch("bento_beacon.endpoints.info.katsu_datasets")
-def test_info(katsu_datasets_mock, gohan_counts_mock, katsu_total_individuals_mock, client):
-    katsu_datasets_mock.return_value = katsu_datasets_response
-    gohan_counts_mock.return_value = gohan_counts_for_overview_response
-    katsu_total_individuals_mock.return_value = katsu_total_individuals_count_response
+@responses.activate
+def test_info(client):
+    katsu_datasets()
+    gohan_overview()
+    katsu_individuals()
     response = client.get("/info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
 
@@ -61,27 +68,24 @@ def test_entry_types(client):
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["entry_types"])
 
 
-@patch("bento_beacon.endpoints.info.katsu_datasets")
-def test_configuration_endpoint(mock_fn, client):
-    mock_fn.return_value = katsu_datasets_response
+@responses.activate
+def test_configuration_endpoint(client):
+    katsu_datasets()
     response = client.get("/configuration")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["configuration"])
 
 
-@patch("bento_beacon.utils.katsu_utils.get_katsu_config_search_fields")
-def test_filtering_terms(mock_fn, client):
-    mock_fn.return_value = katsu_config_search_fields_response
+@responses.activate
+def test_filtering_terms(client):
+    katsu_config_response()
     response = client.get("/filtering_terms")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["filtering_terms"])
 
-
-@patch("bento_beacon.endpoints.info.katsu_total_individuals_count")
-@patch("bento_beacon.endpoints.info.gohan_counts_for_overview")
-@patch("bento_beacon.endpoints.info.katsu_datasets")
-def test_overview(katsu_datasets_mock, gohan_counts_mock, katsu_total_individuals_mock, client):
-    katsu_datasets_mock.return_value = katsu_datasets_response
-    gohan_counts_mock.return_value = gohan_counts_for_overview_response
-    katsu_total_individuals_mock.return_value = katsu_total_individuals_count_response
+@responses.activate
+def test_overview(client):
+    katsu_datasets()
+    gohan_overview()
+    katsu_individuals()
     response = client.get("/overview")
 
     # /overview is bento-only, does not exist in beacon spec
@@ -91,3 +95,51 @@ def test_overview(katsu_datasets_mock, gohan_counts_mock, katsu_total_individual
 
 
 # --------------------------------
+
+request_body = {
+    "meta": {"apiVersion": "2.0.0"},
+    "query": {
+        "requestParameters": {
+            "g_variant": {"referenceName": "3", "start": [189631388], "assemblyId": "GRCh38", "end": [189897276]}
+        },
+        "filters": [{"id": "sex", "operator": "=", "value": "FEMALE"}],
+    },
+    "bento": {"showSummaryStatistics": True},
+}
+
+
+@responses.activate
+def test_datasets(client):
+    authz_everything_true()
+    katsu_config_response()
+    katsu_datasets()
+    response = client.get("/datasets")
+    validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["collections_response"])
+
+
+@responses.activate
+def test_individuals_no_query(client):
+    authz_everything_true()
+    katsu_individuals()
+    response = client.get("/individuals")
+    validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["count_response"])
+
+
+@responses.activate
+def test_individuals_query_no_token(client):
+    authz_everything_true()
+    auth_get_oidc_token()
+    katsu_public_search()
+    katsu_private_search()
+    katsu_private_search_overview()
+    gohan_search()
+    response = client.post("/individuals", json=request_body)
+    data = response.get_json()
+
+    # waiting for fixes to beacon spec before we do any json verification here
+    # https://github.com/ga4gh-beacon/beacon-v2/issues/176
+    # https://github.com/ga4gh-beacon/beacon-v2/pull/107
+
+    # for now just check that response makes sense
+    assert "responseSummary" in data
+    assert "numTotalResults" in data["responseSummary"]
