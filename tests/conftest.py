@@ -12,6 +12,7 @@ from .data.service_responses import (
     katsu_private_overview_response,
     katsu_private_search_overview_response,
     katsu_public_search_response,
+    katsu_public_rules_response,
     katsu_individuals_response,
     gohan_search_response,
     token_response,
@@ -25,7 +26,7 @@ GOHAN_URL = "http://gohan.local"
 OPENID_CONFIG_URL = AUTHZ_URL + "/fake/openid-configuration"
 TOKEN_URL = AUTHZ_URL + "/fake/token"
 
-access_token = "fakeToken"
+MOCK_ACCESS_TOKEN = "fakeToken"
 token_endpoint_config_response = {
     "token_endpoint": TOKEN_URL,
 }
@@ -86,7 +87,7 @@ def validate_response(response, schema_filename):
 
 # ------------------------------
 # mock external api calls
-# could parameterize the different endpoints,
+# could parameterize the different endpoints urls,
 # but main danger is the endpoints changing in the services themselves, but that's not tested here
 
 
@@ -119,10 +120,6 @@ def katsu_private_search():
     mock_post(f"{KATSU_URL}/private/search", katsu_private_search_response)
 
 
-def katsu_private_overview():
-    mock_get(f"{KATSU_URL}/private/overview", katsu_private_overview_response)
-
-
 def katsu_private_search_overview():
     mock_post(f"{KATSU_URL}/api/search_overview", katsu_private_search_overview_response)
 
@@ -137,6 +134,10 @@ def katsu_individuals():
 
 def katsu_public_search():
     mock_get(f"{KATSU_URL}/api/public", katsu_public_search_response)
+
+
+def katsu_public_rules():
+    mock_get(f"{KATSU_URL}/api/public_rules", katsu_public_rules_response)
 
 
 def gohan_search():

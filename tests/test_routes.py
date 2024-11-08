@@ -8,10 +8,10 @@ from .conftest import (
     katsu_config_response,
     katsu_datasets,
     katsu_private_search,
-    katsu_private_overview,
     katsu_private_search_overview,
     katsu_individuals,
     katsu_public_search,
+    katsu_public_rules,
     gohan_search,
     gohan_overview,
 )
@@ -81,6 +81,7 @@ def test_filtering_terms(client):
     response = client.get("/filtering_terms")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["filtering_terms"])
 
+
 @responses.activate
 def test_overview(client):
     katsu_datasets()
@@ -114,6 +115,7 @@ def test_datasets(client):
     katsu_config_response()
     katsu_datasets()
     response = client.get("/datasets")
+    assert response.status_code == 200
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["collections_response"])
 
 
@@ -122,11 +124,12 @@ def test_individuals_no_query(client):
     authz_everything_true()
     katsu_individuals()
     response = client.get("/individuals")
+    assert response.status_code == 200
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["count_response"])
 
 
 @responses.activate
-def test_individuals_query_no_token(client):
+def test_individuals_query_all_permissions(client):
     authz_everything_true()
     auth_get_oidc_token()
     katsu_public_search()
@@ -141,5 +144,24 @@ def test_individuals_query_no_token(client):
     # https://github.com/ga4gh-beacon/beacon-v2/pull/107
 
     # for now just check that response makes sense
+    assert response.status_code == 200
     assert "responseSummary" in data
-    assert "numTotalResults" in data["responseSummary"]
+    assert data["responseSummary"]["numTotalResults"] == 4
+
+
+@responses.activate
+def test_individuals_query_no_permissions(client):
+    authz_everything_false()
+    auth_get_oidc_token()
+    katsu_public_search()
+    katsu_private_search()
+    katsu_public_rules()
+    katsu_private_search_overview()
+    gohan_search()
+    response = client.post("/individuals", json=request_body)
+    data = response.get_json()
+
+    # expect normal response with zero results
+    assert response.status_code == 200
+    assert "responseSummary" in data
+    assert data["responseSummary"]["numTotalResults"] == 0
