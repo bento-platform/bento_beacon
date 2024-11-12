@@ -90,13 +90,13 @@ async def beacon_overview():
 @info.route("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_individual_schema():
-    return await katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"])
+    return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
 @info.route("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_experiment_schema():
-    return await katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"])
+    return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
 # -------------------------------------------------------
@@ -127,7 +127,10 @@ async def build_service_details():
     k_datasets = await katsu_datasets()
     dats_array = list(map(lambda d: d.get("datsFile", {}), k_datasets))
     description = " ".join([d.get("description") for d in dats_array if "description" in d])
-    if description and info.get("description") is None:
+    custom_description = info.get("description")
+    if custom_description:
+        s["description"] = custom_description
+    if description and custom_description is None:
         s["description"] = description
 
     current_app.config["SERVICE_DETAILS"] = s

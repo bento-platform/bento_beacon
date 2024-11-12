@@ -1,2 +1,27 @@
+[tool.poetry]
+name = "bento_beacon"
+version = "0.17.0"
+description = "GA4GH Beacon v2 microservice for the Bento platform"
+authors = ["Gordon Krieger <gordon.krieger@mcgill.ca>"]
+license = "LGPL-3.0-only"
+readme = "README.md"
+packages = [{include = "bento_beacon"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+bento-lib = {extras = ["flask"], version = "^10.1.1"}
+flask = "^3.0.3"
+requests = "^2.32.3"
+jsonschema = ">=4.17.3,<4.18.0"
+asyncio = "^3.4.3"
+
+[tool.poetry.group.dev.dependencies]
+debugpy = "^1.8.6"
+black = "^24.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 120

@@ -1,4 +1,4 @@
-FROM ghcr.io/bento-platform/bento_base_image:python-debian-2024.06.01
+FROM ghcr.io/bento-platform/bento_base_image:python-debian-2024.10.01
 
 SHELL ["/bin/bash", "-c"]
 
@@ -6,8 +6,11 @@ RUN mkdir -p /beacon/config
 WORKDIR /beacon
 
 # Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir "gunicorn==22.0.0" -r requirements.txt
+COPY pyproject.toml .
+COPY poetry.lock .
+RUN pip install --no-cache-dir gunicorn==23.0.0 && \
+    poetry config virtualenvs.create false && \
+    poetry install --without dev --no-root
 
 # Copy whole project directory
 COPY . .

@@ -70,3 +70,19 @@ def reject_if_too_many_filters(filters):
 def censored_chart_data(data):
     t = get_censorship_threshold()  # zero with correct permissions
     return [{"label": d["label"], "value": d["value"]} for d in data if d["value"] > t]
+
+
+def query_has_phenopacket_filter():
+    return bool(g.beacon_query_parameters["phenopacket_filters"])
+
+
+def query_has_experiment_filter():
+    return bool(g.beacon_query_parameters["experiment_filters"])
+
+
+# some anonymous queries are not permitted
+def reject_query_if_not_permitted():
+    if g.permission_query_data or not current_app.config["ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY"]:
+        return
+    if query_has_phenopacket_filter() or query_has_experiment_filter():
+        raise InvalidQuery("anonymous queries should use filters from discovery config only")

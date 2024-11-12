@@ -10,6 +10,8 @@ from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
+from .network.network import network
+from .network.utils import init_network_service_registry
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware
@@ -18,7 +20,7 @@ from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request, verify_permissions
 from .utils.beacon_response import init_response_data
 from .utils.katsu_utils import katsu_censorship_settings
-from .utils.censorship import set_censorship_settings
+from .utils.censorship import set_censorship_settings, reject_query_if_not_permitted
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -45,7 +47,7 @@ authz_middleware.attach(app)
 
 app.register_blueprint(info)
 
-blueprints = {
+endpoint_blueprints = {
     "biosamples": biosamples,
     "cohorts": cohorts,
     "datasets": datasets,
@@ -54,12 +56,21 @@ blueprints = {
 }
 
 with app.app_context():
-    # load blueprints
+    # load blueprints for endpoints
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
     for endpoint_set in endpoint_sets:
         if endpoint_set not in BEACON_MODELS:
             raise APIException(message="beacon config contains unknown endpoint set")
-        app.register_blueprint(blueprints[endpoint_set])
+        app.register_blueprint(endpoint_blueprints[endpoint_set])
+
+    # load blueprint for network
+    if current_app.config["USE_BEACON_NETWORK"]:
+        app.register_blueprint(network)
+        try:
+            init_network_service_registry()
+        except APIException:
+            # trouble setting up network, swallow for now
+            current_app.logger.error("API Error when initializing beacon network")
 
     # get censorship settings from katsu
     max_filters = None
@@ -97,6 +108,7 @@ async def before_request():
         validate_request()
         await verify_permissions()
         save_request_data()
+        reject_query_if_not_permitted()
         init_response_data()
 
 
@@ -115,5 +127,5 @@ def generic_exception_handler(e):
         current_app.logger.error(f"HTTP Exception: {e}")
         return beacon_error_response(e.name, e.code), e.code
 
-    current_app.logger.error(f"Server Error: {e}")
+    current_app.logger.error(f"Server Error: {repr(e)}")
     return beacon_error_response("Server Error", 500), 500
