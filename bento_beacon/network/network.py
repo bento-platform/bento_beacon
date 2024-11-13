@@ -16,7 +16,7 @@ network = Blueprint("network", __name__, url_prefix="/network")
 
 @network.route("")
 @network.route("/beacons")
-def network_beacons():
+async def network_beacons():
     beacons_dict = current_app.config.get("NETWORK_BEACONS")
     if not beacons_dict:
         raise APIException("no beacons found in network config")
@@ -31,7 +31,7 @@ def network_beacons():
 
 # returns 404 if endpoint missing
 @network.route("/beacons/<beacon_id>/<endpoint>", methods=["GET", "POST"])
-def query(beacon_id, endpoint):
+async def query(beacon_id, endpoint):
     beacon = current_app.config["NETWORK_BEACONS"].get(beacon_id)
 
     if not beacon:
@@ -43,16 +43,16 @@ def query(beacon_id, endpoint):
     # special handling for host beacon, avoid circular http calls
     host_id = current_app.config["BEACON_ID"]
     if beacon_id == host_id:
-        return host_beacon_response(endpoint)
+        return await host_beacon_response(endpoint)
 
     # all other beacons
     api_url = beacon.get("apiUrl")
 
     if request.method == "POST":
         payload = request.get_json()
-        r = network_beacon_post(api_url, payload, endpoint)
+        r = await network_beacon_post(api_url, payload, endpoint)
     else:
         # TODO: pass get args
-        r = network_beacon_get(api_url, endpoint)
+        r = await network_beacon_get(api_url, endpoint)
 
     return r

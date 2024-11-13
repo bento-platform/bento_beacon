@@ -1,7 +1,8 @@
-import requests
+import aiohttp
 from flask import current_app
 from urllib.parse import urlsplit, urlunsplit
 from json import JSONDecodeError
+from ..utils.http import tcp_connector
 from ..utils.exceptions import APIException
 from ..utils.katsu_utils import overview_statistics, get_katsu_config_search_fields
 from ..endpoints.info import build_service_details, overview
@@ -34,13 +35,13 @@ HOST_VIEWS_BY_ENDPOINT = {
 
 # get network node info for this beacon, which is also hosting the network
 # call methods directly instead of circular http calls
-def info_for_host_beacon():
-    service_details = build_service_details()
+async def info_for_host_beacon():
+    service_details = await build_service_details()
 
     # TODO: fix ugly overlapping overview functions
     # requires rolling out changes to all beacons first
-    bento_overview = overview()
-    bento_private_overview = overview_statistics()
+    bento_overview = await overview()
+    bento_private_overview = await overview_statistics()
     experiment_stats = {"count": bento_private_overview.get("count", 0)}
     biosample_stats = {
         "count": bento_private_overview.get("phenopacket", {})
@@ -61,13 +62,13 @@ def info_for_host_beacon():
             "biosamples": biosample_stats,
             "experiments": experiment_stats,
         },
-        "querySections": get_katsu_config_search_fields(requires_auth="none").get("sections", []),
+        "querySections": await get_katsu_config_search_fields(requires_auth="none").get("sections", []),
     }
 
 
-def host_beacon_response(endpoint):
+async def host_beacon_response(endpoint):
     # endpoint already known to be valid
-    return HOST_VIEWS_BY_ENDPOINT[endpoint]()
+    return await HOST_VIEWS_BY_ENDPOINT[endpoint]()
 
 
 def has_variants_query(payload):
@@ -77,22 +78,25 @@ def has_variants_query(payload):
     return bool(query)
 
 
-def network_beacon_call(method, url, payload=None):
+async def network_beacon_call(method, url, payload=None):
+    c = current_app.config
     current_app.logger.info(f"Calling network url: {url}")
     timeout = (
-        current_app.config["NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS"]
+        c["NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS"]
         if has_variants_query(payload)
-        else current_app.config["NETWORK_DEFAULT_TIMEOUT_SECONDS"]
+        else c["NETWORK_DEFAULT_TIMEOUT_SECONDS"]
     )
 
     try:
-        if method == "GET":
-            r = requests.get(url, timeout=timeout)
-        else:
-            r = requests.post(url, json=payload, timeout=timeout)
-        beacon_response = r.json()
+        async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
+            if method == "GET":
+                r = await s.get(url, timeout=timeout)
+            else:
+                r = await s.post(url, timeout=timeout, json=payload)
 
-    except (requests.exceptions.RequestException, JSONDecodeError) as e:
+        beacon_response = await r.json()
+
+    except (aiohttp.ClientError, JSONDecodeError) as e:
         current_app.logger.error(e)
         msg = f"beacon network error calling url {url}: {e}"
         raise APIException(message=msg)
@@ -100,14 +104,14 @@ def network_beacon_call(method, url, payload=None):
     return beacon_response
 
 
-def network_beacon_get(root_url, endpoint=None):
+async def network_beacon_get(root_url, endpoint=None):
     url = root_url if endpoint is None else root_url + "/" + endpoint
-    return network_beacon_call("GET", url)
+    return await network_beacon_call("GET", url)
 
 
-def network_beacon_post(root_url, payload={}, endpoint=None):
+async def network_beacon_post(root_url, payload={}, endpoint=None):
     url = root_url if endpoint is None else root_url + "/" + endpoint
-    return network_beacon_call("POST", url, payload)
+    return await network_beacon_call("POST", url, payload)
 
 
 def make_network_filtering_terms(beacons):
@@ -117,7 +121,7 @@ def make_network_filtering_terms(beacons):
     pass
 
 
-def init_network_service_registry():
+async def init_network_service_registry():
     current_app.logger.info("registering beacons")
     urls = current_app.config["NETWORK_URLS"]
     if not urls:
@@ -133,7 +137,7 @@ def init_network_service_registry():
         # special handling for calling the beacon this network is hosted on
         if url == host_beacon_url:
             host_id = current_app.config["BEACON_ID"]
-            network_beacons[host_id] = info_for_host_beacon()
+            network_beacons[host_id] = await info_for_host_beacon()
             continue
 
         # all other beacons
@@ -158,7 +162,7 @@ def init_network_service_registry():
 
         # TODO: filters here??
         biosample_and_experiment_stats = (
-            network_beacon_post(url, OVERVIEW_STATS_QUERY, DEFAULT_ENDPOINT).get("info", {}).get("bento")
+            (await network_beacon_post(url, OVERVIEW_STATS_QUERY, DEFAULT_ENDPOINT)).get("info", {}).get("bento")
         )
         individual_and_variant_stats = beacon_info.get("overview", {}).get("counts")
 
@@ -174,7 +178,7 @@ def init_network_service_registry():
 
         # Note: v15 katsu does not respond here
         # TODO (longer): serve beacon spec filtering terms instead of bento public querySections
-        network_beacons[b_id]["querySections"] = get_public_search_fields(url).get("sections", [])  # temp
+        network_beacons[b_id]["querySections"] = await get_public_search_fields(url).get("sections", [])  # temp
 
         # make a merged overview?
         # what about merged filtering_terms?
@@ -195,10 +199,10 @@ def init_network_service_registry():
 
 
 # deprecate in Bento 18
-def get_public_search_fields(beacon_url):
+async def get_public_search_fields(beacon_url):
     fields_url = public_search_fields_url(beacon_url)
     current_app.logger.info(f"trying public fields url {fields_url}")
-    fields = network_beacon_get(fields_url)
+    fields = await network_beacon_get(fields_url)
     return fields
 
 
