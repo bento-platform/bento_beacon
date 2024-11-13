@@ -39,7 +39,7 @@ async def add_stats_to_response(ids):
         stats = await overview_statistics()
     else:
         stats = await search_summary_statistics(ids)
-    packaged_stats = package_biosample_and_experiment_stats(stats)
+    packaged_stats = await package_biosample_and_experiment_stats(stats)
     g.response_info["bento"] = packaged_stats
 
 
@@ -65,11 +65,11 @@ async def package_biosample_and_experiment_stats(stats):
     return {
         "biosamples": {
             "count": await censored_count(biosamples_count),
-            "sampled_tissue": censored_chart_data(sampled_tissue_data),
+            "sampled_tissue": await censored_chart_data(sampled_tissue_data),
         },
         "experiments": {
             "count": await censored_count(experiments_count),
-            "experiment_type": censored_chart_data(experiment_type_data),
+            "experiment_type": await censored_chart_data(experiment_type_data),
         },
     }
 
@@ -246,8 +246,8 @@ def beacon_error_response(message, status_code):
     return {"meta": response_meta([], None), "error": {"errorCode": status_code, "errorMessage": message}}
 
 
-def zero_count_response():
-    return build_query_response(ids=[])
+async def zero_count_response():
+    return await build_query_response(ids=[])
 
 
 # --------------------------------

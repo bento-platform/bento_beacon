@@ -90,13 +90,13 @@ async def beacon_overview():
 @info.route("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_individual_schema():
-    return katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
+    return await katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
 @info.route("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_experiment_schema():
-    return katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
+    return await katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
 # -------------------------------------------------------
@@ -157,6 +157,7 @@ async def build_ga4gh_service_info():
         s["description"] = description
 
     current_app.config["BEACON_GA4GH_SERVICE_INFO"] = s
+
     return s
 
 

@@ -1,7 +1,7 @@
 import aiohttp
 from flask import current_app
-from .http import tcp_connector
-from ..authz.headers import auth_header_from_request
+from .http import tcp_connector, aiohttp_params
+from ..authz.access import create_access_header_or_fall_back
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from .reference import gene_position_lookup
 
@@ -77,7 +77,7 @@ async def query_gohan(beacon_args, granularity, ids_only=False):
     if geneId_query:
         if start is not None or end is not None:
             raise InvalidQuery("invalid mix of geneId and start/end parameters")
-        return geneId_query_to_gohan(beacon_args, granularity, ids_only)
+        return await geneId_query_to_gohan(beacon_args, granularity, ids_only)
 
     # required everywhere except geneId query
     if beacon_args.get("referenceName") is None:
@@ -87,10 +87,10 @@ async def query_gohan(beacon_args, granularity, ids_only=False):
         return await sequence_query_to_gohan(beacon_args, granularity, ids_only)
 
     if range_query:
-        return range_query_to_gohan(beacon_args, granularity, ids_only)
+        return await range_query_to_gohan(beacon_args, granularity, ids_only)
 
     if bracket_query:
-        return bracket_query_to_gohan(beacon_args, granularity, ids_only)
+        return await bracket_query_to_gohan(beacon_args, granularity, ids_only)
 
     # no other cases
     raise InvalidQuery()
@@ -112,7 +112,7 @@ async def sequence_query_to_gohan(beacon_args, granularity, ids_only):
     gohan_args["upperBound"] = gohan_args["lowerBound"]
     gohan_args["getSampleIdsOnly"] = ids_only
 
-    return generic_gohan_query(gohan_args, granularity, ids_only)
+    return await generic_gohan_query(gohan_args, granularity, ids_only)
 
 
 # optional params
@@ -141,13 +141,13 @@ async def geneId_query_to_gohan(beacon_args, granularity, ids_only):
     assembly_from_query = beacon_args.get("assemblyId")
 
     # query all assemblies present in gohan if not specified
-    assemblies = [assembly_from_query] if assembly_from_query is not None else gohan_assemblies()
+    assemblies = [assembly_from_query] if assembly_from_query is not None else await gohan_assemblies()
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
     gohan_results = []
     # TODO: async
     for assembly in assemblies:
-        gene_info = gene_position_lookup(gene_id, assembly)
+        gene_info = await gene_position_lookup(gene_id, assembly)
         if not gene_info:
             continue
 
@@ -160,14 +160,14 @@ async def geneId_query_to_gohan(beacon_args, granularity, ids_only):
             "getSampleIdsOnly": ids_only,
         }
 
-        gohan_results.extend(generic_gohan_query(gohan_args_this_query, granularity, ids_only))
+        gohan_results.extend(await generic_gohan_query(gohan_args_this_query, granularity, ids_only))
 
     return gohan_results
 
 
 async def generic_gohan_query(gohan_args, granularity, ids_only):
     if ids_only:
-        return gohan_ids_only_query(gohan_args, granularity)
+        return await gohan_ids_only_query(gohan_args, granularity)
 
     if granularity == "record":
         return await gohan_full_record_query(gohan_args)
@@ -203,10 +203,11 @@ async def gohan_results(url, gohan_args):
 
 async def gohan_network_call(url, gohan_args):
     c = current_app.config
+    params = aiohttp_params(gohan_args)
 
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            r = await s.get(url, headers=auth_header_from_request(), timeout=c["GOHAN_TIMEOUT"], params=gohan_args)
+            r = await s.get(url, headers=create_access_header_or_fall_back(), timeout=c["GOHAN_TIMEOUT"], params=params)
 
         # handle gohan errors or any bad responses
         if not r.ok:
@@ -249,8 +250,8 @@ async def gohan_counts_by_assembly_id():
     return (await gohan_overview()).get("assemblyIDs", {})
 
 
-def gohan_assemblies():
-    return list(gohan_overview().get("assemblyIDs", {}).keys())
+async def gohan_assemblies():
+    return list((await gohan_overview()).get("assemblyIDs", {}).keys())
 
 
 # only runs if "useGohan" true

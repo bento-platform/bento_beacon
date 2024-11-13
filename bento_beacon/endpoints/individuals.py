@@ -45,7 +45,7 @@ async def get_individuals():
         total_count = await katsu_total_individuals_count()
         if summary_stats_requested():
             await add_overview_stats_to_response()
-        return build_query_response(numTotalResults=total_count)
+        return await build_query_response(numTotalResults=total_count)
 
     # ----------------------------------------------------------
     #  collect biosample ids from variant and experiment search
@@ -55,7 +55,7 @@ async def get_individuals():
     if search_sample_ids:
         sample_ids = await biosample_id_search(variants_query=variants_query, experiment_filters=experiment_filters)
         if not sample_ids:
-            return zero_count_response()
+            return await zero_count_response()
 
     # -------------------------------
     #  get individuals
@@ -67,7 +67,7 @@ async def get_individuals():
     if config_filters:
         config_ids = await search_from_config(config_filters)
         if not config_ids:
-            return zero_count_response()
+            return await zero_count_response()
         individual_results["config_ids"] = config_ids
 
     if not config_search_only:
@@ -75,7 +75,7 @@ async def get_individuals():
         # either of phenopacket_filters or sample_ids can be empty
         phenopacket_ids = await katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
         if not phenopacket_ids:
-            return zero_count_response()
+            return await zero_count_response()
         individual_results["phenopacket_ids"] = phenopacket_ids
 
     # baroque syntax but covers all cases
@@ -84,7 +84,7 @@ async def get_individuals():
     if summary_stats_requested():
         await add_stats_to_response(individual_ids)
 
-    return build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
+    return await build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
@@ -123,8 +123,8 @@ async def individuals_full_results(ids):
 # forbidden / unauthorized if no permissions
 @individuals.route("/individuals/<id>", methods=["GET", "POST"])
 @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
-def individual_by_id(id):
-    result_sets, numTotalResults = individuals_full_results([id])
+async def individual_by_id(id):
+    result_sets, numTotalResults = await individuals_full_results([id])
 
     # return 404 if not found
     # only authorized users will get 404 here, so this can't be used to probe ids

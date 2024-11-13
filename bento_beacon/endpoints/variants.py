@@ -21,7 +21,7 @@ async def get_variants():
     if not (variants_query or has_filters):
         add_info_to_response("no query found, returning total count")
         total_count = await gohan_total_variants_count()
-        return build_query_response(numTotalResults=total_count)
+        return await build_query_response(numTotalResults=total_count)
 
     #  collect biosample ids from all filters
     sample_ids = []
@@ -33,7 +33,7 @@ async def get_variants():
             config_filters=config_filters,
         )
         if not sample_ids:
-            return zero_count_response()
+            return await zero_count_response()
 
     # finally, find relevant variants, depending on whether a variants query was made
     if variants_query:
@@ -42,8 +42,8 @@ async def get_variants():
 
         variant_results = await query_gohan(variants_query, "record", ids_only=False)
         if has_filters:
-            variant_results = list(filter(lambda v: v.get("sample_id") in sample_ids, variant_results))
-        gohan_count = len(variant_results)
+            variant_results_list = list(filter(lambda v: v.get("sample_id") in sample_ids, variant_results))
+        gohan_count = len(variant_results_list)
     else:
         # gohan overview returns lowercase only
         sample_ids = [id.lower() for id in sample_ids]
@@ -54,7 +54,7 @@ async def get_variants():
         else:
             gohan_count = sum(variant_totals.values())
 
-    return build_query_response(numTotalResults=gohan_count)
+    return await build_query_response(numTotalResults=gohan_count)
 
 
 # -------------------------------------------------------

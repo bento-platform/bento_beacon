@@ -61,11 +61,12 @@ async def katsu_network_call(payload, endpoint=None):
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
             r = await s.post(url, headers=create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload)
-            katsu_response = await r.json()
 
         if not r.ok:
             current_app.logger.warning(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
             raise APIException(message=f"error searching katsu metadata service: {katsu_response.get('message')}")
+
+        katsu_response = await r.json()
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
@@ -103,7 +104,7 @@ async def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOpti
     elif requires_auth == "full":
         headers = create_access_header_or_fall_back()
     try:
-        async with aiohttp.ClientSession(tcp_connector(c)) as s:
+        async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
             r = await s.get(query_url, headers=headers, timeout=timeout)
         katsu_response = await r.json()
 
@@ -131,7 +132,7 @@ async def search_from_config(config_filters):
 
 
 async def get_katsu_config_search_fields(requires_auth: RequiresAuthOptions):
-    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth="forwarded")
+    fields = await katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth="forwarded")
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
 
@@ -203,8 +204,8 @@ def katsu_json_payload(filters, datatype, get_biosample_ids):
 # -------------------------------------------------------
 
 
-def katsu_autocomplete_terms(endpoint):
-    return katsu_get(endpoint).get("results", [])
+async def katsu_autocomplete_terms(endpoint):
+    return await katsu_get(endpoint).get("results", [])
 
 
 def katsu_autocomplete_to_beacon_filter(a):
