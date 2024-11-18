@@ -1,6 +1,7 @@
 from flask import current_app, request, Blueprint
 from ..utils.exceptions import APIException, NotFoundException
-from .utils import network_beacon_get, network_beacon_post, host_beacon_response, filters_intersection, filters_union
+from .utils import network_beacon_get, network_beacon_post, host_beacon_response, init_network_service_registry
+
 
 network = Blueprint("network", __name__, url_prefix="/network")
 
@@ -17,9 +18,11 @@ network = Blueprint("network", __name__, url_prefix="/network")
 @network.route("")
 @network.route("/beacons")
 async def network_beacons():
-    beacons_dict = current_app.config.get("NETWORK_BEACONS")
-    if not beacons_dict:
-        raise APIException("no beacons found in network config")
+    # beacons_dict = current_app.config.get("NETWORK_BEACONS")
+    beacons_dict = None
+    if beacons_dict is None:
+        beacons_dict = await init_network_service_registry()
+        current_app.config["NETWORK_BEACONS"] = beacons_dict
 
     # filters handling still experimental
     return {
