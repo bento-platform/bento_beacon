@@ -66,11 +66,6 @@ with app.app_context():
     # load blueprint for network
     if current_app.config["USE_BEACON_NETWORK"]:
         app.register_blueprint(network)
-        try:
-            init_network_service_registry()
-        except APIException:
-            # trouble setting up network, swallow for now
-            current_app.logger.error("API Error when initializing beacon network")
 
     # get censorship settings from katsu
     max_filters = None
