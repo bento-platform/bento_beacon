@@ -1,7 +1,9 @@
 import aiohttp
+import asyncio
 from flask import current_app
 from urllib.parse import urlsplit, urlunsplit
 from json import JSONDecodeError
+from ..config_files.config import reverse_domain_id
 from ..utils.http import tcp_connector
 from ..utils.exceptions import APIException
 from ..utils.katsu_utils import overview_statistics, get_katsu_config_search_fields
@@ -55,14 +57,13 @@ async def info_for_host_beacon():
     return {
         **service_details,
         "apiUrl": api_url,
-        "b_id": current_app.config["BEACON_ID"],
         "overview": {
             "individuals": {"count": bento_overview.get("counts", {}).get("individuals")},
             "variants": bento_overview.get("counts", {}).get("variants", {}),
             "biosamples": biosample_stats,
             "experiments": experiment_stats,
         },
-        "querySections": await get_katsu_config_search_fields(requires_auth="none").get("sections", []),
+        "querySections": (await get_katsu_config_search_fields(requires_auth="none")).get("sections", []),
     }
 
 
@@ -115,10 +116,47 @@ async def network_beacon_post(root_url, payload={}, endpoint=None):
 
 
 def make_network_filtering_terms(beacons):
-    all_query_sections = [b["querySections"] for b in beacons.values()]
+    all_query_sections = [b.get("querySections", {}) for b in beacons.values()]
     current_app.config["ALL_NETWORK_FILTERS"] = filters_union(all_query_sections)
     current_app.config["COMMON_NETWORK_FILTERS"] = filters_intersection(all_query_sections)
     pass
+
+
+async def call_network_beacon_for_init(url):
+    current_app.logger.info(f"call_network_beacon_for_init()")
+    beacon_info = {"apiUrl": url}
+
+    try:
+
+        b = (await network_beacon_get(url, endpoint="overview")).get("response")
+        beacon_info.update(b)
+
+        # organize overview stats
+        # TODO (Redmine #2170) modify beacon /overview response
+        # .... so we don't have to make two calls here, with different response formats
+        individual_and_variant_stats = b.get("overview", {}).get("counts")
+        biosample_and_experiment_stats = (
+            (await network_beacon_post(url, OVERVIEW_STATS_QUERY, DEFAULT_ENDPOINT)).get("info", {}).get("bento")
+        )
+
+        beacon_info["overview"] = {
+            "individuals": {"count": individual_and_variant_stats.get("individuals")},
+            "variants": individual_and_variant_stats.get("variants"),
+            **biosample_and_experiment_stats,
+        }
+
+        # temp, call katsu for bento public "query_sections"
+        # TODO change to beacon spec filters, don't call katsu
+        beacon_info["querySections"] = (await get_public_search_fields(url)).get("sections", [])
+        beacon_info["isUp"] = True
+
+    except APIException:
+        beacon_info["isUp"] = False
+        # assign an id to failed beacons, so client can attempt a call later
+        if "id" not in beacon_info:
+            beacon_info["id"] = reverse_domain_id(url.removeprefix("https://").removesuffix("/api/beacon"))
+
+    return beacon_info
 
 
 async def init_network_service_registry():
@@ -126,72 +164,36 @@ async def init_network_service_registry():
     urls = current_app.config["NETWORK_URLS"]
     if not urls:
         current_app.logger.error("can't find urls for beacon network, did you forget a config file?")
-        # this isn't driven by a request, so no point serving API error response here
-        return
-    network_beacons = {}
-    failed_beacons = []
+        raise APIException("can't find urls for beacon network")
+
     host_beacon_url = current_app.config["BEACON_BASE_URL"]
     current_app.logger.debug(f"host url: {host_beacon_url}")
+
+    calls = []
     for url in urls:
 
         # special handling for calling the beacon this network is hosted on
         if url == host_beacon_url:
-            host_id = current_app.config["BEACON_ID"]
-            network_beacons[host_id] = await info_for_host_beacon()
+            calls.append(info_for_host_beacon())
             continue
 
         # all other beacons
-        try:
-            b = network_beacon_get(url, endpoint="overview")
-            beacon_info = b.get("response")
+        calls.append(call_network_beacon_for_init(url))
 
-        except APIException:
-            failed_beacons.append(url)
-            current_app.logger.error(f"error contacting network beacon {url}")
-            continue
+    current_app.logger.info(f"calling {len(urls)} beacons in network")
+    results = await asyncio.gather(*calls, return_exceptions=True)
 
-        if not beacon_info:
-            failed_beacons.append(url)
-            current_app.logger.error(f"bad response from network beacon {url}")
-            continue
+    # # make a merged overview?
+    # # what about merged filtering_terms?
+    current_app.logger.info(f"registered {len(results)} beacon{'' if len(results) == 1 else 's'} in network")
 
-        beacon_info["apiUrl"] = url
+    # dict by beacon id easier to work with elsewhere
+    beacon_dict = {b["id"]: b for b in results}
 
-        # organize overview stats
-        # TODO (Redmine #2170) modify beacon /overview so we don't have to make two calls here, with different response formats
+    make_network_filtering_terms(beacon_dict)
+    # current_app.config["NETWORK_BEACONS"] = network_beacons
 
-        # TODO: filters here??
-        biosample_and_experiment_stats = (
-            (await network_beacon_post(url, OVERVIEW_STATS_QUERY, DEFAULT_ENDPOINT)).get("info", {}).get("bento")
-        )
-        individual_and_variant_stats = beacon_info.get("overview", {}).get("counts")
-
-        overview = {
-            "individuals": {"count": individual_and_variant_stats.get("individuals")},
-            "variants": individual_and_variant_stats.get("variants"),
-            **biosample_and_experiment_stats,
-        }
-
-        b_id = beacon_info.get("id")
-        network_beacons[b_id] = beacon_info
-        network_beacons[b_id]["overview"] = overview
-
-        # Note: v15 katsu does not respond here
-        # TODO (longer): serve beacon spec filtering terms instead of bento public querySections
-        network_beacons[b_id]["querySections"] = await get_public_search_fields(url).get("sections", [])  # temp
-
-        # make a merged overview?
-        # what about merged filtering_terms?
-    current_app.logger.info(
-        f"registered {len(network_beacons)} beacon{'' if len(network_beacons) == 1 else 's'} in network: {', '.join(network_beacons)}"
-    )
-    if failed_beacons:
-        current_app.logger.error(
-            f"{len(failed_beacons)} network beacon{'' if len(failed_beacons) == 1 else 's'} failed to respond: {', '.join(failed_beacons)}"
-        )
-
-    make_network_filtering_terms(network_beacons)
-    current_app.config["NETWORK_BEACONS"] = network_beacons
+    return beacon_dict
 
 
 ##########################################
