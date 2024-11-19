@@ -5,7 +5,7 @@ from .conftest import (
     authz_everything_true,
     authz_everything_false,
     auth_get_oidc_token,
-    katsu_config_response,
+    katsu_config_search_fields,
     katsu_datasets,
     katsu_private_search,
     katsu_private_search_overview,
@@ -77,7 +77,7 @@ def test_configuration_endpoint(client):
 
 @responses.activate
 def test_filtering_terms(client):
-    katsu_config_response()
+    katsu_config_search_fields()
     response = client.get("/filtering_terms")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["filtering_terms"])
 
@@ -112,7 +112,7 @@ request_body = {
 @responses.activate
 def test_datasets(client):
     authz_everything_true()
-    katsu_config_response()
+    katsu_config_search_fields()
     katsu_datasets()
     response = client.get("/datasets")
     assert response.status_code == 200
