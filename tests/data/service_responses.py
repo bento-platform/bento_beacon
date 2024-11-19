@@ -33,7 +33,7 @@ katsu_total_individuals_count_response = 100
 
 gohan_counts_for_overview_response = {"GRCh37": 1000, "GRCh38": 2000}
 
-katsu_public_rules_response = {"count_threshold":5,"max_query_parameters":2}
+katsu_public_rules_response = {"count_threshold": 5, "max_query_parameters": 2}
 
 katsu_config_search_fields_response = {
     "sections": [
@@ -1713,58 +1713,28 @@ katsu_public_search_response = {
         "ind-NA21141",
         "ind-NA21142",
         "ind-NA21143",
-        "ind-NA21144"
+        "ind-NA21144",
     ],
     "biosamples": {
         "count": 2426,
         "sampled_tissue": [
-            {
-                "label": "blood",
-                "value": 1278
-            },
-            {
-                "label": "Kidney",
-                "value": 1
-            },
-            {
-                "label": "Plasma",
-                "value": 216
-            },
-            {
-                "label": "Serum",
-                "value": 489
-            }
-        ]
+            {"label": "blood", "value": 1278},
+            {"label": "Kidney", "value": 1},
+            {"label": "Plasma", "value": 216},
+            {"label": "Serum", "value": 489},
+        ],
     },
     "experiments": {
         "count": 2026,
         "experiment_type": [
-            {
-                "label": "Metabolite profiling",
-                "value": 72
-            },
-            {
-                "label": "Neutralizing antibody titers",
-                "value": 194
-            },
-            {
-                "label": "Other",
-                "value": 110
-            },
-            {
-                "label": "Proteomic profiling",
-                "value": 230
-            },
-            {
-                "label": "RNA-Seq",
-                "value": 142
-            },
-            {
-                "label": "WGS",
-                "value": 1278
-            }
-        ]
-    }
+            {"label": "Metabolite profiling", "value": 72},
+            {"label": "Neutralizing antibody titers", "value": 194},
+            {"label": "Other", "value": 110},
+            {"label": "Proteomic profiling", "value": 230},
+            {"label": "RNA-Seq", "value": 142},
+            {"label": "WGS", "value": 1278},
+        ],
+    },
 }
 
 

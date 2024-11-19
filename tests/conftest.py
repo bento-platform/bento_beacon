@@ -9,7 +9,6 @@ from .data.service_responses import (
     katsu_datasets_response,
     katsu_config_search_fields_response,
     katsu_private_search_response,
-    katsu_private_overview_response,
     katsu_private_search_overview_response,
     katsu_public_search_response,
     katsu_public_rules_response,
@@ -87,7 +86,7 @@ def validate_response(response, schema_filename):
 
 # ------------------------------
 # mock external api calls
-# could parameterize the different endpoints urls,
+# could parameterize the different endpoint urls,
 # but main danger is the endpoints changing in the services themselves, but that's not tested here
 
 
@@ -112,7 +111,7 @@ def auth_oidc_token_response():
     mock_post(TOKEN_URL, token_response)
 
 
-def katsu_config_response():
+def katsu_config_search_fields():
     mock_get(f"{KATSU_URL}/api/public_search_fields", {"result": katsu_config_search_fields_response})
 
 
@@ -155,3 +154,6 @@ def mock_get(url, response):
 def mock_post(url, response):
     # ignore request payload
     responses.post(url, json=response)
+
+
+# add github test workflow
