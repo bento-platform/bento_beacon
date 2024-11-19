@@ -191,7 +191,7 @@ async def init_network_service_registry():
     beacon_dict = {b["id"]: b for b in results}
 
     make_network_filtering_terms(beacon_dict)
-    # current_app.config["NETWORK_BEACONS"] = network_beacons
+    current_app.config["NETWORK_BEACONS"] = beacon_dict
 
     return beacon_dict
 

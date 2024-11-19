@@ -9,7 +9,6 @@ network = Blueprint("network", __name__, url_prefix="/network")
 # TODOs:
 # filtering terms XXXXXXXXXXXXXXXXXXXXXXXXXXX
 # /service-info? there's already one at beacon root
-# async calls
 
 # standard beacon info endpoints at the network level: /map, /configuration, etc
 # handle GET args
@@ -19,10 +18,9 @@ network = Blueprint("network", __name__, url_prefix="/network")
 @network.route("/beacons")
 async def network_beacons():
     # beacons_dict = current_app.config.get("NETWORK_BEACONS")
-    beacons_dict = None
-    if beacons_dict is None:
-        beacons_dict = await init_network_service_registry()
-        current_app.config["NETWORK_BEACONS"] = beacons_dict
+
+    beacons_dict = await init_network_service_registry()
+    current_app.config["NETWORK_BEACONS"] = beacons_dict
 
     # filters handling still experimental
     return {
