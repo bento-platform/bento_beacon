@@ -11,6 +11,10 @@ def str_to_bool(value: str) -> bool:
     return value.strip().lower() in ("true", "1", "t", "yes")
 
 
+def reverse_domain_id(domain):
+    return ".".join(reversed(domain.split("."))) + ".beacon"
+
+
 BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
 BENTO_VALIDATE_SSL = str_to_bool(os.environ.get("BENTO_VALIDATE_SSL", str(not BENTO_DEBUG)))
 
@@ -47,7 +51,7 @@ class Config:
     BENTO_PUBLIC_URL = os.environ.get("BENTOV2_PUBLIC_URL")
 
     # reverse domain id
-    BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
+    BEACON_ID = reverse_domain_id(BENTO_DOMAIN)
 
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
     BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED", ""))
