@@ -12,7 +12,6 @@ gohan_beacon_variant_query_mapped_fields = {
     "referenceBases": "reference",
     "alternateBases": "alternative",
     "assemblyId": "assemblyId",
-    "referenceName": "chromosome",  # could handle accession numbers here, Redmine #1076
 }
 
 # throw warning if beacon query includes these terms
@@ -31,6 +30,9 @@ def beacon_to_gohan_generic_mapping(obj):
     gohan_query = {}
 
     for beacon_key, beacon_value in obj.items():
+        if beacon_key == "referenceName":
+            # gohan strips "chr" on ingest but not on query
+            gohan_query["chromosome"] = beacon_value.removeprefix("chr")
         if beacon_key in gohan_beacon_variant_query_mapped_fields.keys():
             gohan_query[gohan_beacon_variant_query_mapped_fields[beacon_key]] = beacon_value
         elif beacon_key in beacon_variant_query_not_implemented_params:
