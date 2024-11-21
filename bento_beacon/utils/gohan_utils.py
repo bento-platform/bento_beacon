@@ -12,6 +12,7 @@ gohan_beacon_variant_query_mapped_fields = {
     "referenceBases": "reference",
     "alternateBases": "alternative",
     "assemblyId": "assemblyId",
+    # beacon "referenceName" maps to gohan "chromosome" but has special handling below
 }
 
 # throw warning if beacon query includes these terms
