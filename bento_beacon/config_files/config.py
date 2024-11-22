@@ -172,7 +172,7 @@ class Config:
 
     MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))
 
-    MAX_RETRIES_FOR_CENSORSHIP_PARAMS = 2
+    MAX_RETRIES_FOR_CENSORSHIP_PARAMS = int(os.environ.get("MAX_RETRIES_FOR_CENSORSHIP_PARAMS", 2))
 
     # don't let anonymous users query arbitrary phenopacket or experiment fields
     ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
