@@ -1,5 +1,4 @@
 import aiohttp
-import requests
 from flask import current_app
 from urllib.parse import urlsplit, urlunsplit
 from .katsu_utils import katsu_network_call
