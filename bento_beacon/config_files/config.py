@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import urllib3
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
@@ -18,10 +19,9 @@ def reverse_domain_id(domain):
 BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
 BENTO_VALIDATE_SSL = str_to_bool(os.environ.get("BENTO_VALIDATE_SSL", str(not BENTO_DEBUG)))
 
-if not BENTO_VALIDATE_SSL:
-    # Don't let urllib3 spam us with SSL validation warnings if we're operating with SSL validation off, most likely in
-    # a development/test context where we're using self-signed certificates.
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# silence logspam
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("aiocache").setLevel(logging.WARNING)
 
 
 class Config:
@@ -44,7 +44,6 @@ class Config:
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
     BENTO_DEBUG = BENTO_DEBUG
-    BENTO_VALIDATE_SSL = BENTO_VALIDATE_SSL
 
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")

@@ -10,7 +10,7 @@ async def gene_position_lookup(gene_id: str, assembly_id: str) -> dict[str, str 
     reference_url = current_app.config["REFERENCE_URL"] + f"/genomes/{assembly_id}/features?name={gene_id}"
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(current_app.config)) as s:
-            r = await s.get(reference_url, headers=create_access_header_or_fall_back())
+            r = await s.get(reference_url, headers=await create_access_header_or_fall_back())
 
         if not r.ok:
             current_app.logger.warning(f"reference service error, status: {r.status_code}, message: {r.text}")

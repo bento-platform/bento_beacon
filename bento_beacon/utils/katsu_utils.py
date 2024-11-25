@@ -60,7 +60,9 @@ async def katsu_network_call(payload, endpoint=None):
 
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            r = await s.post(url, headers=create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload)
+            r = await s.post(
+                url, headers=await create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload
+            )
 
         if not r.ok:
             current_app.logger.warning(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
@@ -102,7 +104,7 @@ async def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOpti
     if requires_auth == "forwarded":
         headers = auth_header_from_request()
     elif requires_auth == "full":
-        headers = create_access_header_or_fall_back()
+        headers = await create_access_header_or_fall_back()
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
             r = await s.get(query_url, headers=headers, timeout=timeout)

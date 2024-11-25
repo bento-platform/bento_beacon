@@ -206,11 +206,14 @@ async def gohan_results(url, gohan_args):
 
 async def gohan_network_call(url, gohan_args):
     c = current_app.config
-    params = aiohttp_params(gohan_args)
-
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            r = await s.get(url, headers=create_access_header_or_fall_back(), timeout=c["GOHAN_TIMEOUT"], params=params)
+            r = await s.get(
+                url,
+                headers=await create_access_header_or_fall_back(),
+                timeout=c["GOHAN_TIMEOUT"],
+                params=aiohttp_params(gohan_args),
+            )
 
         # handle gohan errors or any bad responses
         if not r.ok:
