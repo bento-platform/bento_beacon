@@ -52,10 +52,6 @@ def zero_to_one(start, end=None):
     return int(start) + 1 if end is None else (int(start) + 1, end)
 
 
-def one_to_zero(start, end):
-    return (int(start) - 1, end)
-
-
 # -------------------------------------------------------
 #       gohan calls
 # -------------------------------------------------------
