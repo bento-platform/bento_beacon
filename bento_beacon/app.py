@@ -102,7 +102,7 @@ async def before_request():
     if request.blueprint != "info":
         validate_request()
         await verify_permissions()
-        save_request_data()
+        await save_request_data()
         reject_query_if_not_permitted()
         init_response_data()
 

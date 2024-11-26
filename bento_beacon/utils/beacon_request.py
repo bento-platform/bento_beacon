@@ -105,7 +105,7 @@ def package_get_params(params):
     return {"meta": meta, "query": query}
 
 
-def save_request_data():
+async def save_request_data():
     defaults = request_defaults()
 
     if request.method == "POST":
@@ -129,7 +129,7 @@ def save_request_data():
         request_data["requestParameters"] = query_request_parameters
 
     if query_filters:
-        reject_if_too_many_filters(query_filters)
+        await reject_if_too_many_filters(query_filters)
         request_data["filters"] = query_filters
 
     if request_bento:

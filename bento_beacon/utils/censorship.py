@@ -52,16 +52,16 @@ async def censored_count(count):
 
 
 # we don't have the same option of returning zero here
-def get_max_filters():
+async def get_max_filters():
     max_filters = current_app.config["MAX_FILTERS"]
-    return max_filters if max_filters is not None else max_filters_retry()
+    return max_filters if max_filters is not None else await max_filters_retry()
 
 
 # ugly side-effect code, but keeps censorship code together
-def reject_if_too_many_filters(filters):
+async def reject_if_too_many_filters(filters):
     if g.permission_query_data:
         return
-    max_filters = get_max_filters()
+    max_filters = await get_max_filters()
     if len(filters) > max_filters:
         raise InvalidQuery(f"too many filters in request, maximum of {max_filters} permitted")
 
