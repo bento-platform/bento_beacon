@@ -146,7 +146,7 @@ BEACON_REQUEST_BODY = {
 
 # aioresponses includes query params when matching urls
 KATSU_QUERY_PARAMS = "sex=FEMALE"
-GOHAN_QUERY_PARAMS = "assemblyId=GRCh38&chromosome=3&getSampleIdsOnly=True&lowerBound=189631389&upperBound=189897277"
+GOHAN_QUERY_PARAMS = "assemblyId=GRCh38&chromosome=3&getSampleIdsOnly=True&lowerBound=189631389&upperBound=189897276"
 
 
 def test_individuals_query_all_permissions(app_config, client, aioresponse):
