@@ -53,10 +53,6 @@ def zero_to_one(start, end=None):
     return int(start) + 1 if end is None else (int(start) + 1, end)
 
 
-def one_to_zero(start, end):
-    return (int(start) - 1, end)
-
-
 # -------------------------------------------------------
 #       gohan calls
 # -------------------------------------------------------
@@ -125,8 +121,7 @@ async def sequence_query_to_gohan(beacon_args, granularity, ids_only):
 async def range_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("RANGE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
-    gohan_args["lowerBound"] = zero_to_one(beacon_args["start"][0])
-    gohan_args["upperBound"] = zero_to_one(beacon_args["end"][0])
+    gohan_args["lowerBound"], gohan_args["upperBound"] = zero_to_one(beacon_args["start"][0], beacon_args["end"][0])
     gohan_args["getSampleIdsOnly"] = ids_only
     return await generic_gohan_query(gohan_args, granularity, ids_only)
 
