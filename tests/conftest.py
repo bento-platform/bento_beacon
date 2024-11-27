@@ -41,6 +41,7 @@ def beacon_test_app():
             "BENTO_OPENID_CONFIG_URL": OPENID_CONFIG_URL,
             "BEACON_CLIENT_ID": "aggregation",
             "BEACON_CLIENT_SECRET": "FAKE123",
+            "BENTO_BEACON_NETWORK_ENABLED": "true",
         }
     )
 

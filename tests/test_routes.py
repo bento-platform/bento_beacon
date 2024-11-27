@@ -207,3 +207,11 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     assert response.status_code == 200
     assert "responseSummary" in data
     assert data["responseSummary"]["numTotalResults"] == 0
+
+
+def test_network_endpoint(app_config, client, aioresponse):
+    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
+    aioresponse.post(authz_evaluate_url, payload={"result": [[False]]})
+    response = client.get("/network")
+    assert response.status_code == 200
+    assert "beacons" in response.get_json()
