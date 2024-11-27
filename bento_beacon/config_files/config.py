@@ -1,6 +1,6 @@
 import json
+import logging
 import os
-import urllib3
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
@@ -11,13 +11,15 @@ def str_to_bool(value: str) -> bool:
     return value.strip().lower() in ("true", "1", "t", "yes")
 
 
-BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
-BENTO_VALIDATE_SSL = str_to_bool(os.environ.get("BENTO_VALIDATE_SSL", str(not BENTO_DEBUG)))
+def reverse_domain_id(domain):
+    return ".".join(reversed(domain.split("."))) + ".beacon"
 
-if not BENTO_VALIDATE_SSL:
-    # Don't let urllib3 spam us with SSL validation warnings if we're operating with SSL validation off, most likely in
-    # a development/test context where we're using self-signed certificates.
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
+
+# silence logspam
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("aiocache").setLevel(logging.WARNING)
 
 
 class Config:
@@ -40,15 +42,10 @@ class Config:
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
     BENTO_DEBUG = BENTO_DEBUG
-    BENTO_VALIDATE_SSL = BENTO_VALIDATE_SSL
-
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
     BENTO_PUBLIC_URL = os.environ.get("BENTOV2_PUBLIC_URL")
-
-    # reverse domain id
-    BEACON_ID = ".".join(reversed(BENTO_DOMAIN.split("."))) + ".beacon"
-
+    BEACON_ID = reverse_domain_id(BENTO_DOMAIN)
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
     BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED", ""))
     BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
@@ -153,9 +150,6 @@ class Config:
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"
-    KATSU_PHENOTYPIC_FEATURE_TERMS_ENDPOINT = "/api/phenotypic_feature_type_autocomplete"
-    KATSU_DISEASES_TERMS_ENDPOINT = "/api/disease_term_autocomplete"
-    KATSU_SAMPLED_TISSUES_TERMS_ENDPOINT = "/api/biosample_sampled_tissue_autocomplete"
     KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/public_search_fields"
     KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
     KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"

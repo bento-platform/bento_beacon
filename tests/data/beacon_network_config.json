@@ -1,1 +1,8 @@
-{}
+{
+    "beacons": [
+        "https://test.local/api/beacon",
+        "https://fake2.bento.local/api/beacon"
+    ],
+    "network_default_timeout_seconds": 30,
+    "network_variants_query_timeout_seconds": 120
+}

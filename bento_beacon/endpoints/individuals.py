@@ -28,7 +28,7 @@ individuals = Blueprint("individuals", __name__)
 
 
 @individuals.route("/individuals", methods=["GET", "POST"])
-def get_individuals():
+async def get_individuals():
     variants_query = g.beacon_query_parameters["variants_query"]
     phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
     experiment_filters = g.beacon_query_parameters["experiment_filters"]
@@ -42,10 +42,10 @@ def get_individuals():
     # TODO: return default granularity rather than count (default could be bool rather than count)
     if no_query:
         add_info_to_response("no query found, returning total count")
-        total_count = katsu_total_individuals_count()
+        total_count = await katsu_total_individuals_count()
         if summary_stats_requested():
-            add_overview_stats_to_response()
-        return build_query_response(numTotalResults=total_count)
+            await add_overview_stats_to_response()
+        return await build_query_response(numTotalResults=total_count)
 
     # ----------------------------------------------------------
     #  collect biosample ids from variant and experiment search
@@ -53,9 +53,9 @@ def get_individuals():
     sample_ids = []
 
     if search_sample_ids:
-        sample_ids = biosample_id_search(variants_query=variants_query, experiment_filters=experiment_filters)
+        sample_ids = await biosample_id_search(variants_query=variants_query, experiment_filters=experiment_filters)
         if not sample_ids:
-            return zero_count_response()
+            return await zero_count_response()
 
     # -------------------------------
     #  get individuals
@@ -65,38 +65,38 @@ def get_individuals():
 
     # get individuals from katsu config search
     if config_filters:
-        config_ids = search_from_config(config_filters)
+        config_ids = await search_from_config(config_filters)
         if not config_ids:
-            return zero_count_response()
+            return await zero_count_response()
         individual_results["config_ids"] = config_ids
 
     if not config_search_only:
         # retrieve all matching individuals from sample id search, filtered by any phenopacket filters
         # either of phenopacket_filters or sample_ids can be empty
-        phenopacket_ids = katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+        phenopacket_ids = await katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
         if not phenopacket_ids:
-            return zero_count_response()
+            return await zero_count_response()
         individual_results["phenopacket_ids"] = phenopacket_ids
 
     # baroque syntax but covers all cases
     individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
 
     if summary_stats_requested():
-        add_stats_to_response(individual_ids)
+        await add_stats_to_response(individual_ids)
 
-    return build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
+    return await build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
-def individuals_full_results(ids):
+async def individuals_full_results(ids):
 
     # temp
     # if len(ids) > 100:
     #     return {"message": "too many ids for full response"}
 
-    handover_permission = check_permission(P_DOWNLOAD_DATA)
-    handover = handover_for_ids(ids) if handover_permission else {}
-    phenopackets_by_result_set = phenopackets_for_ids(ids).get("results", {})
+    handover_permission = await check_permission(P_DOWNLOAD_DATA)
+    handover = (await handover_for_ids(ids)) if handover_permission else {}
+    phenopackets_by_result_set = (await phenopackets_for_ids(ids)).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
     result_sets = {}
     numTotalResults = 0
@@ -123,8 +123,8 @@ def individuals_full_results(ids):
 # forbidden / unauthorized if no permissions
 @individuals.route("/individuals/<id>", methods=["GET", "POST"])
 @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
-def individual_by_id(id):
-    result_sets, numTotalResults = individuals_full_results([id])
+async def individual_by_id(id):
+    result_sets, numTotalResults = await individuals_full_results([id])
 
     # return 404 if not found
     # only authorized users will get 404 here, so this can't be used to probe ids

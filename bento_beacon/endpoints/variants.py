@@ -10,7 +10,7 @@ variants = Blueprint("variants", __name__)
 # returns count or boolean only
 @variants.route("/g_variants", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint  # TODO: for now. eventually, return more depending on permissions
-def get_variants():
+async def get_variants():
     variants_query = g.beacon_query_parameters["variants_query"]
     phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
     experiment_filters = g.beacon_query_parameters["experiment_filters"]
@@ -20,41 +20,41 @@ def get_variants():
     # if no query, return total count of variants
     if not (variants_query or has_filters):
         add_info_to_response("no query found, returning total count")
-        total_count = gohan_total_variants_count()
-        return build_query_response(numTotalResults=total_count)
+        total_count = await gohan_total_variants_count()
+        return await build_query_response(numTotalResults=total_count)
 
     #  collect biosample ids from all filters
     sample_ids = []
 
     if has_filters:
-        sample_ids = biosample_id_search(
+        sample_ids = await biosample_id_search(
             phenopacket_filters=phenopacket_filters,
             experiment_filters=experiment_filters,
             config_filters=config_filters,
         )
         if not sample_ids:
-            return zero_count_response()
+            return await zero_count_response()
 
     # finally, find relevant variants, depending on whether a variants query was made
     if variants_query:
         # gohan search returns uppercase only
         sample_ids = [id.upper() for id in sample_ids]
 
-        variant_results = query_gohan(variants_query, "record", ids_only=False)
+        variant_results = await query_gohan(variants_query, "record", ids_only=False)
         if has_filters:
-            variant_results = list(filter(lambda v: v.get("sample_id") in sample_ids, variant_results))
-        gohan_count = len(variant_results)
+            variant_results_list = list(filter(lambda v: v.get("sample_id") in sample_ids, variant_results))
+        gohan_count = len(variant_results_list)
     else:
         # gohan overview returns lowercase only
         sample_ids = [id.lower() for id in sample_ids]
 
-        variant_totals = gohan_totals_by_sample_id()
+        variant_totals = await gohan_totals_by_sample_id()
         if has_filters:
             gohan_count = sum(variant_totals.get(id) for id in sample_ids if id in variant_totals)
         else:
             gohan_count = sum(variant_totals.values())
 
-    return build_query_response(numTotalResults=gohan_count)
+    return await build_query_response(numTotalResults=gohan_count)
 
 
 # -------------------------------------------------------

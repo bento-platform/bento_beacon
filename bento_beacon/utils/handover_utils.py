@@ -1,20 +1,23 @@
+import aiohttp
 from flask import current_app
-import requests
 from urllib.parse import urlsplit, urlunsplit
 from .katsu_utils import katsu_network_call
 from .exceptions import APIException
+from .http import tcp_connector
 from ..authz.headers import auth_header_from_request
 
 
 DRS_TIMEOUT_SECONDS = 10
 
 
-def drs_url_components():
-    return urlsplit(current_app.config["DRS_URL"])
+def drs_url_components(c):
+    return urlsplit(c["DRS_URL"])
 
 
-def drs_network_call(path, query):
-    base_url_components = drs_url_components()
+async def drs_network_call(path, query):
+    c = current_app.config
+
+    base_url_components = drs_url_components(c)
     url = urlunsplit(
         (
             base_url_components.scheme,
@@ -26,30 +29,26 @@ def drs_network_call(path, query):
     )
 
     try:
-        r = requests.get(
-            url,
-            headers=auth_header_from_request(),
-            timeout=DRS_TIMEOUT_SECONDS,
-            verify=not current_app.config.get("BENTO_DEBUG"),
-        )
-        drs_response = r.json()
+        async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
+            r = await s.get(url, headers=auth_header_from_request(), timeout=DRS_TIMEOUT_SECONDS)
+        drs_response = await r.json()
 
     # TODO
     # on handover errors, keep returning rest of results instead of throwing api exception
     # add optional note in g and add to beacon response
     # return {}
-    except requests.exceptions.RequestException as e:
+    except aiohttp.ClientError as e:
         current_app.logger.error(f"drs error: {e}")
         raise APIException(message="error generating handover links")
 
     return drs_response
 
 
-def drs_object_from_filename(filename):
-    return drs_network_call("/search", f"name={filename}")
+async def drs_object_from_filename(filename):
+    return await drs_network_call("/search", f"name={filename}")
 
 
-def filenames_by_results_set(ids):
+async def filenames_by_results_set(ids):
     if not ids:
         return {}
 
@@ -61,7 +60,7 @@ def filenames_by_results_set(ids):
         "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"],
     }
 
-    response = katsu_network_call(payload)
+    response = await katsu_network_call(payload)
     results = response.get("results")
     files_by_results_set = {}
 
@@ -76,8 +75,8 @@ def filenames_by_results_set(ids):
     return files_by_results_set
 
 
-def drs_link_from_vcf_filename(filename):
-    obj = drs_object_from_filename(filename)
+async def drs_link_from_vcf_filename(filename):
+    obj = await drs_object_from_filename(filename)
     if not obj:
         return None
 
@@ -99,18 +98,18 @@ def vcf_handover_entry(url, note=None):
     return entry
 
 
-def handover_for_ids(ids):
+async def handover_for_ids(ids):
     # ideally we would preserve the mapping between ids and links,
     # but this requires changes in katsu to do well
 
     handovers = {}
 
-    files_for_results = filenames_by_results_set(ids)
+    files_for_results = await filenames_by_results_set(ids)
 
     for results_set, files in files_for_results.items():
         handovers_this_set = []
         for f in files:
-            link = drs_link_from_vcf_filename(f)
+            link = await drs_link_from_vcf_filename(f)
             if link:
                 handovers_this_set.append(vcf_handover_entry(link))
         handovers[results_set] = handovers_this_set

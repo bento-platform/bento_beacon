@@ -105,7 +105,7 @@ def package_get_params(params):
     return {"meta": meta, "query": query}
 
 
-def save_request_data():
+async def save_request_data():
     defaults = request_defaults()
 
     if request.method == "POST":
@@ -129,7 +129,7 @@ def save_request_data():
         request_data["requestParameters"] = query_request_parameters
 
     if query_filters:
-        reject_if_too_many_filters(query_filters)
+        await reject_if_too_many_filters(query_filters)
         request_data["filters"] = query_filters
 
     if request_bento:
@@ -172,6 +172,6 @@ def summary_stats_requested():
     return g.request_data.get("bento", {}).get("showSummaryStatistics")
 
 
-def verify_permissions():
+async def verify_permissions():
     # can do much more here in the future
-    g.permission_query_data = check_permission(P_QUERY_DATA)
+    g.permission_query_data = await check_permission(P_QUERY_DATA)

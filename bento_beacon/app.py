@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from flask import Flask, current_app, request
@@ -10,7 +11,6 @@ from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .network.network import network
-from .network.utils import init_network_service_registry
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware
@@ -65,11 +65,6 @@ with app.app_context():
     # load blueprint for network
     if current_app.config["USE_BEACON_NETWORK"]:
         app.register_blueprint(network)
-        try:
-            init_network_service_registry()
-        except APIException:
-            # trouble setting up network, swallow for now
-            current_app.logger.error("API Error when initializing beacon network")
 
     # get censorship settings from katsu
     max_filters = None
@@ -79,7 +74,7 @@ with app.app_context():
     for tries in range(max_retries + 1):
         current_app.logger.info(f"calling katsu for censorship parameters (try={tries})")
         try:
-            max_filters, count_threshold = katsu_censorship_settings()
+            max_filters, count_threshold = asyncio.run(katsu_censorship_settings())
             # If we got values successfully, without an API exception being raised, exit early - even if they're None
             break
         except APIException as e:
@@ -102,11 +97,11 @@ with app.app_context():
 
 
 @app.before_request
-def before_request():
+async def before_request():
     if request.blueprint != "info":
         validate_request()
-        verify_permissions()
-        save_request_data()
+        await verify_permissions()
+        await save_request_data()
         reject_query_if_not_permitted()
         init_response_data()
 

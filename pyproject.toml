@@ -9,10 +9,13 @@ packages = [{include = "bento_beacon"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-bento-lib = {extras = ["flask"], version = "^10.1.1"}
-flask = "^3.0.3"
+bento-lib = "^12.2.3"
+flask = {extras = ["async"], version = "^3.0.3"}
 requests = "^2.32.3"
-jsonschema = ">=4.17.3,<4.18.0"
+asyncio = "^3.4.3"
+aiohttp = "^3.10.10"
+aiocache = "^0.12.3"
+aioresponses = "^0.7.7"
 
 [tool.poetry.group.dev.dependencies]
 debugpy = "^1.8.6"

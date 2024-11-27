@@ -1,8 +1,11 @@
-import requests
+import aiohttp
 from flask import current_app
 from functools import reduce
 from json import JSONDecodeError
 from urllib.parse import urlsplit, urlunsplit
+
+from .exceptions import APIException, InvalidQuery
+from .http import tcp_connector
 from typing import Literal
 from .exceptions import APIException, InvalidQuery
 from ..authz.access import create_access_header_or_fall_back
@@ -11,9 +14,9 @@ from ..authz.headers import auth_header_from_request
 RequiresAuthOptions = Literal["none", "forwarded", "full"]
 
 
-def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
+async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
     payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
-    response = katsu_network_call(payload)
+    response = await katsu_network_call(payload)
     results = response.get("results")
     match_list = []
 
@@ -34,7 +37,7 @@ def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False):
     return list(set(match_list))
 
 
-def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
+async def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
 
     # empty query
     if not beacon_filters and not sample_ids:
@@ -44,10 +47,10 @@ def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_ids):
     filters_copy = beacon_filters[:]
     if sample_ids:
         filters_copy.append({"id": "biosamples.[item].id", "operator": "#in", "value": sample_ids})
-    return katsu_filters_query(filters_copy, datatype)
+    return await katsu_filters_query(filters_copy, datatype)
 
 
-def katsu_network_call(payload, endpoint=None):
+async def katsu_network_call(payload, endpoint=None):
     c = current_app.config
 
     # awkward default since current_app not available in function params
@@ -56,26 +59,22 @@ def katsu_network_call(payload, endpoint=None):
     current_app.logger.debug(f"calling katsu url {url}")
 
     try:
-        r = requests.post(
-            url,
-            headers=create_access_header_or_fall_back(),
-            json=payload,
-            timeout=c["KATSU_TIMEOUT"],
-            verify=c["BENTO_VALIDATE_SSL"],
-        )
-
-        katsu_response = r.json()
-        if not r.ok:
-            current_app.logger.warning(
-                f"katsu error, status: {r.status_code}, message: {katsu_response.get('message')}"
+        async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
+            r = await s.post(
+                url, headers=await create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload
             )
+
+        if not r.ok:
+            current_app.logger.warning(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
             raise APIException(message=f"error searching katsu metadata service: {katsu_response.get('message')}")
+
+        katsu_response = await r.json()
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
         current_app.logger.error(f"katsu error: JSON decode error with POST {url}")
         raise APIException(message="invalid non-JSON response from katsu")
-    except requests.exceptions.RequestException as e:
+    except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
         raise APIException(message="error calling katsu metadata service")
 
@@ -83,7 +82,7 @@ def katsu_network_call(payload, endpoint=None):
 
 
 # used for GET calls at particular katsu endpoints, eg /biosamples
-def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOptions = "none"):
+async def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOptions = "none"):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
     timeout = c["KATSU_TIMEOUT"]
@@ -101,20 +100,21 @@ def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOptions = 
         )
     )
 
+    headers = {}
+    if requires_auth == "forwarded":
+        headers = auth_header_from_request()
+    elif requires_auth == "full":
+        headers = await create_access_header_or_fall_back()
     try:
-        headers = {}
-        if requires_auth == "forwarded":
-            headers = auth_header_from_request()
-        elif requires_auth == "full":
-            headers = create_access_header_or_fall_back()
-        r = requests.get(query_url, headers=headers, timeout=timeout, verify=c["BENTO_VALIDATE_SSL"])
-        katsu_response = r.json()
+        async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
+            r = await s.get(query_url, headers=headers, timeout=timeout)
+        katsu_response = await r.json()
 
     except JSONDecodeError:
         # katsu returns html for unhandled exceptions, not json
         current_app.logger.error(f"katsu error: JSON decode error with GET {query_url}")
         raise APIException(message="invalid non-JSON response from katsu")
-    except requests.exceptions.RequestException as e:
+    except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
         raise APIException(message="error calling katsu metadata service")
 
@@ -126,17 +126,15 @@ def katsu_get(endpoint, id=None, query="", requires_auth: RequiresAuthOptions = 
 # -------------------------------------------------------
 
 
-def search_from_config(config_filters):
+async def search_from_config(config_filters):
     # query error checking handled in katsu
     query_string = "&".join(f'{cf["id"]}{cf["operator"]}{cf["value"]}' for cf in config_filters)
-    response = katsu_get(current_app.config["KATSU_BEACON_SEARCH"], query=query_string, requires_auth="full")
+    response = await katsu_get(current_app.config["KATSU_BEACON_SEARCH"], query=query_string, requires_auth="full")
     return response.get("matches", [])
 
 
-def get_katsu_config_search_fields(requires_auth: RequiresAuthOptions):
-    # standard forwarded auth for normal beacon requests
-    # "none" auth for beacon network init, which does not have a request context
-    fields = katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth=requires_auth)
+async def get_katsu_config_search_fields(requires_auth: RequiresAuthOptions):
+    fields = await katsu_get(current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], requires_auth="forwarded")
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
 
@@ -208,8 +206,8 @@ def katsu_json_payload(filters, datatype, get_biosample_ids):
 # -------------------------------------------------------
 
 
-def katsu_autocomplete_terms(endpoint):
-    return katsu_get(endpoint).get("results", [])
+async def katsu_autocomplete_terms(endpoint):
+    return await katsu_get(endpoint).get("results", [])
 
 
 def katsu_autocomplete_to_beacon_filter(a):
@@ -221,9 +219,9 @@ def katsu_resources_to_beacon_resource(r):
     return {key: value for (key, value) in r.items() if key != "created" and key != "updated"}
 
 
-def katsu_config_filtering_terms():
+async def katsu_config_filtering_terms():
     filtering_terms = []
-    sections = get_katsu_config_search_fields(requires_auth="forwarded").get("sections", [])
+    sections = (await get_katsu_config_search_fields(requires_auth="forwarded")).get("sections", [])
     for section in sections:
         for field in section["fields"]:
             filtering_term = {
@@ -255,10 +253,10 @@ def katsu_config_filtering_terms():
 
 
 #  memoize?
-def get_filtering_terms():
+async def get_filtering_terms():
     # add ontology filters here when we start supporting ontologies
     # could also add filters for phenopacket and experiment queries
-    return katsu_config_filtering_terms()
+    return await katsu_config_filtering_terms()
 
 
 # -------------------------------------------------------
@@ -266,20 +264,20 @@ def get_filtering_terms():
 # -------------------------------------------------------
 
 
-def katsu_total_individuals_count():
+async def katsu_total_individuals_count():
     c = current_app.config
     endpoint = c["KATSU_INDIVIDUALS_ENDPOINT"]
-    count_response = katsu_get(endpoint, query="page_size=1", requires_auth="full")
+    count_response = await katsu_get(endpoint, query="page_size=1", requires_auth="full")
     count = count_response.get("count")
     return count
 
 
-def katsu_datasets(id=None):
+async def katsu_datasets(id=None):
     c = current_app.config
     endpoint = c["KATSU_DATASETS_ENDPOINT"]
     try:
         # right now, the datasets endpoint doesn't need any authorization for listing
-        response = katsu_get(endpoint, id, query="format=phenopackets", requires_auth="none")
+        response = await katsu_get(endpoint, id, query="format=phenopackets", requires_auth="none")
     except APIException:
         return {}
 
@@ -292,35 +290,35 @@ def katsu_datasets(id=None):
     return response  # single dataset
 
 
-def phenopackets_for_ids(ids):
+async def phenopackets_for_ids(ids):
     # retrieve from katsu search
     payload = {"data_type": "phenopacket", "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]}
     endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
-    return katsu_network_call(payload, endpoint)
+    return await katsu_network_call(payload, endpoint)
 
 
-def biosample_ids_for_individuals(individual_ids):
+async def biosample_ids_for_individuals(individual_ids):
     if not individual_ids:
         return []
     filters = [{"id": "subject.id", "operator": "#in", "value": individual_ids}]
-    return katsu_filters_query(filters, "phenopacket", get_biosample_ids=True)
+    return await katsu_filters_query(filters, "phenopacket", get_biosample_ids=True)
 
 
-def search_summary_statistics(ids):
+async def search_summary_statistics(ids):
     endpoint = current_app.config["KATSU_SEARCH_OVERVIEW"]
     payload = {"id": ids}
-    return katsu_network_call(payload, endpoint)
+    return await katsu_network_call(payload, endpoint)
 
 
-def overview_statistics():
-    return katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"], requires_auth="full")
+async def overview_statistics():
+    return await katsu_get(current_app.config["KATSU_PRIVATE_OVERVIEW"], requires_auth="full")
 
 
-def katsu_censorship_settings() -> tuple[int | None, int | None]:
+async def katsu_censorship_settings() -> tuple[int | None, int | None]:
     # TODO: should be project-dataset scoped
     # TODO: should be called on-the-fly and pass request authorization headers onward, since this can change based on
     #  scoping and the token's particular permissions.
-    rules = katsu_get(current_app.config["KATSU_PUBLIC_RULES"], requires_auth="none")
+    rules = await katsu_get(current_app.config["KATSU_PUBLIC_RULES"], requires_auth="none")
     max_filters = rules.get("max_query_parameters")
     count_threshold = rules.get("count_threshold")
     # return even if None

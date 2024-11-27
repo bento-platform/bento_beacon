@@ -1,7 +1,8 @@
-import requests
+import aiohttp
 from flask import current_app
-from .exceptions import APIException, InvalidQuery, NotImplemented
+from .http import tcp_connector, aiohttp_params
 from ..authz.access import create_access_header_or_fall_back
+from .exceptions import APIException, InvalidQuery, NotImplemented
 from .reference import gene_position_lookup
 
 # -------------------------------------------------------
@@ -57,7 +58,7 @@ def zero_to_one(start, end=None):
 # -------------------------------------------------------
 
 
-def query_gohan(beacon_args, granularity, ids_only=False):
+async def query_gohan(beacon_args, granularity, ids_only=False):
     # control flow for beacon variant query types
     # http://docs.genomebeacons.org/variant-queries/
     start = beacon_args.get("start")
@@ -75,26 +76,26 @@ def query_gohan(beacon_args, granularity, ids_only=False):
     if geneId_query:
         if start is not None or end is not None:
             raise InvalidQuery("invalid mix of geneId and start/end parameters")
-        return geneId_query_to_gohan(beacon_args, granularity, ids_only)
+        return await geneId_query_to_gohan(beacon_args, granularity, ids_only)
 
     # required everywhere except geneId query
     if beacon_args.get("referenceName") is None:
         raise InvalidQuery(message="referenceName parameter required")
 
     if sequence_query:
-        return sequence_query_to_gohan(beacon_args, granularity, ids_only)
+        return await sequence_query_to_gohan(beacon_args, granularity, ids_only)
 
     if range_query:
-        return range_query_to_gohan(beacon_args, granularity, ids_only)
+        return await range_query_to_gohan(beacon_args, granularity, ids_only)
 
     if bracket_query:
-        return bracket_query_to_gohan(beacon_args, granularity, ids_only)
+        return await bracket_query_to_gohan(beacon_args, granularity, ids_only)
 
     # no other cases
     raise InvalidQuery()
 
 
-def sequence_query_to_gohan(beacon_args, granularity, ids_only):
+async def sequence_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("SEQUENCE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
@@ -110,41 +111,41 @@ def sequence_query_to_gohan(beacon_args, granularity, ids_only):
     gohan_args["upperBound"] = gohan_args["lowerBound"]
     gohan_args["getSampleIdsOnly"] = ids_only
 
-    return generic_gohan_query(gohan_args, granularity, ids_only)
+    return await generic_gohan_query(gohan_args, granularity, ids_only)
 
 
 # optional params
 # variantType OR alternateBases OR aminoacidChange
 # variantMinLength
 # variantMaxLength
-def range_query_to_gohan(beacon_args, granularity, ids_only):
+async def range_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("RANGE QUERY")
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
     gohan_args["lowerBound"], gohan_args["upperBound"] = zero_to_one(beacon_args["start"][0], beacon_args["end"][0])
     gohan_args["getSampleIdsOnly"] = ids_only
-    return generic_gohan_query(gohan_args, granularity, ids_only)
+    return await generic_gohan_query(gohan_args, granularity, ids_only)
 
 
-def bracket_query_to_gohan(beacon_args, granularity, ids_only):
+async def bracket_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("BRACKET QUERY")
     # TODO
     # either implement here by filtering full results, or implement directly in gohan
     raise NotImplemented(message="variant bracket query not implemented")
 
 
-def geneId_query_to_gohan(beacon_args, granularity, ids_only):
+async def geneId_query_to_gohan(beacon_args, granularity, ids_only):
     current_app.logger.debug("GENE ID QUERY")
     gene_id = beacon_args.get("geneId")
     assembly_from_query = beacon_args.get("assemblyId")
 
     # query all assemblies present in gohan if not specified
-    assemblies = [assembly_from_query] if assembly_from_query is not None else gohan_assemblies()
+    assemblies = [assembly_from_query] if assembly_from_query is not None else await gohan_assemblies()
     gohan_args = beacon_to_gohan_generic_mapping(beacon_args)
 
     gohan_results = []
     # TODO: async
     for assembly in assemblies:
-        gene_info = gene_position_lookup(gene_id, assembly)
+        gene_info = await gene_position_lookup(gene_id, assembly)
         if not gene_info:
             continue
 
@@ -157,32 +158,32 @@ def geneId_query_to_gohan(beacon_args, granularity, ids_only):
             "getSampleIdsOnly": ids_only,
         }
 
-        gohan_results.extend(generic_gohan_query(gohan_args_this_query, granularity, ids_only))
+        gohan_results.extend(await generic_gohan_query(gohan_args_this_query, granularity, ids_only))
 
     return gohan_results
 
 
-def generic_gohan_query(gohan_args, granularity, ids_only):
+async def generic_gohan_query(gohan_args, granularity, ids_only):
     if ids_only:
-        return gohan_ids_only_query(gohan_args, granularity)
+        return await gohan_ids_only_query(gohan_args, granularity)
 
     if granularity == "record":
-        return gohan_full_record_query(gohan_args)
+        return await gohan_full_record_query(gohan_args)
 
     # count or boolean query follows
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_COUNT_ENDPOINT"]
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
-    results = gohan_results(query_url, gohan_args)
+    results = await gohan_results(query_url, gohan_args)
     count = results.get("count") if results else None
     return {"count": count}
 
 
-def gohan_ids_only_query(gohan_args, granularity):
+async def gohan_ids_only_query(gohan_args, granularity):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
-    results = gohan_results(query_url, gohan_args)
+    results = await gohan_results(query_url, gohan_args)
     return unpackage_sample_ids(results)
 
 
@@ -191,33 +192,32 @@ def unpackage_sample_ids(results):
     return list(map(lambda r: r.get("sample_id"), calls))
 
 
-def gohan_results(url, gohan_args):
-    response = gohan_network_call(url, gohan_args)
+async def gohan_results(url, gohan_args):
+    response = await gohan_network_call(url, gohan_args)
     results_array = response.get("results")
     results = results_array[0] if results_array else None
     return results
 
 
-def gohan_network_call(url, gohan_args):
+async def gohan_network_call(url, gohan_args):
     c = current_app.config
-
     try:
-        r = requests.get(
-            url,
-            headers=create_access_header_or_fall_back(),
-            params=gohan_args,
-            timeout=c["GOHAN_TIMEOUT"],
-            verify=c["BENTO_VALIDATE_SSL"],
-        )
+        async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
+            r = await s.get(
+                url,
+                headers=await create_access_header_or_fall_back(),
+                timeout=c["GOHAN_TIMEOUT"],
+                params=aiohttp_params(gohan_args),
+            )
 
         # handle gohan errors or any bad responses
         if not r.ok:
-            current_app.logger.warning(f"gohan error, status: {r.status_code}, message: {r.text}")
+            current_app.logger.warning(f"gohan error, status: {r.status}, message: {r.text}")
             raise APIException(message="error searching gohan variants service")
 
-        gohan_response = r.json()
+        gohan_response = await r.json()
 
-    except requests.exceptions.RequestException as e:
+    except aiohttp.ClientError as e:
         current_app.logger.error(f"gohan error: {e}")
         raise APIException(message="error calling gohan variants service")
 
@@ -225,39 +225,39 @@ def gohan_network_call(url, gohan_args):
 
 
 # currently used internally only
-def gohan_full_record_query(gohan_args):
+async def gohan_full_record_query(gohan_args):
     config = current_app.config
     query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
-    response = gohan_results(query_url, gohan_args)
+    response = await gohan_results(query_url, gohan_args)
     return response.get("calls")
 
 
-def gohan_overview():
+async def gohan_overview():
     config = current_app.config
     url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
-    return gohan_network_call(url, {})
+    return await gohan_network_call(url, {})
 
 
-def gohan_totals_by_sample_id():
-    return gohan_overview().get("sampleIDs", {})
+async def gohan_totals_by_sample_id():
+    return (await gohan_overview()).get("sampleIDs", {})
 
 
-def gohan_total_variants_count():
-    totals_by_id = gohan_totals_by_sample_id()
+async def gohan_total_variants_count():
+    totals_by_id = await gohan_totals_by_sample_id()
     return sum(totals_by_id.values())
 
 
-def gohan_counts_by_assembly_id():
-    return gohan_overview().get("assemblyIDs", {})
+async def gohan_counts_by_assembly_id():
+    return (await gohan_overview()).get("assemblyIDs", {})
 
 
-def gohan_assemblies():
-    return list(gohan_overview().get("assemblyIDs", {}).keys())
+async def gohan_assemblies():
+    return list((await gohan_overview()).get("assemblyIDs", {}).keys())
 
 
 # only runs if "useGohan" true
-def gohan_counts_for_overview():
-    return gohan_counts_by_assembly_id()
+async def gohan_counts_for_overview():
+    return await gohan_counts_by_assembly_id()
 
 
 # --------------------------------------------
