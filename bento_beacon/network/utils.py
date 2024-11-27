@@ -160,7 +160,7 @@ async def init_network_service_registry():
     if not urls:
         current_app.logger.error("can't find urls for beacon network, did you forget a config file?")
         raise APIException("can't find urls for beacon network")
-    
+
     current_app.logger.info(f"registering {len(urls)} beacons")
 
     host_beacon_url = current_app.config["BEACON_BASE_URL"]
@@ -180,13 +180,12 @@ async def init_network_service_registry():
 
     # filter out any failed calls
     registered_beacons = [b for b in results if not isinstance(b, Exception)]
-    
 
     current_app.logger.info(f"registered {len(registered_beacons)} beacon(s) in network")
     num_failed = len(results) - len(registered_beacons)
     if num_failed:
         current_app.logger.info(f"{num_failed} beacon(s) failed to register")
-    
+
     # dict by beacon id easier to work with elsewhere
     beacon_dict = {b["id"]: b for b in registered_beacons}
 

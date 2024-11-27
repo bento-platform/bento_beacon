@@ -11,7 +11,6 @@ from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
 from .network.network import network
-from .network.utils import init_network_service_registry
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware

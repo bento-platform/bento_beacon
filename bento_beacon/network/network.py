@@ -1,5 +1,5 @@
 from flask import current_app, request, Blueprint
-from ..utils.exceptions import APIException, NotFoundException
+from ..utils.exceptions import NotFoundException
 from .utils import network_beacon_get, network_beacon_post, host_beacon_response, init_network_service_registry
 
 
@@ -8,16 +8,16 @@ network = Blueprint("network", __name__, url_prefix="/network")
 
 # TODOs:
 # filtering terms XXXXXXXXXXXXXXXXXXXXXXXXXXX
-# /service-info? there's already one at beacon root
-
-# standard beacon info endpoints at the network level: /map, /configuration, etc
 # handle GET args
+
+# and perhaps standard beacon info endpoints at the network level: /map, /configuration, /service-info etc
+# these are only useful if we plan to organize hierarchical networks 
+# (by e.g. adding our network as a single beacon to another network)
 
 
 @network.route("")
 @network.route("/beacons")
 async def network_beacons():
-    # beacons_dict = current_app.config.get("NETWORK_BEACONS")
 
     beacons_dict = await init_network_service_registry()
     current_app.config["NETWORK_BEACONS"] = beacons_dict

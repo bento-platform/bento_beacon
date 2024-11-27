@@ -12,7 +12,7 @@ from .data.service_responses import (
 
 from .conftest import (
     validate_response,
-    token_endpoint_config_response,
+    TOKEN_ENDPOINT_CONFIG_RESPONSE,
 )
 
 
@@ -159,7 +159,7 @@ def test_individuals_query_all_permissions(app_config, client, aioresponse):
     katsu_public_search_url = katsu_url + app_config["KATSU_BEACON_SEARCH"] + "?" + KATSU_QUERY_PARAMS
     gohan_search_url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_SEARCH_ENDPOINT"] + "?" + GOHAN_QUERY_PARAMS
 
-    aioresponse.get(openid_config_url, payload=token_endpoint_config_response)
+    aioresponse.get(openid_config_url, payload=TOKEN_ENDPOINT_CONFIG_RESPONSE)
     aioresponse.post(authz_evaluate_url, payload={"result": [[True]]})
     aioresponse.post(token_url, payload=token_response, repeat=True)
     aioresponse.post(katsu_private_search_url, payload=katsu_private_search_response)
@@ -192,7 +192,7 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     gohan_search_url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_SEARCH_ENDPOINT"] + "?" + GOHAN_QUERY_PARAMS
 
     aioresponse.post(authz_evaluate_url, payload={"result": [[False]]})
-    aioresponse.get(openid_config_url, payload=token_endpoint_config_response)
+    aioresponse.get(openid_config_url, payload=TOKEN_ENDPOINT_CONFIG_RESPONSE)
     aioresponse.post(token_url, payload=token_response, repeat=True)
     aioresponse.post(katsu_private_search_url, payload=katsu_private_search_response)
     aioresponse.post(katsu_search_overview_url, payload=katsu_private_search_overview_response)

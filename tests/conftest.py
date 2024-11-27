@@ -1,9 +1,9 @@
+import jsonschema
 import os
 import pathlib
 from urllib.parse import urlunsplit
 from aioresponses import aioresponses
 from flask import current_app
-import jsonschema
 import pytest
 
 
@@ -15,7 +15,7 @@ GOHAN_URL = "http://gohan.local"
 OPENID_CONFIG_URL = AUTHZ_URL + "/fake/openid-configuration"
 TOKEN_URL = AUTHZ_URL + "/fake/token"
 
-token_endpoint_config_response = {
+TOKEN_ENDPOINT_CONFIG_RESPONSE = {
     "token_endpoint": TOKEN_URL,
 }
 
