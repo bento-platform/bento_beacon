@@ -3,7 +3,6 @@ import asyncio
 from flask import current_app
 from urllib.parse import urlsplit, urlunsplit
 from json import JSONDecodeError
-from ..config_files.config import reverse_domain_id
 from ..utils.http import tcp_connector
 from ..utils.exceptions import APIException
 from ..utils.katsu_utils import overview_statistics, get_katsu_config_search_fields
@@ -18,7 +17,6 @@ from .bento_public_query import fields_intersection, fields_union
 # future versions will pull metadata query info directly from network beacons instead of network katsus
 # to deprecate in Bento 18
 PUBLIC_SEARCH_FIELDS_PATH = "/api/metadata/api/public_search_fields"
-
 
 DEFAULT_ENDPOINT = "individuals"
 OVERVIEW_STATS_QUERY = {
@@ -95,10 +93,12 @@ async def network_beacon_call(method, url, payload=None):
             else:
                 r = await s.post(url, timeout=timeout, json=payload)
 
+        if not r.ok:
+            raise APIException()
+
         beacon_response = await r.json()
 
-    except (aiohttp.ClientError, JSONDecodeError) as e:
-        current_app.logger.error(e)
+    except (APIException, aiohttp.ClientError, JSONDecodeError) as e:
         msg = f"beacon network error calling url {url}: {e}"
         raise APIException(message=msg)
 
@@ -123,7 +123,6 @@ def make_network_filtering_terms(beacons):
 
 
 async def call_network_beacon_for_init(url):
-    current_app.logger.info(f"call_network_beacon_for_init()")
     beacon_info = {"apiUrl": url}
 
     try:
@@ -148,26 +147,23 @@ async def call_network_beacon_for_init(url):
         # temp, call katsu for bento public "query_sections"
         # TODO change to beacon spec filters, don't call katsu
         beacon_info["querySections"] = (await get_public_search_fields(url)).get("sections", [])
-        beacon_info["isUp"] = True
 
-    except APIException:
-        beacon_info["isUp"] = False
-        # assign an id to failed beacons, so client can attempt a call later
-        if "id" not in beacon_info:
-            beacon_info["id"] = reverse_domain_id(url.removeprefix("https://").removesuffix("/api/beacon"))
+    except APIException as e:
+        current_app.logger.error(f"failed trying to initialize network beacon {url}")
+        raise e
 
     return beacon_info
 
 
 async def init_network_service_registry():
-    current_app.logger.info("registering beacons")
     urls = current_app.config["NETWORK_URLS"]
     if not urls:
         current_app.logger.error("can't find urls for beacon network, did you forget a config file?")
         raise APIException("can't find urls for beacon network")
+    
+    current_app.logger.info(f"registering {len(urls)} beacons")
 
     host_beacon_url = current_app.config["BEACON_BASE_URL"]
-    current_app.logger.debug(f"host url: {host_beacon_url}")
 
     calls = []
     for url in urls:
@@ -180,15 +176,19 @@ async def init_network_service_registry():
         # all other beacons
         calls.append(call_network_beacon_for_init(url))
 
-    current_app.logger.info(f"calling {len(urls)} beacons in network")
     results = await asyncio.gather(*calls, return_exceptions=True)
 
-    # # make a merged overview?
-    # # what about merged filtering_terms?
-    current_app.logger.info(f"registered {len(results)} beacon{'' if len(results) == 1 else 's'} in network")
+    # filter out any failed calls
+    registered_beacons = [b for b in results if not isinstance(b, Exception)]
+    
 
+    current_app.logger.info(f"registered {len(registered_beacons)} beacon(s) in network")
+    num_failed = len(results) - len(registered_beacons)
+    if num_failed:
+        current_app.logger.info(f"{num_failed} beacon(s) failed to register")
+    
     # dict by beacon id easier to work with elsewhere
-    beacon_dict = {b["id"]: b for b in results}
+    beacon_dict = {b["id"]: b for b in registered_beacons}
 
     make_network_filtering_terms(beacon_dict)
     current_app.config["NETWORK_BEACONS"] = beacon_dict
