@@ -11,7 +11,7 @@ network = Blueprint("network", __name__, url_prefix="/network")
 # handle GET args
 
 # and perhaps standard beacon info endpoints at the network level: /map, /configuration, /service-info etc
-# these are only useful if we plan to organize hierarchical networks 
+# these are only useful if we plan to organize hierarchical networks
 # (by e.g. adding our network as a single beacon to another network)
 
 
