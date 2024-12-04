@@ -8,78 +8,114 @@ from ..utils.katsu_utils import (
     katsu_datasets,
 )
 from ..utils.gohan_utils import gohan_counts_for_overview
+from ..utils.scope import scoped_route_decorator_generator
 
 
 info = Blueprint("info", __name__)
+route_with_optional_project_id = scoped_route_decorator_generator(info)
 
 
-async def overview():
-    if current_app.config["BEACON_CONFIG"].get("useGohan"):
-        variants_count = await gohan_counts_for_overview()
-    else:
-        variants_count = {}
+# All info endpoints accept an optional project_id prefix in the path, i.e. they will accept both
+# /service-info
+# AND
+# /project-abc-123/service-info
 
-    return {"counts": {"individuals": await katsu_total_individuals_count(), "variants": variants_count}}
+# but some endpoints will give the same response across all scopes, since some values do not change, such as:
+# - organization info
+# - which beacon endpoints are available, and schema details for each one
+# If we want these to vary across projects, we should have a more fine-grained beacon config,
+# probably by merging it into discovery config
 
 
-# service-info in ga4gh format
-@info.route("/service-info")
+@route_with_optional_project_id("/service-info")
 @authz_middleware.deco_public_endpoint
-async def service_info():
-    # plain response without beacon wrappers
+async def service_info(project_id=None):
+    """
+    service-info in ga4gh format, without standard beacon response wrapper
+    all scopes give the same response
+    """
     return current_app.config.get("BEACON_GA4GH_SERVICE_INFO", await build_ga4gh_service_info())
 
 
-# service info in beacon format
-@info.route("/")
+@route_with_optional_project_id("/")
 @authz_middleware.deco_public_endpoint
-async def beacon_info():
+async def beacon_info(project_id=None):
+    """
+    service info in beacon format
+    all scopes give the same response
+    """
     return beacon_info_response(current_app.config.get("SERVICE_DETAILS", await build_service_details()))
 
 
-# as above but with beacon overview details
-@info.route("/info")
+@route_with_optional_project_id("/info")
 @authz_middleware.deco_public_endpoint
-async def beacon_info_with_overview():
+async def beacon_info_with_overview(project_id=None):
+    """
+    as above but with beacon overview details
+    overview scoped, rest of response unscoped
+    """
+
     service_info = current_app.config.get("SERVICE_DETAILS", await build_service_details())
     return beacon_info_response({**service_info, "overview": await overview()})
 
 
-@info.route("/filtering_terms")
+# could be scoped by dataset only by adding query params for dataset (endpoint is GET only)
+# this endpoint normally doesn't take queries at all, the only params it recognizes are for pagination
+# could also annotating filtering terms with a dataset id in cases where it's limited to a particular dataset
+@route_with_optional_project_id("/filtering_terms")
 @authz_middleware.deco_public_endpoint
-async def filtering_terms():
+async def filtering_terms(project_id=None):
+    """
+    response scoped by project.
+    could be scoped by dataset by adding query params
+    but this endpoint isn't meant to accept queries, the only params it recognizes are for pagination
+    """
     filtering_terms = await get_filtering_terms()
     return beacon_info_response({"resources": [], "filteringTerms": filtering_terms})
 
 
-# distinct from "BEACON_CONFIG"
-@info.route("/configuration")
+@route_with_optional_project_id("/configuration")
 @authz_middleware.deco_public_endpoint
-async def beacon_configuration():
+async def beacon_configuration(project_id=None):
+    """
+    distinct from "BEACON_CONFIG"
+    all scopes give the same response
+    """
     return beacon_info_response(
         current_app.config.get("CONFIGURATION_ENDPOINT_RESPONSE", await build_configuration_endpoint_response())
     )
 
 
-@info.route("/entry_types")
+@route_with_optional_project_id("/entry_types")
 @authz_middleware.deco_public_endpoint
-def entry_types():
+def entry_types(project_id=None):
+    """
+    Gives details for each entry type (individuals, variants, biosamples, etc) in the beacon.
+    Response is the same for all scopes, since entry types are tied to flask blueprints,
+    which are variously on or off beacon-wide
+    """
     e_types = current_app.config.get("ENTRY_TYPES", build_entry_types())
     return beacon_info_response({"entryTypes": e_types})
 
 
-@info.route("/map")
+@route_with_optional_project_id("/map")
 @authz_middleware.deco_public_endpoint
-def beacon_map():
+def beacon_map(project_id=None):
+    """
+    Describes available endpoints in the beacon, which is the same for all scopes
+    """
     return beacon_info_response(current_app.config.get("BEACON_MAP", build_beacon_map()))
 
 
-# custom endpoint not in beacon spec
-@info.route("/overview")
+@route_with_optional_project_id("/overview")
 @authz_middleware.deco_public_endpoint
-async def beacon_overview():
+async def beacon_overview(project_id=None):
+    """
+    Custom endpoint not in beacon spec
+    TODO: scope
+    """
     service_info = current_app.config.get("SERVICE_DETAILS", await build_service_details())
-    return beacon_info_response({**service_info, "overview": await overview()})
+    return beacon_info_response({**service_info, "overview": await overview(project_id)})
 
 
 # -------------------------------------------------------
@@ -87,15 +123,15 @@ async def beacon_overview():
 # -------------------------------------------------------
 
 
-@info.route("/individual_schema", methods=["GET", "POST"])
+@route_with_optional_project_id("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
-async def get_individual_schema():
+async def get_individual_schema(project_id=None):
     return await katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
-@info.route("/experiment_schema", methods=["GET", "POST"])
+@route_with_optional_project_id("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
-async def get_experiment_schema():
+async def get_experiment_schema(project_id=None):
     return await katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
 
 
@@ -105,6 +141,7 @@ async def get_experiment_schema():
 # these return the appropriate response but also save as a side effect
 
 
+# TODO scope by project
 async def build_service_details():
     # build info response in beacon format
     info = current_app.config["BEACON_CONFIG"].get("serviceInfo")
@@ -213,3 +250,59 @@ def build_beacon_map():
 
     current_app.config["BEACON_MAP"] = beacon_map
     return beacon_map
+
+
+# TODO: scope
+async def overview(project_id=None, dataset_id=None):
+
+    # temp: show node-level overview only, since there is very little scoping in gohan
+    if project_id is not None or dataset_id is not None:
+        return {}
+
+    if current_app.config["BEACON_CONFIG"].get("useGohan"):
+        variants_count = await gohan_counts_for_overview()
+    else:
+        variants_count = {}
+
+    return {"counts": {"individuals": await katsu_total_individuals_count(), "variants": variants_count}}
+
+
+# current unscoped overview looks like this:
+
+# "overview": {
+#     "counts": {
+#         "individuals": 2711,
+#         "variants": {
+#             "GRCh38": 31203438
+#         }
+#     }
+# },
+
+# while implementing scoping, we can also change to something like this (Redmine #2170):
+
+# "overview": {
+#     "individuals": {
+#         "count": 2711,
+#         "sex": [... chart data here...]
+#      }
+#      "biosamples" : {
+#         "count": 1212,
+#         "sampled_tissue": [.. chart data...]
+#      }
+#      "experiments": {
+#         "count": 23714,
+#         "experiment_type" : [... chart data...]
+#      }
+#      "variants": {
+#             "GRCh38": 31203438
+#         }
+#     }
+# },
+
+# xxxxxxxxxxxxxxx for scoped overview, note that gohan does not have scope
+# so what do we do with variants counts? ignore them? repeat whole-node counts?
+# note that overview, although collected at network init, is never actually used anywhere...
+# all overviews in the UI are from empty queries
+
+# could disable overview for project / dataset views, since gohan details will be wrong
+# gohan gives counts per dataset but no assembly ids (and no project-level counts?)
