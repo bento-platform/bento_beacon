@@ -1,8 +1,6 @@
-import asyncio
 import logging
 import os
 from flask import Flask, current_app, request
-from time import sleep
 from urllib.parse import urlunsplit
 from .endpoints.info import info
 from .endpoints.individuals import individuals
@@ -18,8 +16,7 @@ from .config_files.config import Config
 from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request, verify_permissions
 from .utils.beacon_response import init_response_data
-from .utils.katsu_utils import katsu_censorship_settings
-from .utils.censorship import set_censorship_settings, reject_query_if_not_permitted
+from .utils.censorship import set_censorship
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -66,35 +63,6 @@ with app.app_context():
     if current_app.config["USE_BEACON_NETWORK"]:
         app.register_blueprint(network)
 
-    # get censorship settings from katsu
-    max_filters = None
-    count_threshold = None
-    retries = 0
-    max_retries = current_app.config["MAX_RETRIES_FOR_CENSORSHIP_PARAMS"]
-    for tries in range(max_retries + 1):
-        current_app.logger.info(f"calling katsu for censorship parameters (try={tries})")
-        try:
-            max_filters, count_threshold = asyncio.run(katsu_censorship_settings())
-            # If we got values successfully, without an API exception being raised, exit early - even if they're None
-            break
-        except APIException as e:
-            # katsu down or unavailable, details logged when exception thrown
-            # swallow exception and continue retries
-            current_app.logger.error(f"error calling katsu for censorship settings: {e}")
-
-        sleep(5 + 5 * tries)
-
-    # either params retrieved or we hit max retries
-    if max_filters is None or count_threshold is None:
-        current_app.logger.error("unable to retrieve censorship settings from katsu")
-    else:
-        current_app.logger.info(
-            f"retrieved censorship params: max_filter {max_filters}, count_threshold: {count_threshold}"
-        )
-
-    # save even if None
-    set_censorship_settings(max_filters, count_threshold)
-
 
 @app.before_request
 async def before_request():
@@ -102,7 +70,7 @@ async def before_request():
         validate_request()
         await verify_permissions()
         await save_request_data()
-        reject_query_if_not_permitted()
+        await set_censorship()
         init_response_data()
 
 
