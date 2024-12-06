@@ -5,6 +5,7 @@ from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_t
 from ..utils.search import biosample_id_search
 
 variants = Blueprint("variants", __name__)
+# variant routes are not scoped, since gohan does not accept scoped queries.
 
 
 # returns count or boolean only
