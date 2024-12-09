@@ -27,6 +27,7 @@ def parse_query_params(request_data):
     phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
+    datasetIds = request_data.get("datasets", {}).get("datasetIds") or []
 
     # strip filter prefixes and convert remaining ids to bento format
     phenopacket_filters = list(
@@ -54,6 +55,7 @@ def parse_query_params(request_data):
         "phenopacket_filters": phenopacket_filters,
         "experiment_filters": experiment_filters,
         "config_filters": config_filters,
+        "datasetIds": datasetIds,
     }
 
 
@@ -101,6 +103,8 @@ def package_get_params(params):
             query[key] = params[key]
     if "filters" in param_keys:
         query["filters"] = params.getlist("filters")
+    if "datasetIds" in param_keys:
+        query["datasets"] = {"datasetIds": params.getlist("datasetIds")}
 
     return {"meta": meta, "query": query}
 
@@ -118,6 +122,7 @@ async def save_request_data():
     request_bento = request_args.get("bento", {})
     query_request_parameters = request_query.get("requestParameters")
     query_filters = request_query.get("filters")
+    query_dataset_ids = request_query.get("datasets", {}).get("datasetIds")
 
     request_data = {
         "apiVersion": request_meta.get("apiVersion", defaults["apiVersion"]),
@@ -129,8 +134,10 @@ async def save_request_data():
         request_data["requestParameters"] = query_request_parameters
 
     if query_filters:
-        await reject_if_too_many_filters(query_filters)
         request_data["filters"] = query_filters
+
+    if query_dataset_ids:
+        request_data["datasets"] = {"datasetIds": query_dataset_ids}
 
     if request_bento:
         request_data["bento"] = request_bento
