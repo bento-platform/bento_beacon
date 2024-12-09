@@ -203,19 +203,19 @@ async def gohan_network_call(url, gohan_args):
     c = current_app.config
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            r = await s.get(
+            async with s.get(
                 url,
                 headers=await create_access_header_or_fall_back(),
                 timeout=c["GOHAN_TIMEOUT"],
                 params=aiohttp_params(gohan_args),
-            )
+            ) as r:
 
-        # handle gohan errors or any bad responses
-        if not r.ok:
-            current_app.logger.warning(f"gohan error, status: {r.status}, message: {r.text}")
-            raise APIException(message="error searching gohan variants service")
+                # handle gohan errors or any bad responses
+                if not r.ok:
+                    current_app.logger.warning(f"gohan error, status: {r.status}, message: {r.text}")
+                    raise APIException(message="error searching gohan variants service")
 
-        gohan_response = await r.json()
+                gohan_response = await r.json()
 
     except aiohttp.ClientError as e:
         current_app.logger.error(f"gohan error: {e}")
