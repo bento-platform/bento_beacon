@@ -44,7 +44,9 @@ async def get_variants():
         variant_results = await query_gohan(variants_query, "record", ids_only=False)
         if has_filters:
             variant_results_list = list(filter(lambda v: v.get("sample_id") in sample_ids, variant_results))
-        gohan_count = len(variant_results_list)
+            gohan_count = len(variant_results_list)
+        else: 
+            gohan_count = len(variant_results)
     else:
         # gohan overview returns lowercase only
         sample_ids = [id.lower() for id in sample_ids]
