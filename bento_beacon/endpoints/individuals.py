@@ -23,12 +23,14 @@ from ..utils.katsu_utils import (
 from ..utils.search import biosample_id_search
 from ..utils.handover_utils import handover_for_ids
 from ..utils.exceptions import NotFoundException
+from ..utils.scope import scoped_route_decorator_for_blueprint
 
 individuals = Blueprint("individuals", __name__)
+route_with_optional_project_id = scoped_route_decorator_for_blueprint(individuals)
 
 
-@individuals.route("/individuals", methods=["GET", "POST"])
-async def get_individuals():
+@route_with_optional_project_id("/individuals", methods=["GET", "POST"])
+async def get_individuals(project_id=None):
     variants_query = g.beacon_query_parameters["variants_query"]
     phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
     experiment_filters = g.beacon_query_parameters["experiment_filters"]
@@ -88,7 +90,7 @@ async def get_individuals():
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
-async def individuals_full_results(ids):
+async def individuals_full_results(ids, project_id=None):
 
     # temp
     # if len(ids) > 100:
@@ -121,10 +123,10 @@ async def individuals_full_results(ids):
 
 
 # forbidden / unauthorized if no permissions
-@individuals.route("/individuals/<id>", methods=["GET", "POST"])
+@route_with_optional_project_id("/individuals/<id>", methods=["GET", "POST"])
 @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
-async def individual_by_id(id):
-    result_sets, numTotalResults = await individuals_full_results([id])
+async def individual_by_id(id, project_id=None):
+    result_sets, numTotalResults = await individuals_full_results([id])  # needs project scoping, dataset scoping harder
 
     # return 404 if not found
     # only authorized users will get 404 here, so this can't be used to probe ids
