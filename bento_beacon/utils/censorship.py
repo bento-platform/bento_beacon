@@ -70,7 +70,7 @@ async def reject_if_too_many_filters() -> None:
     if g.permission_query_data:
         return
     max_filters = await get_max_filters()
-    request_filters = g.get("request_data", {}).get("filters")
+    request_filters = g.get("request_data", {}).get("filters", [])
     if len(request_filters) > max_filters:
         raise InvalidQuery(f"too many filters in request, maximum of {max_filters} permitted")
 

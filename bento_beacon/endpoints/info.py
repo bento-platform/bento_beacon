@@ -1,13 +1,10 @@
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
-from ..utils.beacon_response import beacon_info_response, add_info_to_response, summary_stats
+from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import (
-    get_filtering_terms,
-    katsu_total_individuals_count,
     katsu_get,
     katsu_datasets,
 )
-from ..utils.gohan_utils import gohan_counts_for_overview
 from ..utils.scope import scoped_route_decorator_for_blueprint
 
 
@@ -42,7 +39,7 @@ async def service_info(project_id=None):
 async def beacon_info(project_id=None):
     """
     service info in beacon format
-    dataset info is scoped, rest of response unscoped
+    description field is scoped, rest of response unscoped
     """
     return beacon_info_response(await beacon_format_service_details(project_id))
 

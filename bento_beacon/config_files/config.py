@@ -146,7 +146,7 @@ class Config:
     KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
-    KATSU_BATCH_INDIVIDUALS_ENDPOINT = "/api/batch/individuals"
+    KATSU_PROJECTS_ENDPOINT = "/api/projects"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"

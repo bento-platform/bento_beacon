@@ -3,6 +3,7 @@ import os
 from flask import Flask, current_app, request
 from urllib.parse import urlunsplit
 from .endpoints.info import info
+from .endpoints.info_permissions_required import info_permissions_required
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
@@ -40,8 +41,8 @@ authz_middleware.attach(app)
 
 # blueprints
 # always load info endpoints, load everything else based on config
-
 app.register_blueprint(info)
+app.register_blueprint(info_permissions_required)
 
 endpoint_blueprints = {
     "biosamples": biosamples,
@@ -66,12 +67,13 @@ with app.app_context():
 
 @app.before_request
 async def before_request():
-    if request.blueprint != "info":
-        validate_request()
-        await verify_permissions()
-        await save_request_data()
-        await set_censorship()
-        init_response_data()
+    if request.blueprint == "info":
+        return 
+    validate_request()
+    await verify_permissions()
+    await save_request_data()
+    await set_censorship()
+    init_response_data()
 
 
 @app.errorhandler(Exception)

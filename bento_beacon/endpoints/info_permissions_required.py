@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
-from .info import beacon_format_service_details 
+from .info import beacon_format_service_details
 from ..utils.beacon_response import beacon_info_response, add_info_to_response, summary_stats
 from ..utils.katsu_utils import (
     get_filtering_terms,
@@ -15,29 +15,26 @@ route_with_optional_project_id = scoped_route_decorator_for_blueprint(info_permi
 
 
 @route_with_optional_project_id("/info")
-@authz_middleware.deco_public_endpoint
 async def beacon_info_with_overview(project_id=None):
     """
-    as above but with beacon overview details
-    unscoped, overview details currently node-level only
+    returns same beacon-format service info served from root endpoint, but with an overview added
+    overview is unscoped, no overview info is returned for scoped requests
+    description field is scoped (this is pulled from datasets data)
     """
-
     service_info = await beacon_format_service_details(project_id)
     return beacon_info_response({**service_info, "overview": await overview()})
 
 
 @route_with_optional_project_id("/overview")
-@authz_middleware.deco_public_endpoint
 async def beacon_overview(project_id=None):
     """
     Custom endpoint not in beacon spec
-    currently node-level overview only 
+    currently node-level overview only
     """
     service_info = await beacon_format_service_details(project_id)
     return beacon_info_response({**service_info, "overview": await overview(project_id)})
 
 
-# xxxxxxxxxxxxxxxx move this to its own blueprint, since this now looks at permissions xxxxxxxxxxxxxxxxx
 # could be scoped by dataset only by adding query params for dataset (endpoint is GET only)
 # this endpoint normally doesn't take queries at all, the only params it recognizes are for pagination
 # could also annotating filtering terms with a dataset id in cases where it's limited to a particular dataset
@@ -54,7 +51,7 @@ async def filtering_terms(project_id=None):
 
 
 # -------------------------------------------------------
-#  
+#
 # -------------------------------------------------------
 
 
@@ -72,11 +69,10 @@ async def overview(project_id=None, dataset_id=None):
     else:
         variants = {}
 
-    # can be removed once bento_public is updated (it reads from counts.variants for assemblyIDs)
+    # can be removed once bento_public and beacon network nodes are updated (it reads from counts.variants for assemblyIDs)
     legacy_format_overview = {"counts": {"individuals": await katsu_total_individuals_count(), "variants": variants}}
 
     katsu_stats = await summary_stats(None)
     beacon_overview = {"variants": variants, **katsu_stats}
 
     return {**legacy_format_overview, **beacon_overview}
-

@@ -1,4 +1,4 @@
-from flask import current_app, g, request
+from flask import current_app, g, request, url_for
 from .katsu_utils import search_summary_statistics, overview_statistics
 from .censorship import (
     get_censorship_threshold,
@@ -28,23 +28,30 @@ def add_message(message_obj):
 
 def add_no_results_censorship_message_to_response():
     add_info_to_response(MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS)
-    add_info_to_response(f"censorship threshold: {current_app.config['COUNT_THRESHOLD']}")
+    add_info_to_response(f"censorship threshold: {g.count_threshold}")
 
 
 async def add_stats_to_response(ids):
+    stats = await summary_stats(ids)
+    if stats: 
+        g.response_info["bento"] = await summary_stats(ids)
+
+
+async def add_overview_stats_to_response():
+    await add_stats_to_response(None)
+
+
+async def summary_stats(ids):
     if ids is not None and len(ids) <= (await get_censorship_threshold()):
-        return
+        return None
 
     if ids is None:
         stats = await overview_statistics()
     else:
         stats = await search_summary_statistics(ids)
     packaged_stats = await package_biosample_and_experiment_stats(stats)
-    g.response_info["bento"] = packaged_stats
+    return packaged_stats
 
-
-async def add_overview_stats_to_response():
-    await add_stats_to_response(None)
 
 
 async def package_biosample_and_experiment_stats(stats):
@@ -137,7 +144,7 @@ async def build_query_response(ids=None, numTotalResults=None, full_record_handl
         if full_record_handler is None:
             # user asked for full response where it doesn't exist yet, e.g. in variants
             raise InvalidQuery("record response not available for this entry type")
-        result_sets, numTotalResults = full_record_handler(ids)
+        result_sets, numTotalResults = await full_record_handler(ids)
         return beacon_result_set_response(result_sets, numTotalResults)
 
 
@@ -260,7 +267,8 @@ def response_info():
 
 
 def info_endpoint_schema():
-    return [current_app.config["INFO_ENDPOINTS_SCHEMAS"][request.path]]
+    path_without_optional_project_id = url_for(request.endpoint)
+    return [current_app.config["INFO_ENDPOINTS_SCHEMAS"][path_without_optional_project_id]]
 
 
 def schemas_this_query():
