@@ -31,10 +31,11 @@ route_with_optional_project_id = scoped_route_decorator_for_blueprint(individual
 
 @route_with_optional_project_id("/individuals", methods=["GET", "POST"])
 async def get_individuals(project_id=None):
-    variants_query = g.beacon_query_parameters["variants_query"]
-    phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
-    experiment_filters = g.beacon_query_parameters["experiment_filters"]
-    config_filters = g.beacon_query_parameters["config_filters"]
+    variants_query = g.beacon_query["variants_query"]
+    phenopacket_filters = g.beacon_query["phenopacket_filters"]
+    experiment_filters = g.beacon_query["experiment_filters"]
+    config_filters = g.beacon_query["config_filters"]
+    dataset_ids = g.beacon_query["dataset_ids"]
 
     no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
     search_sample_ids = variants_query or experiment_filters

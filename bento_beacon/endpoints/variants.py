@@ -12,10 +12,10 @@ variants = Blueprint("variants", __name__)
 @variants.route("/g_variants", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint  # TODO: for now. eventually, return more depending on permissions
 async def get_variants():
-    variants_query = g.beacon_query_parameters["variants_query"]
-    phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
-    experiment_filters = g.beacon_query_parameters["experiment_filters"]
-    config_filters = g.beacon_query_parameters["config_filters"]
+    variants_query = g.beacon_query["variants_query"]
+    phenopacket_filters = g.beacon_query["phenopacket_filters"]
+    experiment_filters = g.beacon_query["experiment_filters"]
+    config_filters = g.beacon_query["config_filters"]
     has_filters = phenopacket_filters or experiment_filters or config_filters
 
     # if no query, return total count of variants

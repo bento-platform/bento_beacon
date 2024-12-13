@@ -16,7 +16,7 @@ async def censorship_settings_lookup() -> tuple[int, int]:
     # we're "before request" but view args are available from request object
     view_args = request.view_args if request.view_args else {}
     project_id = view_args.get("project_id")
-    dataset_id = view_args.get("dataset_id")
+    dataset_id = request.args.get("datasetIds")
 
     max_filters, count_threshold = await katsu_censorship_settings(project_id=project_id, dataset_id=dataset_id)
     if max_filters is None or count_threshold is None:
@@ -82,11 +82,11 @@ async def censored_chart_data(data) -> list[dict[str, int]]:
 
 
 def query_has_phenopacket_filter() -> bool:
-    return bool(g.beacon_query_parameters["phenopacket_filters"])
+    return bool(g.beacon_query["phenopacket_filters"])
 
 
 def query_has_experiment_filter() -> bool:
-    return bool(g.beacon_query_parameters["experiment_filters"])
+    return bool(g.beacon_query["experiment_filters"])
 
 
 # some anonymous queries are not permitted

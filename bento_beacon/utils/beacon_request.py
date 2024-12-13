@@ -27,7 +27,7 @@ def parse_query_params(request_data):
     phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
-    datasetIds = request_data.get("datasets", {}).get("datasetIds") or []
+    dataset_ids = request_data.get("datasets", {}).get("datasetIds") or []
 
     # strip filter prefixes and convert remaining ids to bento format
     phenopacket_filters = list(
@@ -55,7 +55,7 @@ def parse_query_params(request_data):
         "phenopacket_filters": phenopacket_filters,
         "experiment_filters": experiment_filters,
         "config_filters": config_filters,
-        "datasetIds": datasetIds,
+        "dataset_ids": dataset_ids,
     }
 
 
@@ -146,7 +146,7 @@ async def save_request_data():
     g.request_data = request_data
 
     # parsed query components
-    g.beacon_query_parameters = parse_query_params(request_data)
+    g.beacon_query = parse_query_params(request_data)
 
 
 def validate_request():
