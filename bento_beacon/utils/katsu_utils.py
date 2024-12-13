@@ -157,9 +157,9 @@ async def search_from_config(config_filters):
     return response.get("matches", [])
 
 
-async def get_katsu_config_search_fields(project_id, requires_auth: RequiresAuthOptions):
+async def get_katsu_config_search_fields(project_id, dataset_id, requires_auth: RequiresAuthOptions):
     fields = await katsu_get(
-        current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], project_id=project_id, requires_auth="forwarded"
+        current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"], project_id=project_id, dataset_id=dataset_id, requires_auth="forwarded"
     )
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
@@ -232,9 +232,9 @@ def katsu_json_payload(filters, datatype, get_biosample_ids):
 # -------------------------------------------------------
 
 
-async def katsu_config_filtering_terms(project_id):
+async def katsu_config_filtering_terms(project_id, dataset_id):
     filtering_terms = []
-    sections = (await get_katsu_config_search_fields(project_id, requires_auth="forwarded")).get("sections", [])
+    sections = (await get_katsu_config_search_fields(project_id, dataset_id, requires_auth="forwarded")).get("sections", [])
     for section in sections:
         for field in section["fields"]:
             filtering_term = {
@@ -264,10 +264,10 @@ async def katsu_config_filtering_terms(project_id):
     return filtering_terms
 
 
-async def get_filtering_terms(project_id):
+async def get_filtering_terms(project_id, dataset_id):
     # add ontology filters here when we start supporting ontologies
     # could also add filters for phenopacket and experiment queries if user has correct permissions
-    return await katsu_config_filtering_terms(project_id)
+    return await katsu_config_filtering_terms(project_id, dataset_id)
 
 
 # -------------------------------------------------------
