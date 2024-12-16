@@ -71,7 +71,7 @@ def beacon_map(project_id=None):
     """
     Describes available endpoints in the beacon, which is the same for all scopes
     """
-    return beacon_info_response(build_beacon_map())
+    return beacon_info_response(build_beacon_map(project_id))
 
 
 # -------------------------------------------------------
@@ -148,7 +148,7 @@ async def build_configuration_endpoint_response():
     entry_types_details = build_entry_types()
 
     # production status is one of "DEV", "PROD", "TEST"
-    production_status = "DEV" if current_app.config["DEBUG"] else "PROD",
+    production_status = "DEV" if current_app.config["DEBUG"] else "PROD"
     
     response = {
         "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/configuration"]["schema"],
@@ -177,12 +177,17 @@ def build_entry_types():
     return entry_types
 
 
-def build_beacon_map():
+def build_beacon_map(project_id):
     beacon_map = {"$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/map"]["schema"], "endpointSets": {}}
     endpoint_sets = current_app.config["BEACON_CONFIG"].get("endpointSets")
+    base_url = (
+        current_app.config["BEACON_BASE_URL"] + "/" + project_id
+        if project_id is not None
+        else current_app.config["BEACON_BASE_URL"]
+    )
     for endpoint_set in endpoint_sets:
         resource_name = "g_variants" if endpoint_set == "variants" else endpoint_set
-        root_url = current_app.config["BEACON_BASE_URL"] + "/" + resource_name
+        root_url = base_url + "/" + resource_name
         entry_type = current_app.config["ENTRY_TYPES_DETAILS"].get(endpoint_set, {}).get("entryType")
         beacon_map["endpointSets"][entry_type] = {"rootUrl": root_url, "entryType": entry_type}
 
@@ -190,9 +195,6 @@ def build_beacon_map():
             beacon_map["endpointSets"][entry_type]["singleEntryUrl"] = root_url + "/{id}"
 
     return beacon_map
-
-
-
 
 
 # current unscoped overview looks like this:
@@ -226,5 +228,3 @@ def build_beacon_map():
 #         }
 #     }
 # },
-
-
