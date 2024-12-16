@@ -178,7 +178,7 @@ def middleware_meta_callback():
 
 
 def beacon_info_response(info):
-    return {
+    r = {
         "response": info,
         "meta": {
             "beaconId": current_app.config["BEACON_ID"],
@@ -186,6 +186,10 @@ def beacon_info_response(info):
             "returnedSchemas": info_endpoint_schema(),
         },
     }
+    info = response_info()
+    if info:
+        r["info"] = info
+    return r
 
 
 # censored (or not) according to permissions
