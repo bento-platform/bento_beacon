@@ -9,14 +9,14 @@ route_with_optional_project_id = scoped_route_decorator_for_blueprint(cohorts)
 
 @route_with_optional_project_id("/cohorts", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
-def get_cohorts():
+def get_cohorts(project_id=None):
     cohorts = current_app.config["BEACON_COHORT"]
     return beacon_collections_response({"collections": cohorts})
 
 
 @route_with_optional_project_id("/cohorts/<id>", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
-def get_cohort_by_id(id):
+def get_cohort_by_id(id, project_id=None):
     cohorts = current_app.config["BEACON_COHORT"]
     cohort_this_id = next((c for c in cohorts if c.get("id") == id), [])
     return beacon_collections_response({"collections": cohort_this_id})
