@@ -2,7 +2,7 @@ import jsonschema
 from bento_lib.auth.permissions import P_QUERY_DATA
 from flask import current_app, request, g
 from .exceptions import InvalidQuery
-from .censorship import reject_if_too_many_filters
+from .scope import MESSAGE_FOR_TOO_MANY_DATASETS
 from ..authz.middleware import check_permission
 
 
@@ -27,7 +27,12 @@ def parse_query_params(request_data):
     phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
     experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
     config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
-    dataset_ids = request_data.get("datasets", {}).get("datasetIds") or []
+
+    # plural here for future-proofing and best match with other beacons
+    # even though we only accept one dataset currently
+    dataset_ids = request_data.get("datasets", {}).get("datasetIds", [])
+    if len(dataset_ids) > 1:
+        raise InvalidQuery(MESSAGE_FOR_TOO_MANY_DATASETS)
 
     # strip filter prefixes and convert remaining ids to bento format
     phenopacket_filters = list(

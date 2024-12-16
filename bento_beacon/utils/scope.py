@@ -5,7 +5,7 @@ def scoped_route_decorator_for_blueprint(blueprint):
     input: a flask blueprint (all beacon routes belong to a particular blueprint)
 
     output: a decorator that's equivalent to invoking these two flask decorators together:
-        @my_blueprint.route("my_route", **options)
+        @my_blueprint.route("/my_route", **options)
         @my_blueprint.route("/<project_id>/my_route", **options)
     """
 
@@ -22,3 +22,6 @@ def scoped_route_decorator_for_blueprint(blueprint):
         return deco
 
     return scoped_route
+
+
+MESSAGE_FOR_TOO_MANY_DATASETS = "'datasetIds' field currently cannot take more than one dataset id"
