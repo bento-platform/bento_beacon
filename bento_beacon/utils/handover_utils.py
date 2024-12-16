@@ -1,7 +1,7 @@
 import aiohttp
 from flask import current_app
 from urllib.parse import urlsplit, urlunsplit
-from .katsu_utils import katsu_network_call
+from .katsu_utils import katsu_post
 from .exceptions import APIException
 from .http import tcp_connector
 from ..authz.headers import auth_header_from_request
@@ -30,8 +30,8 @@ async def drs_network_call(path, query):
 
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            r = await s.get(url, headers=auth_header_from_request(), timeout=DRS_TIMEOUT_SECONDS)
-        drs_response = await r.json()
+            async with s.get(url, headers=auth_header_from_request(), timeout=DRS_TIMEOUT_SECONDS) as r:
+                drs_response = await r.json()
 
     # TODO
     # on handover errors, keep returning rest of results instead of throwing api exception
@@ -60,7 +60,7 @@ async def filenames_by_results_set(ids):
         "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"],
     }
 
-    response = await katsu_network_call(payload)
+    response = await katsu_post(payload)
     results = response.get("results")
     files_by_results_set = {}
 

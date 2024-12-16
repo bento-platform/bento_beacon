@@ -13,12 +13,12 @@ __all__ = [
 @aiocache.cached()
 async def get_token_endpoint_from_openid_config_url(url: str):
     async with aiohttp.ClientSession(connector=tcp_connector(current_app.config)) as s:
-        r = await s.get(url)
+        async with s.get(url) as r:
 
-    if not r.ok:
-        raise Exception(f"Received not-OK response from OIDC config URL: {r.status_code}")
+            if not r.ok:
+                raise Exception(f"Received not-OK response from OIDC config URL: {r.status_code}")
 
-    response = await r.json()
+            response = await r.json()
     return response["token_endpoint"]
 
 
@@ -41,20 +41,20 @@ async def get_access_token() -> str | None:
         return None
 
     async with aiohttp.ClientSession(connector=tcp_connector(current_app.config)) as s:
-        token_res = await s.post(
+        async with s.post(
             token_endpoint,
             data={
                 "grant_type": "client_credentials",
                 "client_id": client_id,
                 "client_secret": client_secret,
             },
-        )
+        ) as token_res:
 
-    res = await token_res.json()
+            res = await token_res.json()
 
-    if not token_res.ok:
-        logger.error(f"Could not retrieve access token; got error response: {res}")
-        return None
+            if not token_res.ok:
+                logger.error(f"Could not retrieve access token; got error response: {res}")
+                return None
 
     return res["access_token"]
 

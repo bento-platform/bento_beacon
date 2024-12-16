@@ -88,15 +88,14 @@ async def network_beacon_call(method, url, payload=None):
 
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            if method == "GET":
-                r = await s.get(url, timeout=timeout)
-            else:
-                r = await s.post(url, timeout=timeout, json=payload)
+            async with (
+                s.get(url, timeout=timeout) if method == "GET" else s.post(url, timeout=timeout, json=payload)
+            ) as r:
 
-        if not r.ok:
-            raise APIException()
+                if not r.ok:
+                    raise APIException()
 
-        beacon_response = await r.json()
+                beacon_response = await r.json()
 
     except (APIException, aiohttp.ClientError, JSONDecodeError) as e:
         msg = f"beacon network error calling url {url}: {e}"
