@@ -35,7 +35,6 @@ class Config:
         "biosamples": GRANULARITY_COUNT,
         "cohorts": GRANULARITY_RECORD,
         "datasets": GRANULARITY_RECORD,
-        "info": GRANULARITY_RECORD,
         "network": GRANULARITY_COUNT,
     }
 
