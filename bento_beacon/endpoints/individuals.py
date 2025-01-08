@@ -35,7 +35,7 @@ async def get_individuals(project_id=None):
     phenopacket_filters = g.beacon_query["phenopacket_filters"]
     experiment_filters = g.beacon_query["experiment_filters"]
     config_filters = g.beacon_query["config_filters"]
-    dataset_ids = g.beacon_query["dataset_ids"]
+    dataset_id = g.beacon_query["dataset_id"]
 
     no_query = not (variants_query or phenopacket_filters or experiment_filters or config_filters)
     search_sample_ids = variants_query or experiment_filters
@@ -45,7 +45,7 @@ async def get_individuals(project_id=None):
     # TODO: return default granularity rather than count (default could be bool rather than count)
     if no_query:
         add_info_to_response("no query found, returning total count")
-        total_count = await katsu_total_individuals_count()
+        total_count = await katsu_total_individuals_count(project_id=project_id, dataset_id=dataset_id)  # needs scope
         if summary_stats_requested():
             await add_overview_stats_to_response()
         return await build_query_response(numTotalResults=total_count)
@@ -56,7 +56,12 @@ async def get_individuals(project_id=None):
     sample_ids = []
 
     if search_sample_ids:
-        sample_ids = await biosample_id_search(variants_query=variants_query, experiment_filters=experiment_filters)
+        sample_ids = await biosample_id_search(
+            variants_query=variants_query,
+            experiment_filters=experiment_filters,
+            project_id=project_id,
+            dataset_id=dataset_id,
+        )
         if not sample_ids:
             return await zero_count_response()
 
@@ -68,7 +73,7 @@ async def get_individuals(project_id=None):
 
     # get individuals from katsu config search
     if config_filters:
-        config_ids = await search_from_config(config_filters)
+        config_ids = await search_from_config(config_filters, project_id=project_id, dataset_id=dataset_id)
         if not config_ids:
             return await zero_count_response()
         individual_results["config_ids"] = config_ids
@@ -76,7 +81,9 @@ async def get_individuals(project_id=None):
     if not config_search_only:
         # retrieve all matching individuals from sample id search, filtered by any phenopacket filters
         # either of phenopacket_filters or sample_ids can be empty
-        phenopacket_ids = await katsu_filters_and_sample_ids_query(phenopacket_filters, "phenopacket", sample_ids)
+        phenopacket_ids = await katsu_filters_and_sample_ids_query(
+            phenopacket_filters, "phenopacket", sample_ids, project_id=project_id, dataset_id=dataset_id
+        )
         if not phenopacket_ids:
             return await zero_count_response()
         individual_results["phenopacket_ids"] = phenopacket_ids
@@ -91,7 +98,7 @@ async def get_individuals(project_id=None):
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
-async def individuals_full_results(ids, project_id=None):
+async def individuals_full_results(ids):
 
     # temp
     # if len(ids) > 100:
