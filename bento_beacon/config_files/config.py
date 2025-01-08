@@ -29,6 +29,7 @@ class Config:
     BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
     # default when no requested granularity, as well as max granularity for anonymous users
+    # no granularity for info endpoints 
     DEFAULT_GRANULARITY = {
         "individuals": GRANULARITY_COUNT,
         "variants": GRANULARITY_COUNT,
@@ -163,8 +164,8 @@ class Config:
 
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = int(os.environ.get("MAX_RETRIES_FOR_CENSORSHIP_PARAMS", 2))
 
-    # don't let anonymous users query arbitrary phenopacket or experiment fields
-    ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
+    # don't allow queries over arbitrary phenopacket or experiment fields without permission
+    CENSORED_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
 
     # -------------------
     # gohan
