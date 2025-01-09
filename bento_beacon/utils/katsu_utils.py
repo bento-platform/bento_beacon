@@ -29,9 +29,6 @@ async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False,
         # return {"count": 0, "results": []}
 
     # possibly multiple projects/datasets, combine results
-    # TODO: revist when we clarify relationship between project and beacons
-    # XXXXXXXXXXXXXXXX add scoping XXXXXXXXXXXXXXXXXX
-    # but don't break count response
     for value in results.values():
         if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
@@ -342,7 +339,7 @@ async def biosample_ids_for_individuals(individual_ids):
     return await katsu_filters_query(filters, "phenopacket", get_biosample_ids=True)
 
 
-# scope done elsewhere
+# scope done elsewhere, summary based on ids
 async def search_summary_statistics(ids):
     endpoint = current_app.config["KATSU_SEARCH_OVERVIEW"]
     payload = {"id": ids}
@@ -350,9 +347,29 @@ async def search_summary_statistics(ids):
 
 
 async def overview_statistics(project_id=None, dataset_id=None):
-    return await katsu_get(
-        current_app.config["KATSU_PRIVATE_OVERVIEW"], project_id=project_id, dataset_id=dataset_id, requires_auth="full"
+    # call katsu for censored public overview
+    stats = await katsu_get(
+        current_app.config["KATSU_BEACON_SEARCH"],
+        project_id=project_id,
+        dataset_id=dataset_id,
+        requires_auth="forwarded",
     )
+
+    # here we mostly pass katsu response unmodified
+    # extra handling is for edge case where total count is below threshold, so katsu doesn't return any data at all
+    biosamples_data = stats.get("biosamples", {})
+    experiments_data = stats.get("experiments", {})
+
+    return {
+        "biosamples": {
+            "count": biosamples_data.get("count", 0),
+            "sampled_tissue": biosamples_data.get("sampled_tissue", {}),
+        },
+        "experiments": {
+            "count": experiments_data.get("count", 0),
+            "experiment_type": experiments_data.get("experiment_type", {}),
+        },
+    }
 
 
 async def katsu_censorship_settings(project_id=None, dataset_id=None) -> tuple[int | None, int | None]:

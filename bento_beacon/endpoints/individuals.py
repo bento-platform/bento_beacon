@@ -42,12 +42,12 @@ async def get_individuals(project_id=None):
     config_search_only = config_filters and not (variants_query or phenopacket_filters or experiment_filters)
 
     # return total count of individuals if no query
-    # TODO: return default granularity rather than count (default could be bool rather than count)
+    # TODO: save 400ms on beacon UI startup by not calling katsu twice
     if no_query:
         add_info_to_response("no query found, returning total count")
-        total_count = await katsu_total_individuals_count(project_id=project_id, dataset_id=dataset_id)  # needs scope
+        total_count = await katsu_total_individuals_count(project_id=project_id, dataset_id=dataset_id)
         if summary_stats_requested():
-            await add_overview_stats_to_response()
+            await add_overview_stats_to_response(project_id=project_id, dataset_id=dataset_id)
         return await build_query_response(numTotalResults=total_count)
 
     # ----------------------------------------------------------

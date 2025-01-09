@@ -31,27 +31,25 @@ def add_no_results_censorship_message_to_response():
     add_info_to_response(f"censorship threshold: {g.count_threshold}")
 
 
-async def add_stats_to_response(ids):
-    stats = await summary_stats(ids)
-    if stats: 
+async def add_stats_to_response(ids, project_id=None, dataset_id=None):
+    stats = await summary_stats(ids, project_id=project_id, dataset_id=dataset_id)
+    if stats:
         g.response_info["bento"] = await summary_stats(ids)
 
 
-async def add_overview_stats_to_response():
-    await add_stats_to_response(None)
+async def add_overview_stats_to_response(project_id=None, dataset_id=None):
+    await add_stats_to_response(None, project_id, dataset_id)
 
 
-async def summary_stats(ids):
+async def summary_stats(ids, project_id=None, dataset_id=None):
     if ids is not None and len(ids) <= (await get_censorship_threshold()):
         return None
 
     if ids is None:
-        stats = await overview_statistics()
-    else:
-        stats = await search_summary_statistics(ids)
-    packaged_stats = await package_biosample_and_experiment_stats(stats)
-    return packaged_stats
-
+        return await overview_statistics(project_id=project_id, dataset_id=dataset_id)
+    
+    stats = await search_summary_statistics(ids)
+    return await package_biosample_and_experiment_stats(stats)
 
 
 async def package_biosample_and_experiment_stats(stats):
