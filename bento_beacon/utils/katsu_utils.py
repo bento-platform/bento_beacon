@@ -28,7 +28,10 @@ async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False,
         return []
         # return {"count": 0, "results": []}
 
-    # possibly multiple projects/datasets, combine results
+    # possibly multiple projects/datasets, combine results:
+    # - count response only wants one count
+    # - full record response is split by dataset, but this is reconstructed from ids
+    # consider splitting results here once gohan is scoped 
     for value in results.values():
         if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
@@ -161,7 +164,7 @@ async def search_from_config(config_filters, project_id=None, dataset_id=None):
     return response.get("matches", [])
 
 
-async def get_katsu_config_search_fields(project_id, dataset_id, requires_auth: RequiresAuthOptions):
+async def get_katsu_config_search_fields(project_id=None, dataset_id=None):
     fields = await katsu_get(
         current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"],
         project_id=project_id,
@@ -241,7 +244,7 @@ def katsu_json_payload(filters, datatype, get_biosample_ids):
 
 async def katsu_config_filtering_terms(project_id, dataset_id):
     filtering_terms = []
-    sections = (await get_katsu_config_search_fields(project_id, dataset_id, requires_auth="forwarded")).get(
+    sections = (await get_katsu_config_search_fields(project_id=project_id, dataset_id=dataset_id)).get(
         "sections", []
     )
     for section in sections:
@@ -356,7 +359,8 @@ async def overview_statistics(project_id=None, dataset_id=None):
     )
 
     # here we mostly pass katsu response unmodified
-    # extra handling is for edge case where total count is below threshold, so katsu doesn't return any data at all
+    # extra handling is for edge case where total count is below threshold, when katsu doesn't return any data at all
+    individuals_count = stats.get("count", 0)
     biosamples_data = stats.get("biosamples", {})
     experiments_data = stats.get("experiments", {})
 
@@ -369,6 +373,9 @@ async def overview_statistics(project_id=None, dataset_id=None):
             "count": experiments_data.get("count", 0),
             "experiment_type": experiments_data.get("experiment_type", {}),
         },
+        "individuals": {
+            "count": individuals_count
+        }
     }
 
 

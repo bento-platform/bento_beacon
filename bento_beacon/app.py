@@ -68,7 +68,7 @@ with app.app_context():
 @app.before_request
 async def before_request():
     if request.blueprint == "info":
-        return 
+        return
     validate_request()
     await verify_permissions()
     await save_request_data()

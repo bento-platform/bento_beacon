@@ -1,3 +1,4 @@
+# TODO: futureproof: don't ever treat the string "network" as a project id
 def scoped_route_decorator_for_blueprint(blueprint):
     """
     Generates a decorator equivalent to two flask "@route" decorators, one with a project_id prefix, and one without.

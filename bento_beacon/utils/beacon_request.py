@@ -33,6 +33,8 @@ def parse_query_params(request_data):
     dataset_ids = request_data.get("datasets", {}).get("datasetIds", [])
     if len(dataset_ids) > 1:
         raise InvalidQuery(MESSAGE_FOR_TOO_MANY_DATASETS)
+    dataset_id = dataset_ids[0] if len(dataset_ids) else None
+
 
     # strip filter prefixes and convert remaining ids to bento format
     phenopacket_filters = list(
@@ -60,7 +62,7 @@ def parse_query_params(request_data):
         "phenopacket_filters": phenopacket_filters,
         "experiment_filters": experiment_filters,
         "config_filters": config_filters,
-        "dataset_ids": dataset_ids,
+        "dataset_id": dataset_id,
     }
 
 

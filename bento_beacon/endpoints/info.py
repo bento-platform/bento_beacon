@@ -15,7 +15,7 @@ route_with_optional_project_id = scoped_route_decorator_for_blueprint(info)
 # All info endpoints accept an optional project_id prefix in the path, i.e. they will accept both
 # /service-info
 # AND
-# /project-abc-123/service-info
+# /abc-123/service-info
 
 # but some endpoints will give the same response across all scopes, since some values do not change, such as:
 # - organization info
@@ -48,7 +48,8 @@ async def beacon_info(project_id=None):
 @authz_middleware.deco_public_endpoint
 async def beacon_configuration(project_id=None):
     """
-    distinct from "BEACON_CONFIG", unscoped
+    Gives details of beacon entry types and production status.
+    Distinct from "BEACON_CONFIG", unscoped
     """
     return beacon_info_response(await build_configuration_endpoint_response())
 
@@ -149,7 +150,6 @@ async def build_configuration_endpoint_response():
 
     # production status is one of "DEV", "PROD", "TEST"
     production_status = "DEV" if current_app.config["DEBUG"] else "PROD"
-    
     response = {
         "$schema": current_app.config["INFO_ENDPOINTS_SCHEMAS"]["/configuration"]["schema"],
         "entryTypes": entry_types_details,
@@ -195,36 +195,3 @@ def build_beacon_map(project_id):
             beacon_map["endpointSets"][entry_type]["singleEntryUrl"] = root_url + "/{id}"
 
     return beacon_map
-
-
-# current unscoped overview looks like this:
-
-# "overview": {
-#     "counts": {
-#         "individuals": 2711,
-#         "variants": {
-#             "GRCh38": 31203438
-#         }
-#     }
-# },
-
-# while implementing scoping, we can also change to something like this (Redmine #2170):
-
-# "overview": {
-#     "individuals": {
-#         "count": 2711,
-#         "sex": [... chart data here...]
-#      }
-#      "biosamples" : {
-#         "count": 1212,
-#         "sampled_tissue": [.. chart data...]
-#      }
-#      "experiments": {
-#         "count": 23714,
-#         "experiment_type" : [... chart data...]
-#      }
-#      "variants": {
-#             "GRCh38": 31203438
-#         }
-#     }
-# },
