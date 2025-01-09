@@ -15,6 +15,8 @@ async def biosample_id_search(
     phenopacket_filters=None,
     experiment_filters=None,
     config_filters=None,
+    project_id=None,
+    dataset_id=None,
 ):
     results_biosample_ids = {}
 
@@ -32,7 +34,9 @@ async def biosample_id_search(
         results_biosample_ids["variant_sample_ids"] = variant_sample_ids
 
     if experiment_filters:
-        experiment_sample_ids = await katsu_filters_query(experiment_filters, "experiment", get_biosample_ids=True)
+        experiment_sample_ids = await katsu_filters_query(
+            experiment_filters, "experiment", get_biosample_ids=True, project_id=project_id, dataset_id=dataset_id
+        )
         if not experiment_sample_ids:
             return []
         results_biosample_ids["experiment_sample_ids"] = experiment_sample_ids
@@ -40,13 +44,15 @@ async def biosample_id_search(
     # next two return *all* biosample ids for matching individuals
 
     if phenopacket_filters:
-        phenopacket_sample_ids = await katsu_filters_query(phenopacket_filters, "phenopacket", get_biosample_ids=True)
+        phenopacket_sample_ids = await katsu_filters_query(
+            phenopacket_filters, "phenopacket", get_biosample_ids=True, project_id=project_id, dataset_id=dataset_id
+        )
         if not phenopacket_sample_ids:
             return []
         results_biosample_ids["phenopacket_sample_ids"] = phenopacket_sample_ids
 
     if config_filters:
-        config_individuals = await search_from_config(config_filters)
+        config_individuals = await search_from_config(config_filters, project_id=project_id, dataset_id=dataset_id)
         if not config_individuals:
             return []
         results_biosample_ids["config_sample_ids"] = await biosample_ids_for_individuals(config_individuals)
