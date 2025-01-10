@@ -31,7 +31,7 @@ async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False,
     # possibly multiple projects/datasets, combine results:
     # - count response only wants one count
     # - full record response is split by dataset, but this is reconstructed from ids
-    # consider splitting results here once gohan is scoped 
+    # consider splitting results here once gohan is scoped
     for value in results.values():
         if value.get("data_type") == datatype:
             match_list = match_list + value.get("matches")
@@ -100,12 +100,14 @@ async def katsu_get(
     entity_id=None,
     project_id=None,
     dataset_id=None,
-    query_dict={},
+    query_dict=None,
     requires_auth: RequiresAuthOptions = "none",
 ):
     c = current_app.config
     katsu_base_url = c["KATSU_BASE_URL"]
     timeout = c["KATSU_TIMEOUT"]
+
+    query_dict = {} if query_dict is None else query_dict
 
     if project_id is not None:
         query_dict["project"] = project_id
@@ -244,9 +246,7 @@ def katsu_json_payload(filters, datatype, get_biosample_ids):
 
 async def katsu_config_filtering_terms(project_id, dataset_id):
     filtering_terms = []
-    sections = (await get_katsu_config_search_fields(project_id=project_id, dataset_id=dataset_id)).get(
-        "sections", []
-    )
+    sections = (await get_katsu_config_search_fields(project_id=project_id, dataset_id=dataset_id)).get("sections", [])
     for section in sections:
         for field in section["fields"]:
             filtering_term = {
@@ -367,15 +367,13 @@ async def overview_statistics(project_id=None, dataset_id=None):
     return {
         "biosamples": {
             "count": biosamples_data.get("count", 0),
-            "sampled_tissue": biosamples_data.get("sampled_tissue", {}),
+            "sampled_tissue": biosamples_data.get("sampled_tissue", []),
         },
         "experiments": {
             "count": experiments_data.get("count", 0),
-            "experiment_type": experiments_data.get("experiment_type", {}),
+            "experiment_type": experiments_data.get("experiment_type", []),
         },
-        "individuals": {
-            "count": individuals_count
-        }
+        "individuals": {"count": individuals_count},
     }
 
 
