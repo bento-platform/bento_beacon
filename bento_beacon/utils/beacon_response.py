@@ -34,7 +34,7 @@ def add_no_results_censorship_message_to_response():
 async def add_stats_to_response(ids, project_id=None, dataset_id=None):
     stats = await summary_stats(ids, project_id=project_id, dataset_id=dataset_id)
     if stats:
-        g.response_info["bento"] = await summary_stats(ids)
+        g.response_info["bento"] = stats
 
 
 async def add_overview_stats_to_response(project_id=None, dataset_id=None):
