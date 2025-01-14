@@ -72,7 +72,9 @@ async def before_request():
     validate_request()
     await verify_permissions()
     await save_request_data()
-    await set_censorship()
+    if request.blueprint != "network":
+        # censorship is handled by individual beacons, not the network itself
+        await set_censorship()
     init_response_data()
 
 
