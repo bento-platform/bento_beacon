@@ -47,7 +47,7 @@ async def summary_stats(ids, project_id=None, dataset_id=None):
 
     if ids is None:
         return await overview_statistics(project_id=project_id, dataset_id=dataset_id)
-    
+
     stats = await search_summary_statistics(ids)
     return await package_biosample_and_experiment_stats(stats)
 

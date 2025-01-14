@@ -29,7 +29,7 @@ class Config:
     BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
     # default when no requested granularity, as well as max granularity for anonymous users
-    # no granularity for info endpoints 
+    # no granularity for info endpoints
     DEFAULT_GRANULARITY = {
         "individuals": GRANULARITY_COUNT,
         "variants": GRANULARITY_COUNT,

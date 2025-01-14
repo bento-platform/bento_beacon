@@ -35,7 +35,6 @@ def parse_query_params(request_data):
         raise InvalidQuery(MESSAGE_FOR_TOO_MANY_DATASETS)
     dataset_id = dataset_ids[0] if len(dataset_ids) else None
 
-
     # strip filter prefixes and convert remaining ids to bento format
     phenopacket_filters = list(
         map(
