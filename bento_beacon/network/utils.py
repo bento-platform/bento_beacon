@@ -6,6 +6,7 @@ from json import JSONDecodeError
 from ..utils.http import tcp_connector
 from ..utils.exceptions import APIException
 from ..utils.katsu_utils import get_katsu_config_search_fields
+from ..utils.censorship import set_censorship
 from ..endpoints.info import beacon_format_service_details
 from ..endpoints.info_permissions_required import overview
 from ..endpoints.biosamples import get_biosamples
@@ -50,6 +51,9 @@ async def info_for_host_beacon():
 
 
 async def host_beacon_response(endpoint):
+    # we're bypassing the usual route to host beacon, so have to invoke censorship manually
+    await set_censorship()
+
     # endpoint already known to be valid
     return await HOST_VIEWS_BY_ENDPOINT[endpoint]()
 
