@@ -42,18 +42,7 @@ async def filtering_terms(project_id=None):
     Filtering terms for single node, single project or single dataset
     Could be generalized to arbitrary datatsets, but this reflects the current restrictions in katsu and the UI
     """
-    dataset_ids = g.beacon_query["dataset_ids"]
-
-    # if scoping by dataset, katsu can only handle a single dataset, and needs a corresponding project
-    if dataset_ids:
-        if len(dataset_ids) != 1:
-            # or, we can throw this together with multiple calls?
-            raise InvalidQuery("for filtering terms by dataset, provide a single dataset only")
-        if project_id is None:
-            # or, we could just look this up ourselves with an extra katsu call
-            raise InvalidQuery("dataset ids require a corresponding project id")
-        dataset_id = dataset_ids[0]
-
+    dataset_id = g.beacon_query.get("dataset_id")
     filtering_terms = await get_filtering_terms(project_id, dataset_id)
     return beacon_info_response({"resources": [], "filteringTerms": filtering_terms})
 

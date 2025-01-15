@@ -35,6 +35,12 @@ def parse_query_params(request_data):
         raise InvalidQuery(MESSAGE_FOR_TOO_MANY_DATASETS)
     dataset_id = dataset_ids[0] if len(dataset_ids) else None
 
+    view_args = request.view_args if request.view_args else {}
+    project_id = view_args.get("project_id")
+
+    if dataset_id and project_id is None:
+        raise InvalidQuery("dataset ids require a corresponding project id")
+
     # strip filter prefixes and convert remaining ids to bento format
     phenopacket_filters = list(
         map(
