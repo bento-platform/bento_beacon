@@ -1,33 +1,110 @@
-katsu_datasets_response = [
-    {
-        "identifier": "abc123",
-        "title": "a dataset",
-        "description": "a dataset description",
-        "contact_info": "",
-        "data_use": {
-            "consent_code": {"primary_category": {"code": "DS"}, "secondary_categories": []},
-            "data_use_requirements": [],
+katsu_projects_response = {
+    "count": 2,
+    "next": None,
+    "previous": None,
+    "results": [
+        {
+            "identifier": "fake_project_123",
+            "datasets": [
+                {
+                    "identifier": "abc123",
+                    "title": "a dataset",
+                    "description": "a dataset description",
+                    "contact_info": "",
+                    "data_use": {
+                        "consent_code": {"primary_category": {"code": "DS"}, "secondary_categories": []},
+                        "data_use_requirements": [],
+                    },
+                    "linked_field_sets": [
+                        {
+                            "name": "BIO_SAMPLE_LFS",
+                            "fields": {
+                                "variant": ["calls", "[item]", "sample_id"],
+                                "experiment": ["biosample"],
+                                "phenopacket": ["biosamples", "[item]", "id"],
+                            },
+                        }
+                    ],
+                    "version": "version_2024-09-27 16:57:59.892126+00:00",
+                    "dats_file": {},
+                    "discovery": {},
+                    "created": "2024-09-27T16:57:59.904421Z",
+                    "updated": "2024-09-27T16:58:08.546705Z",
+                    "additional_resources": [],
+                }
+            ],
+            "project_schemas": [],
+            "title": "GDI rare disease",
+            "description": "",
+            "created": "2025-01-08T19:53:32.744219Z",
+            "updated": "2025-01-09T18:11:47.184055Z",
+            "discovery": {},
         },
-        "linked_field_sets": [
-            {
-                "name": "BIO_SAMPLE_LFS",
-                "fields": {
-                    "variant": ["calls", "[item]", "sample_id"],
-                    "experiment": ["biosample"],
-                    "phenopacket": ["biosamples", "[item]", "id"],
+        {
+            "identifier": "fake_project_345",
+            "datasets": [
+                {
+                    "identifier": "dataset-345-01",
+                    "title": "another dataset",
+                    "description": "another dataset description",
+                    "contact_info": "",
+                    "data_use": {
+                        "consent_code": {"primary_category": {"code": "DS"}, "secondary_categories": []},
+                        "data_use_requirements": [],
+                    },
+                    "linked_field_sets": [
+                        {
+                            "name": "BIO_SAMPLE_LFS",
+                            "fields": {
+                                "variant": ["calls", "[item]", "sample_id"],
+                                "experiment": ["biosample"],
+                                "phenopacket": ["biosamples", "[item]", "id"],
+                            },
+                        }
+                    ],
+                    "version": "version_2024-09-27 16:57:59.892126+00:00",
+                    "dats_file": {},
+                    "discovery": {},
+                    "created": "2024-09-27T16:57:59.904421Z",
+                    "updated": "2024-09-27T16:58:08.546705Z",
+                    "additional_resources": [],
                 },
-            }
-        ],
-        "version": "version_2024-09-27 16:57:59.892126+00:00",
-        "dats_file": {},
-        "discovery": {},
-        "created": "2024-09-27T16:57:59.904421Z",
-        "updated": "2024-09-27T16:58:08.546705Z",
-        "project": "project1",
-        "additional_resources": [],
-    },
-]
-
+                {
+                    "identifier": "dataset-345-02",
+                    "title": "a third dataset",
+                    "description": "a third dataset description",
+                    "contact_info": "",
+                    "data_use": {
+                        "consent_code": {"primary_category": {"code": "DS"}, "secondary_categories": []},
+                        "data_use_requirements": [],
+                    },
+                    "linked_field_sets": [
+                        {
+                            "name": "BIO_SAMPLE_LFS",
+                            "fields": {
+                                "variant": ["calls", "[item]", "sample_id"],
+                                "experiment": ["biosample"],
+                                "phenopacket": ["biosamples", "[item]", "id"],
+                            },
+                        }
+                    ],
+                    "version": "version_2024-09-27 16:57:59.892126+00:00",
+                    "dats_file": {},
+                    "discovery": {},
+                    "created": "2024-09-27T16:57:59.904421Z",
+                    "updated": "2024-09-27T16:58:08.546705Z",
+                    "additional_resources": [],
+                },
+            ],
+            "project_schemas": [],
+            "title": "biobank project",
+            "description": "",
+            "created": "2025-01-08T19:53:32.744219Z",
+            "updated": "2025-01-09T18:11:47.184055Z",
+            "discovery": {},
+        },
+    ],
+}
 
 katsu_total_individuals_count_response = 100
 
