@@ -81,8 +81,11 @@ def mock_katsu_public_rules(app_config, aioresponse):
     public_rules_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_RULES"]
     aioresponse.get(public_rules_url, payload=katsu_public_rules_response)
 
+
 def mock_katsu_public_rules_scoped(app_config, aioresponse):
-    public_rules_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_RULES"] + "?" + f"project={SCOPE_EXAMPLE_PROJECT}"
+    public_rules_url = (
+        app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_RULES"] + "?" + f"project={SCOPE_EXAMPLE_PROJECT}"
+    )
     aioresponse.get(public_rules_url, payload=katsu_public_rules_response)
 
 
@@ -107,7 +110,9 @@ def mock_katsu_public_search_query(app_config, aioresponse):
 
 
 def mock_katsu_public_search_query_scoped(app_config, aioresponse):
-    public_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + KATSU_QUERY_PARAMS_SCOPED
+    public_search_url = (
+        app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + KATSU_QUERY_PARAMS_SCOPED
+    )
     aioresponse.get(public_search_url, payload=katsu_public_search_response)
 
 
@@ -117,7 +122,12 @@ def mock_katsu_private_search_query(app_config, aioresponse):
 
 
 def mock_katsu_private_search_query_scoped(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"] + "?" + f"project={SCOPE_EXAMPLE_PROJECT}&dataset={SCOPE_EXAMPLE_DATASET}"
+    private_search_url = (
+        app_config["KATSU_BASE_URL"]
+        + app_config["KATSU_SEARCH_ENDPOINT"]
+        + "?"
+        + f"project={SCOPE_EXAMPLE_PROJECT}&dataset={SCOPE_EXAMPLE_DATASET}"
+    )
     aioresponse.post(private_search_url, payload=katsu_private_search_response)
 
 
@@ -128,6 +138,15 @@ def mock_katsu_private_search_overview(app_config, aioresponse):
 
 def mock_katsu_individuals(app_config, aioresponse):
     individuals_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + "?page_size=1"
+    aioresponse.get(individuals_url, payload=katsu_individuals_response)
+
+
+def mock_katsu_individuals_scoped(app_config, aioresponse):
+    individuals_url = (
+        app_config["KATSU_BASE_URL"]
+        + app_config["KATSU_INDIVIDUALS_ENDPOINT"]
+        + f"?page_size=1&project={SCOPE_EXAMPLE_PROJECT}"
+    )
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
 
 
@@ -230,6 +249,15 @@ def test_individuals_no_query(app_config, client, aioresponse):
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["count_response"])
 
 
+def test_individuals_no_query_project_scoped(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_individuals_scoped(app_config, aioresponse)
+    mock_katsu_public_rules_scoped(app_config, aioresponse)
+    response = client.get(f"/{SCOPE_EXAMPLE_PROJECT}/individuals")
+    assert response.status_code == 200
+    validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["count_response"])
+
+
 # --------------------------------------------------------
 # queries
 # --------------------------------------------------------
@@ -266,7 +294,6 @@ def test_individuals_query_scoped(app_config, client, aioresponse):
     data = response.get_json()
     assert response.status_code == 200
     assert data["responseSummary"]["numTotalResults"] == 4
-
 
 
 def test_individuals_query_no_permissions(app_config, client, aioresponse):
