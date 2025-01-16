@@ -74,14 +74,6 @@ async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
                 url, headers=await create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload
             ) as r:
 
-                if not r.ok:
-                    current_app.logger.warning(
-                        f"katsu error, status: {r.status}, message: {katsu_response.get('message')}"
-                    )
-                    raise APIException(
-                        message=f"error searching katsu metadata service: {katsu_response.get('message')}"
-                    )
-
                 katsu_response = await r.json()
 
     except JSONDecodeError:
@@ -90,6 +82,10 @@ async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
         raise APIException(message="invalid non-JSON response from katsu")
     except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
+        raise APIException(message="error calling katsu metadata service")
+
+    if not r.ok:
+        current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
         raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
@@ -143,6 +139,10 @@ async def katsu_get(
         raise APIException(message="invalid non-JSON response from katsu")
     except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
+        raise APIException(message="error calling katsu metadata service")
+
+    if not r.ok:
+        current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
         raise APIException(message="error calling katsu metadata service")
 
     return katsu_response
@@ -313,7 +313,7 @@ async def katsu_datasets(project_id=None):
     if project_id is not None:  # single project
         datasets.extend(response.get("datasets", []))
     else:  # multiple projects
-        projects = response.get("results")
+        projects = response.get("results", [])
         for p in projects:
             datasets.extend(p.get("datasets"))
 
