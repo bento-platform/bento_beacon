@@ -112,6 +112,10 @@ gohan_counts_for_overview_response = {"GRCh37": 1000, "GRCh38": 2000}
 
 katsu_public_rules_response = {"count_threshold": 5, "max_query_parameters": 2}
 
+katsu_scope_error_response = {
+    "message": "Error validating discovery scope: project-dataset (<not UUID>, <not UUID>) pair does not exist."
+}
+
 katsu_config_search_fields_response = {
     "sections": [
         {
