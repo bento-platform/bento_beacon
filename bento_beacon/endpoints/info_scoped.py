@@ -10,8 +10,8 @@ from ..utils.gohan_utils import gohan_counts_for_overview
 from ..utils.scope import scoped_route_decorator_for_blueprint
 from ..utils.exceptions import InvalidQuery
 
-info_permissions_required = Blueprint("info_permissions_required", __name__)
-route_with_optional_project_id = scoped_route_decorator_for_blueprint(info_permissions_required)
+info_scoped = Blueprint("info_scoped", __name__)
+route_with_optional_project_id = scoped_route_decorator_for_blueprint(info_scoped)
 
 
 @route_with_optional_project_id("/info")
@@ -29,7 +29,7 @@ async def beacon_info_with_overview(project_id=None):
 async def beacon_overview(project_id=None):
     """
     Custom endpoint not in beacon spec
-    currently node-level overview only
+    currently node-level overview only but needs to read permissions
     """
     service_info = await beacon_format_service_details(project_id)
     return beacon_info_response({**service_info, "overview": await overview(project_id)})

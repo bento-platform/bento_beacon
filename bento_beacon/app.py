@@ -3,7 +3,7 @@ import os
 from flask import Flask, current_app, request
 from urllib.parse import urlunsplit
 from .endpoints.info import info
-from .endpoints.info_permissions_required import info_permissions_required
+from .endpoints.info_scoped import info_scoped
 from .endpoints.individuals import individuals
 from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
@@ -42,7 +42,7 @@ authz_middleware.attach(app)
 # blueprints
 # always load info endpoints, load everything else based on config
 app.register_blueprint(info)
-app.register_blueprint(info_permissions_required)
+app.register_blueprint(info_scoped)
 
 endpoint_blueprints = {
     "biosamples": biosamples,

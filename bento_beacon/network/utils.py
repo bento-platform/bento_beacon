@@ -8,7 +8,7 @@ from ..utils.exceptions import APIException
 from ..utils.katsu_utils import get_katsu_config_search_fields
 from ..utils.censorship import set_censorship
 from ..endpoints.info import beacon_format_service_details
-from ..endpoints.info_permissions_required import overview
+from ..endpoints.info_scoped import overview
 from ..endpoints.biosamples import get_biosamples
 from ..endpoints.cohorts import get_cohorts
 from ..endpoints.datasets import get_datasets
