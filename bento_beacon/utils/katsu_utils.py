@@ -288,16 +288,6 @@ async def get_filtering_terms(project_id, dataset_id):
 # -------------------------------------------------------
 
 
-# used by info endpoints that don't check censorship settings
-# throws exception for bad scope
-async def verify_request_project_scope():
-    view_args = request.view_args if request.view_args else {}
-    project_id = view_args.get("project_id")
-    project_ids = [p["identifier"] for p in (await katsu_projects()).get("results", [])]
-    if project_id is not None and project_id not in project_ids:
-        raise InvalidQuery(f"No project found with id {project_id}")
-
-
 async def katsu_total_individuals_count(project_id=None, dataset_id=None):
     c = current_app.config
     endpoint = c["KATSU_INDIVIDUALS_ENDPOINT"]
