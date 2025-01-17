@@ -180,17 +180,21 @@ def mock_gohan_query(app_config, aioresponse):
 # --------------------------------------------------------
 
 
-def test_service_info(client):
+def test_service_info(app_config, client, aioresponse):
+    mock_katsu_projects(app_config, aioresponse)
     response = client.get("/service-info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["service-info"])
 
 
-def test_service_info_scoped(client):
+def test_service_info_scoped(app_config, client, aioresponse):
+    mock_katsu_projects(app_config, aioresponse)
     response = client.get(f"/{SCOPE_EXAMPLE_PROJECT}/service-info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["service-info"])
 
 
-def test_root(client):
+def test_root(app_config, client, aioresponse):
+    mock_katsu_projects(app_config, aioresponse)  # scope check before request
+    mock_katsu_projects(app_config, aioresponse)  # collecting dataset descriptions
     response = client.get("/")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
 
@@ -206,17 +210,20 @@ def test_info(app_config, client, aioresponse):
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
 
 
-def test_map(client):
+def test_map(app_config, client, aioresponse):
+    mock_katsu_projects(app_config, aioresponse)
     response = client.get("/map")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["map"])
 
 
-def test_entry_types(client):
+def test_entry_types(app_config, client, aioresponse):
+    mock_katsu_projects(app_config, aioresponse)
     response = client.get("/entry_types")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["entry_types"])
 
 
 def test_configuration_endpoint(app_config, client, aioresponse):
+    mock_katsu_projects(app_config, aioresponse)
     response = client.get("/configuration")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["configuration"])
 
