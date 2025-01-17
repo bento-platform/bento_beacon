@@ -13,10 +13,11 @@ async def set_censorship() -> None:
 
 
 async def censorship_settings_lookup() -> tuple[int, int]:
-    # we're "before request" but view args are available from request object
+    # we're "before request" but request already parsed
     view_args = request.view_args if request.view_args else {}
+    query = g.beacon_query if g.beacon_query else {}
     project_id = view_args.get("project_id")
-    dataset_id = request.args.get("datasetIds")
+    dataset_id = query.get("dataset_id")
 
     max_filters, count_threshold = await katsu_censorship_settings(project_id=project_id, dataset_id=dataset_id)
     if max_filters is None or count_threshold is None:
