@@ -287,7 +287,8 @@ async def get_filtering_terms(project_id, dataset_id):
 #       utils
 # -------------------------------------------------------
 
-# used by info endpoints that don't check censorship settings 
+
+# used by info endpoints that don't check censorship settings
 # throws exception for bad scope
 async def verify_request_project_scope():
     view_args = request.view_args if request.view_args else {}
@@ -308,7 +309,12 @@ async def katsu_total_individuals_count(project_id=None, dataset_id=None):
 
 
 async def katsu_projects(project_id=None):
-    return await katsu_get(current_app.config["KATSU_PROJECTS_ENDPOINT"], entity_id=project_id, query_dict={"format": "phenopackets"}, requires_auth="none")
+    return await katsu_get(
+        current_app.config["KATSU_PROJECTS_ENDPOINT"],
+        entity_id=project_id,
+        query_dict={"format": "phenopackets"},
+        requires_auth="none",
+    )
 
 
 async def katsu_datasets(project_id=None):
