@@ -1,5 +1,5 @@
 import aiohttp
-from flask import current_app
+from flask import current_app, request
 from functools import reduce
 from json import JSONDecodeError
 from urllib.parse import urlencode, urlsplit, urlunsplit
@@ -287,6 +287,15 @@ async def get_filtering_terms(project_id, dataset_id):
 #       utils
 # -------------------------------------------------------
 
+# used by info endpoints that don't check censorship settings 
+# throws exception for bad scope
+async def verify_request_project_scope():
+    view_args = request.view_args if request.view_args else {}
+    project_id = view_args.get("project_id")
+    project_ids = [p["identifier"] for p in (await katsu_projects()).get("results", [])]
+    if project_id is not None and project_id not in project_ids:
+        raise InvalidQuery(f"No project found with id {project_id}")
+
 
 async def katsu_total_individuals_count(project_id=None, dataset_id=None):
     c = current_app.config
@@ -298,17 +307,14 @@ async def katsu_total_individuals_count(project_id=None, dataset_id=None):
     return count
 
 
+async def katsu_projects(project_id=None):
+    return await katsu_get(current_app.config["KATSU_PROJECTS_ENDPOINT"], entity_id=project_id, query_dict={"format": "phenopackets"}, requires_auth="none")
+
+
 async def katsu_datasets(project_id=None):
     # katsu /datasets endpoint not scoped, so call /projects and read from there
-    endpoint = current_app.config["KATSU_PROJECTS_ENDPOINT"]
     datasets = []
-    try:
-        # right now, the projects endpoint doesn't need any authorization for listing
-        response = await katsu_get(
-            endpoint, entity_id=project_id, query_dict={"format": "phenopackets"}, requires_auth="none"
-        )
-    except APIException:
-        return []
+    response = await katsu_projects(project_id=project_id)
 
     if project_id is not None:  # single project
         datasets.extend(response.get("datasets", []))

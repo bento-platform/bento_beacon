@@ -1,15 +1,16 @@
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import (
-    katsu_get,
-    katsu_datasets,
-)
+from ..utils.katsu_utils import katsu_get, katsu_datasets, verify_request_project_scope
 from ..utils.scope import scoped_route_decorator_for_blueprint
-
 
 info = Blueprint("info", __name__)
 route_with_optional_project_id = scoped_route_decorator_for_blueprint(info)
+
+
+@info.before_request
+async def before_info_request():
+    await verify_request_project_scope()
 
 
 # All info endpoints accept an optional project_id prefix in the path, i.e. they will accept both
