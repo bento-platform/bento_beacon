@@ -38,6 +38,9 @@ async def add_stats_to_response(ids, project_id=None, dataset_id=None):
 
 
 async def add_overview_stats_to_response(project_id=None, dataset_id=None):
+    # TODO: check permissions
+    # should fail if you don't at least have count rights 
+
     await add_stats_to_response(None, project_id, dataset_id)
 
 
@@ -108,7 +111,10 @@ def response_granularity():
     where max is the highest granularity allowed, based on this user's permissions
     and the ordering is "boolean" < "count" < "record"
     """
+
+    # GET requests impossible to handle without a default, since "requestedGranularity" exists only in POST body
     default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
+
     max_g = GRANULARITY_RECORD if g.permission_query_data else default_g
     requested_g = g.request_data.get("requestedGranularity")
 
