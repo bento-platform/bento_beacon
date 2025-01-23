@@ -21,10 +21,10 @@ def scoped_route_decorator_for_blueprint(blueprint):
             blueprint.add_url_rule(rule, view_func=f, **options)
             blueprint.add_url_rule(f"/<project_id>{rule}", view_func=f, **options)
 
-            async def wrappper(*args, **kwargs):
+            async def wrapper(*args, **kwargs):
                 return await f(*args, **kwargs)
 
-            return wrappper
+            return wrapper
 
         return deco
 
