@@ -39,7 +39,7 @@ async def add_stats_to_response(ids, project_id=None, dataset_id=None):
 
 async def add_overview_stats_to_response(project_id=None, dataset_id=None):
     # TODO: check permissions
-    # should fail if you don't at least have count rights 
+    # should fail if you don't at least have count rights
 
     await add_stats_to_response(None, project_id, dataset_id)
 
