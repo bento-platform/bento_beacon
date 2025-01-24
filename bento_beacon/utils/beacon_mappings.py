@@ -59,5 +59,9 @@ def katsu_to_beacon_dataset_mapping(kd):
             "id": kd.get("identifier"),
             "title": kd.get("title"),
             "description": kd.get("description"),
-            "dataUseConditions": kd.get("dataUse"),
+            # "dataUseConditions": kd.get("dataUse"),
         }
+
+
+# TODO: beacon spec dataUseConditions
+# either wait for katsu to send full DUO ontologies, or write a Bento code -> DUO ontology mapping

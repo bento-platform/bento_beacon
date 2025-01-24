@@ -5,8 +5,10 @@ from urllib.parse import urlsplit, urlunsplit
 from json import JSONDecodeError
 from ..utils.http import tcp_connector
 from ..utils.exceptions import APIException
-from ..utils.katsu_utils import overview_statistics, get_katsu_config_search_fields
-from ..endpoints.info import build_service_details, overview
+from ..utils.katsu_utils import get_katsu_config_search_fields
+from ..utils.censorship import set_censorship
+from ..endpoints.info import beacon_format_service_details
+from ..endpoints.info_scoped import overview
 from ..endpoints.biosamples import get_biosamples
 from ..endpoints.cohorts import get_cohorts
 from ..endpoints.datasets import get_datasets
@@ -36,36 +38,22 @@ HOST_VIEWS_BY_ENDPOINT = {
 # get network node info for this beacon, which is also hosting the network
 # call methods directly instead of circular http calls
 async def info_for_host_beacon():
-    service_details = await build_service_details()
-
-    # TODO: fix ugly overlapping overview functions
-    # requires rolling out changes to all beacons first
+    service_details = await beacon_format_service_details()
     bento_overview = await overview()
-    bento_private_overview = await overview_statistics()
-    experiment_stats = {"count": bento_private_overview.get("count", 0)}
-    biosample_stats = {
-        "count": bento_private_overview.get("phenopacket", {})
-        .get("data_type_specific", {})
-        .get("biosamples", {})
-        .get("count", 0)
-    }
-
     api_url = current_app.config["BEACON_BASE_URL"]
 
     return {
         **service_details,
         "apiUrl": api_url,
-        "overview": {
-            "individuals": {"count": bento_overview.get("counts", {}).get("individuals")},
-            "variants": bento_overview.get("counts", {}).get("variants", {}),
-            "biosamples": biosample_stats,
-            "experiments": experiment_stats,
-        },
-        "querySections": (await get_katsu_config_search_fields(requires_auth="none")).get("sections", []),
+        "overview": bento_overview,
+        "querySections": (await get_katsu_config_search_fields()).get("sections", []),
     }
 
 
 async def host_beacon_response(endpoint):
+    # we're bypassing the usual route to host beacon, so have to invoke censorship manually
+    await set_censorship()
+
     # endpoint already known to be valid
     return await HOST_VIEWS_BY_ENDPOINT[endpoint]()
 
@@ -88,15 +76,14 @@ async def network_beacon_call(method, url, payload=None):
 
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
-            if method == "GET":
-                r = await s.get(url, timeout=timeout)
-            else:
-                r = await s.post(url, timeout=timeout, json=payload)
+            async with (
+                s.get(url, timeout=timeout) if method == "GET" else s.post(url, timeout=timeout, json=payload)
+            ) as r:
 
-        if not r.ok:
-            raise APIException()
+                if not r.ok:
+                    raise APIException()
 
-        beacon_response = await r.json()
+                beacon_response = await r.json()
 
     except (APIException, aiohttp.ClientError, JSONDecodeError) as e:
         msg = f"beacon network error calling url {url}: {e}"

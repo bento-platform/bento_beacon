@@ -29,13 +29,13 @@ class Config:
     BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
     # default when no requested granularity, as well as max granularity for anonymous users
+    # no granularity for info endpoints
     DEFAULT_GRANULARITY = {
         "individuals": GRANULARITY_COUNT,
         "variants": GRANULARITY_COUNT,
         "biosamples": GRANULARITY_COUNT,
         "cohorts": GRANULARITY_RECORD,
         "datasets": GRANULARITY_RECORD,
-        "info": GRANULARITY_RECORD,
         "network": GRANULARITY_COUNT,
     }
 
@@ -146,7 +146,7 @@ class Config:
     KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
-    KATSU_BATCH_INDIVIDUALS_ENDPOINT = "/api/batch/individuals"
+    KATSU_PROJECTS_ENDPOINT = "/api/projects"
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"
@@ -155,7 +155,6 @@ class Config:
     KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
     KATSU_BEACON_SEARCH = "/api/public"
     KATSU_SEARCH_OVERVIEW = "/api/search_overview"
-    KATSU_PRIVATE_OVERVIEW = "/api/overview"
     KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
     KATSU_PUBLIC_RULES = "/api/public_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
@@ -164,8 +163,8 @@ class Config:
 
     MAX_RETRIES_FOR_CENSORSHIP_PARAMS = int(os.environ.get("MAX_RETRIES_FOR_CENSORSHIP_PARAMS", 2))
 
-    # don't let anonymous users query arbitrary phenopacket or experiment fields
-    ANONYMOUS_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
+    # don't allow queries over arbitrary phenopacket or experiment fields without permission
+    CENSORED_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY = True
 
     # -------------------
     # gohan

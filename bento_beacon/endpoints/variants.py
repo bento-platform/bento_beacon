@@ -5,16 +5,17 @@ from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_t
 from ..utils.search import biosample_id_search
 
 variants = Blueprint("variants", __name__)
+# variant routes are not scoped, since gohan does not accept scoped queries.
 
 
 # returns count or boolean only
 @variants.route("/g_variants", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint  # TODO: for now. eventually, return more depending on permissions
 async def get_variants():
-    variants_query = g.beacon_query_parameters["variants_query"]
-    phenopacket_filters = g.beacon_query_parameters["phenopacket_filters"]
-    experiment_filters = g.beacon_query_parameters["experiment_filters"]
-    config_filters = g.beacon_query_parameters["config_filters"]
+    variants_query = g.beacon_query["variants_query"]
+    phenopacket_filters = g.beacon_query["phenopacket_filters"]
+    experiment_filters = g.beacon_query["experiment_filters"]
+    config_filters = g.beacon_query["config_filters"]
     has_filters = phenopacket_filters or experiment_filters or config_filters
 
     # if no query, return total count of variants
@@ -43,7 +44,9 @@ async def get_variants():
         variant_results = await query_gohan(variants_query, "record", ids_only=False)
         if has_filters:
             variant_results_list = list(filter(lambda v: v.get("sample_id") in sample_ids, variant_results))
-        gohan_count = len(variant_results_list)
+            gohan_count = len(variant_results_list)
+        else:
+            gohan_count = len(variant_results)
     else:
         # gohan overview returns lowercase only
         sample_ids = [id.lower() for id in sample_ids]
