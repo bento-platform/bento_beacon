@@ -1,9 +1,10 @@
 import jsonschema
 from flask import current_app, request, g
-from .exceptions import InvalidQuery
+from .exceptions import InvalidQuery, PermissionsException
 from .scope import MESSAGE_FOR_TOO_MANY_DATASETS
 from ..authz.middleware import evaluate_permissions_on_resource, resource_level
-from ..authz.utils import PermissionsDict
+from ..authz.utils import PermissionsDict, has_bool_permissions, has_count_permissions, has_full_record_permissions
+from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
 def request_defaults():
@@ -204,20 +205,27 @@ async def verify_permissions():
 
 
 def check_permissions_sufficient_for_request(permissions: PermissionsDict, project_id: str, dataset_id: str):
+    # project_id param currently unused
 
-    # permissions in g.permissions are the ones for THE RESOURCE REQUESTED, so we don't have to check it again
-    # we only have to check that request granularity matches permissions
-    level = resource_level(project_id, dataset_id)
+    requested_granularity = g.request_data["requestedGranularity"]
 
-    # throw exception if bad permissions
-    # TODO
-    # xxxxxxxxxxxxxxxxxxxxxxxxxxx
+    if requested_granularity == GRANULARITY_RECORD:
+        if not has_full_record_permissions(permissions):
+            raise PermissionsException()
+
+    if requested_granularity == GRANULARITY_COUNT:
+        if not has_count_permissions(dataset_id, permissions):
+            raise PermissionsException()
+
+    if requested_granularity == GRANULARITY_BOOLEAN:
+        if not has_bool_permissions(dataset_id, permissions):
+            raise PermissionsException()
 
 
 async def retrieve_permissions(project_id: str, dataset_id: str) -> PermissionsDict:
     # for now we only need to check a single resource (either a dataset, a project, or the "everything" resource)
     permissions = await evaluate_permissions_on_resource(project_id, dataset_id)
 
-    # store and return
+    # store and return?
     g.permissions = permissions
     return permissions

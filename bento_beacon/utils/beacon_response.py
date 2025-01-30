@@ -116,6 +116,11 @@ def received_request():
 # --------------------------------------------------------------------
 
 
+# reconsider this function
+# with fine-grained permissions, queries are either permitted or not
+# may no longer be feasible to, eg, give a boolean response to a full-record query
+# since the query may be blocked at some stage for insufficient permissions
+# ... It's perfectly sensible to reject queries for insufficient permissions
 def response_granularity():
     """
     Determine response granularity from requested granularity and permissions.
