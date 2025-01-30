@@ -25,3 +25,10 @@ class NotFoundException(APIException):
         super().__init__()
         self.message = message
         self.status_code = status_code
+
+
+class PermissionsException(APIException):
+    def __init__(self, message="Insufficient permissions", status_code=403):
+        super().__init__()
+        self.message = message
+        self.status_code = status_code
