@@ -10,6 +10,13 @@ from bento_lib.auth.permissions import (
 PermissionsDict = dict[Permission, bool]
 
 
+# perhaps clean up weird mix of approaches for determining scope:
+
+# "dataset_id" param (scope is dataset if it exists, otherwise not)
+# "dataset_level" param (bool equivalent of above)
+# named scope levels "everything", "project", "dataset"  
+
+
 def has_bool_permissions(dataset_id: str, permissions: PermissionsDict) -> bool:
     dataset_level = False if dataset_id is None else True
     bool_permission = bool_permission_for_scope(dataset_level)
