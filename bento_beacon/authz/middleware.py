@@ -28,7 +28,7 @@ authz_middleware = FlaskAuthMiddleware(
     debug_mode=Config.BENTO_DEBUG,
 )
 
-permissions = {
+permissions_by_scope_level = {
     "everything": [
         P_QUERY_DATA,
         P_QUERY_PROJECT_LEVEL_COUNTS,
@@ -64,7 +64,7 @@ async def evaluate_permissions_on_resource(project_id: str, dataset_id: str) -> 
     resource = build_resource(project_id, dataset_id)
     level = resource_level(project_id, dataset_id)  # or something else?
 
-    checked_permissions = permissions[level]
+    checked_permissions = permissions_by_scope_level[level]
     r = await authz_middleware.async_evaluate_to_dict(request, [resource], checked_permissions, mark_authz_done=True)
     return r[0] if r else {}
 
