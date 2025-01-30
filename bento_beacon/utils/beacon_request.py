@@ -1,9 +1,9 @@
 import jsonschema
-from bento_lib.auth.permissions import P_QUERY_DATA
 from flask import current_app, request, g
 from .exceptions import InvalidQuery
 from .scope import MESSAGE_FOR_TOO_MANY_DATASETS
-from ..authz.middleware import check_permission
+from ..authz.middleware import evaluate_permissions_on_resource, resource_level
+from ..authz.utils import PermissionsDict
 
 
 def request_defaults():
@@ -192,5 +192,32 @@ def summary_stats_requested():
 
 
 async def verify_permissions():
-    # can do much more here in the future
-    g.permission_query_data = await check_permission(P_QUERY_DATA)
+    view_args = request.view_args if request.view_args else {}
+    project_id = view_args.get("project_id")
+    dataset_id = g.beacon_query.get("dataset_id")
+    permissions = await retrieve_permissions(project_id, dataset_id)
+
+    # courtesy check for missing permissions
+    # users without correct permissions will be blocked somewhere during request processing
+    # but they might not get a sensible error message mentioning a problem with permissions
+    check_permissions_sufficient_for_request(permissions, project_id, dataset_id)
+
+
+def check_permissions_sufficient_for_request(permissions: PermissionsDict, project_id: str, dataset_id: str):
+
+    # permissions in g.permissions are the ones for THE RESOURCE REQUESTED, so we don't have to check it again
+    # we only have to check that request granularity matches permissions
+    level = resource_level(project_id, dataset_id)
+
+    # throw exception if bad permissions
+    # TODO
+    # xxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+async def retrieve_permissions(project_id: str, dataset_id: str) -> PermissionsDict:
+    # for now we only need to check a single resource (either a dataset, a project, or the "everything" resource)
+    permissions = await evaluate_permissions_on_resource(project_id, dataset_id)
+
+    # store and return
+    g.permissions = permissions
+    return permissions
