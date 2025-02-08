@@ -197,16 +197,15 @@ async def verify_permissions():
     project_id = view_args.get("project_id")
     dataset_id = g.beacon_query.get("dataset_id")
     permissions = await retrieve_permissions(project_id, dataset_id)
-
-    # courtesy check for missing permissions
-    # users without correct permissions will be blocked somewhere during request processing
-    # but they might not get a sensible error message mentioning a problem with permissions
-    check_permissions_sufficient_for_request(permissions, project_id, dataset_id)
+    check_permissions_sufficient_for_request(permissions, dataset_id)
 
 
-def check_permissions_sufficient_for_request(permissions: PermissionsDict, project_id: str, dataset_id: str):
-    # project_id param currently unused
-
+def check_permissions_sufficient_for_request(permissions: PermissionsDict, dataset_id: str):
+    # permissions are for the resource being requested
+    # we don't need to re-verify which resource is being requested, so we don't need project_id
+    # but we do need to know whether we are at dataset level or project level
+    # so need either dataset_id or an equivalent is_dataset_level bool
+    # TODO
     requested_granularity = g.request_data["requestedGranularity"]
 
     if requested_granularity == GRANULARITY_RECORD:

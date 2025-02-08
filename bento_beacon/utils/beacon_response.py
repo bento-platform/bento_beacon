@@ -107,48 +107,19 @@ def received_request():
 # --------------------------------------------------------------------
 #  Response control flow
 #
-#  - determine response granularity (boolean, count, record) from
-#    permissions and user request, then route response accordingly
+#  - return requested granularity or a default
+#    users with bad permissions are rejected before reaching here
 #
-#  - apply censorship to bool and count responses for anonymous users;
-#    full-record censorship is done elsewhere, typically by not
-#    permitting a response
+#  - apply censorship to bool and count responses to users without P_QUERY_DATA permissions
+#    full-record responses are censored elsewhere, typically by rejecting the query
 # --------------------------------------------------------------------
 
 
-# reconsider this function
-# with fine-grained permissions, queries are either permitted or not
-# may no longer be feasible to, eg, give a boolean response to a full-record query
-# since the query may be blocked at some stage for insufficient permissions
-# ... It's perfectly sensible to reject queries for insufficient permissions
 def response_granularity():
-    """
-    Determine response granularity from requested granularity and permissions.
-    Returns requested granularity when requested <= max, returns max otherwise,
-    where max is the highest granularity allowed, based on this user's permissions
-    and the ordering is "boolean" < "count" < "record"
-    """
-
     # GET requests impossible to handle without a default, since "requestedGranularity" exists only in POST body
     default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
-
-    max_g = GRANULARITY_RECORD if has_full_record_permissions(g.permissions) else default_g
     requested_g = g.request_data.get("requestedGranularity")
-
-    # below would be cleaner with an ordered enum, but that adds serialization headaches
-
-    # if max is "record" everything is permitted
-    if max_g == GRANULARITY_RECORD:
-        return requested_g
-    # if max is "boolean" nothing else is permitted
-    if max_g == GRANULARITY_BOOLEAN:
-        return max_g
-    # only thing lower than count is boolean
-    if max_g == GRANULARITY_COUNT:
-        return requested_g if requested_g == GRANULARITY_BOOLEAN else max_g
-
-    # no other cases
-    raise APIException()
+    return requested_g if requested_g else default_g
 
 
 async def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
