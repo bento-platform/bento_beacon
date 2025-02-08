@@ -70,8 +70,8 @@ async def before_request():
     if request.blueprint == "info":
         return
     validate_request()
-    await verify_permissions()
     await save_request_data()
+    await verify_permissions()
     if request.blueprint != "network":
         # censorship is handled by individual beacons, not the network itself
         await set_censorship()
