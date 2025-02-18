@@ -1,6 +1,6 @@
 from flask import Blueprint, g
 from functools import reduce
-from ..authz.utils import has_download_data_permissions
+from ..authz.utils import has_download_data_permissions, has_full_record_permissions
 from ..utils.beacon_request import summary_stats_requested
 from ..utils.beacon_response import (
     add_info_to_response,
@@ -18,7 +18,7 @@ from ..utils.katsu_utils import (
 )
 from ..utils.search import biosample_id_search
 from ..utils.handover_utils import handover_for_ids
-from ..utils.exceptions import NotFoundException
+from ..utils.exceptions import NotFoundException, PermissionsException
 from ..utils.scope import scoped_route_decorator_for_blueprint
 
 individuals = Blueprint("individuals", __name__)
@@ -94,15 +94,15 @@ async def get_individuals(project_id=None):
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
-async def individuals_full_results(ids):
+async def individuals_full_results(ids, project_id=None, dataset_id=None):
 
     # temp
     # if len(ids) > 100:
     #     return {"message": "too many ids for full response"}
 
     handover_permission = has_download_data_permissions(g.permissions)
-    handover = (await handover_for_ids(ids)) if handover_permission else {}
-    phenopackets_by_result_set = (await phenopackets_for_ids(ids)).get("results", {})
+    handover = (await handover_for_ids(ids, project_id, dataset_id)) if handover_permission else {}
+    phenopackets_by_result_set = (await phenopackets_for_ids(ids, project_id, dataset_id)).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
     result_sets = {}
     numTotalResults = 0
@@ -126,31 +126,15 @@ async def individuals_full_results(ids):
     return result_sets, numTotalResults
 
 
-
-
-
-
-#############################
-# individual by id endpoint
-# permissions issue: this has @deco_require_permissions_on_resource decorator, but needs to know scope (just checks "everything" permissions if no scope given)
-# this isn't possible in current decorator implementation, since we're supposed to pass scope as a param
-# but decorator is imported at app setup, not when the wrapped function is called, so there is no request to read then, so no scope either
-#
-# most straightforward fix is to use something other than a decorator here.
-#
-# also, we are asking for a particular individual, so the concept of scope is not that meaningful
-# we can still read project id / dataset id from request
-# but they're not particularly relevant because we're only asking for one person
-#######################################3
-
-
 # forbidden / unauthorized if no permissions
 @route_with_optional_project_id("/individuals/<id>", methods=["GET", "POST"])
-# @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})   # now needs scope, but I can't access scope in the decorator
 async def individual_by_id(id, project_id=None):
-    result_sets, numTotalResults = await individuals_full_results([id])  # needs project scoping, dataset scoping harder
+    # replaces "deco_require_permissions_on_resource" decorator
+    if not has_full_record_permissions(g.permissions):
+        raise PermissionsException()
 
-    # TODO: reimplement permissions previously handled by decorator
+    dataset_id = g.beacon_query["dataset_id"]
+    result_sets, numTotalResults = await individuals_full_results([id], project_id=project_id, dataset_id=dataset_id)
 
     # return 404 if not found
     # only authorized users will get 404 here, so this can't be used to probe ids

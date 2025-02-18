@@ -48,7 +48,7 @@ async def drs_object_from_filename(filename):
     return await drs_network_call("/search", f"name={filename}")
 
 
-async def filenames_by_results_set(ids):
+async def filenames_by_results_set(ids, project_id, dataset_id):
     if not ids:
         return {}
 
@@ -62,7 +62,7 @@ async def filenames_by_results_set(ids):
         "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"],
     }
 
-    response = await katsu_post(payload)
+    response = await katsu_post(payload, project_id=project_id, dataset_id=dataset_id)
     results = response.get("results")
     files_by_results_set = {}
 
@@ -100,13 +100,13 @@ def vcf_handover_entry(url, note=None):
     return entry
 
 
-async def handover_for_ids(ids):
+async def handover_for_ids(ids, project_id, dataset_id):
     # ideally we would preserve the mapping between ids and links,
     # but this requires changes in katsu to do well
 
     handovers = {}
 
-    files_for_results = await filenames_by_results_set(ids)
+    files_for_results = await filenames_by_results_set(ids, project_id, dataset_id)
 
     for results_set, files in files_for_results.items():
         handovers_this_set = []
