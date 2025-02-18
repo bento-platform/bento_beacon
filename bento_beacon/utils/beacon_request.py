@@ -1,5 +1,6 @@
 import jsonschema
 from flask import current_app, request, g
+from bento_lib.auth.resources import build_resource
 from .exceptions import InvalidQuery, PermissionsException
 from .scope import MESSAGE_FOR_TOO_MANY_DATASETS
 from ..authz.middleware import evaluate_permissions_on_resource, resource_level
@@ -200,7 +201,7 @@ async def verify_permissions():
     check_permissions_sufficient_for_request(permissions, dataset_id)
 
 
-def check_permissions_sufficient_for_request(permissions: PermissionsDict, dataset_id: str):
+def check_permissions_sufficient_for_request(permissions: PermissionsDict, dataset_id: str) -> None:
     # permissions are for the resource being requested
     # we don't need to re-verify which resource is being requested, so we don't need project_id
     # but we do need to know whether we are at dataset level or project level
@@ -208,17 +209,14 @@ def check_permissions_sufficient_for_request(permissions: PermissionsDict, datas
     # TODO
     requested_granularity = g.request_data["requestedGranularity"]
 
-    if requested_granularity == GRANULARITY_RECORD:
-        if not has_full_record_permissions(permissions):
-            raise PermissionsException()
+    if requested_granularity == GRANULARITY_RECORD and not has_full_record_permissions(permissions):
+        raise PermissionsException()
 
-    if requested_granularity == GRANULARITY_COUNT:
-        if not has_count_permissions(dataset_id, permissions):
-            raise PermissionsException()
+    if requested_granularity == GRANULARITY_COUNT and not has_count_permissions(dataset_id, permissions):
+        raise PermissionsException()
 
-    if requested_granularity == GRANULARITY_BOOLEAN:
-        if not has_bool_permissions(dataset_id, permissions):
-            raise PermissionsException()
+    if requested_granularity == GRANULARITY_BOOLEAN and not has_bool_permissions(dataset_id, permissions):
+        raise PermissionsException()
 
 
 async def retrieve_permissions(project_id: str, dataset_id: str) -> PermissionsDict:
@@ -228,3 +226,10 @@ async def retrieve_permissions(project_id: str, dataset_id: str) -> PermissionsD
     # store and return?
     g.permissions = permissions
     return permissions
+
+
+def requested_resource():
+    view_args = request.view_args if request.view_args else {}
+    project_id = view_args.get("project_id")
+    dataset_id = g.beacon_query.get("dataset_id")
+    return build_resource(project_id, dataset_id)

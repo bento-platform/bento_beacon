@@ -15,14 +15,15 @@ PermissionsDict = dict[Permission, bool]
 
 # "dataset_id" param (scope is dataset if it exists, otherwise not)
 # "dataset_level" param (bool equivalent of above)
-# named scope levels "everything", "project", "dataset"  
+# named scope levels "everything", "project", "dataset"
 # ...  plus the resource produced by bento_lib build_resource()
 
 
-# two possibilities for these methods:
+# two possibilities for methods below:
 # 1. purely functional (always use permissions parameter)
 # 2. no parameter, just pull current permissions from flask g
-# ... note that most callers will be pulling permissions from g anyhow
+# ... note that most callers will be pulling permissions from g anyhow,
+# alternative is passing request everywhere, but request is also global in flask, so again, there's not much point
 
 
 def has_bool_permissions(dataset_id: str, permissions: PermissionsDict) -> bool:
@@ -41,6 +42,7 @@ def has_count_permissions(dataset_id: str, permissions: PermissionsDict) -> bool
 # this grants permission to get full record response
 # but it also means "all access".... no count threshold, no max filters, no forbidden queries
 # are these always going to be the same thing?
+# full record response has more in common with P_DOWNLOAD_DATA
 def has_full_record_permissions(permissions: PermissionsDict) -> bool:
     return permissions.get(P_QUERY_DATA, False)
 

@@ -100,7 +100,10 @@ def query_has_experiment_filter() -> bool:
 # some anonymous queries are not permitted
 def reject_query_if_not_permitted() -> None:
     user_permissions = g.permissions
-    if has_full_record_permissions(user_permissions) or not current_app.config["CENSORED_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY"]:
+    if (
+        has_full_record_permissions(user_permissions)
+        or not current_app.config["CENSORED_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY"]
+    ):
         return
     if query_has_phenopacket_filter() or query_has_experiment_filter():
         raise InvalidQuery("insufficient permissions for this request, use filters from discovery config only")

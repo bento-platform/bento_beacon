@@ -32,3 +32,5 @@ class PermissionsException(APIException):
         super().__init__()
         self.message = message
         self.status_code = status_code
+        # can we get a more informative message?
+        # eg: you need permission X, you have permissions (Y, Z)
