@@ -53,6 +53,8 @@ async def filenames_by_results_set(ids):
         return {}
 
     # payload for bento search that returns all experiment filenames in results
+    # ideally we would get both the individual id *and* the filenames together,
+    # but this is not possible in current katsu
     payload = {
         "data_type": "phenopacket",
         "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]],

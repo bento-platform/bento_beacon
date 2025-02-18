@@ -4,6 +4,7 @@ from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from bento_lib.auth.permissions import (
     Permission,
     P_QUERY_DATA,
+    P_DOWNLOAD_DATA,
     P_QUERY_PROJECT_LEVEL_COUNTS,
     P_QUERY_PROJECT_LEVEL_BOOLEAN,
     P_QUERY_DATASET_LEVEL_COUNTS,
@@ -31,6 +32,7 @@ authz_middleware = FlaskAuthMiddleware(
 permissions_by_scope_level = {
     "everything": [
         P_QUERY_DATA,
+        P_DOWNLOAD_DATA,
         P_QUERY_PROJECT_LEVEL_COUNTS,
         P_QUERY_PROJECT_LEVEL_BOOLEAN,
         P_QUERY_DATASET_LEVEL_COUNTS,
@@ -39,17 +41,18 @@ permissions_by_scope_level = {
     # same as "everything" :(  xxxxxxxxxxxx
     "project": [
         P_QUERY_DATA,
+        P_DOWNLOAD_DATA,
         P_QUERY_PROJECT_LEVEL_COUNTS,
         P_QUERY_PROJECT_LEVEL_BOOLEAN,
         P_QUERY_DATASET_LEVEL_COUNTS,
         P_QUERY_DATASET_LEVEL_BOOLEAN,
     ],
-    "dataset": [P_QUERY_DATA, P_QUERY_DATASET_LEVEL_COUNTS, P_QUERY_DATASET_LEVEL_BOOLEAN],
+    "dataset": [P_QUERY_DATA, P_DOWNLOAD_DATA, P_QUERY_DATASET_LEVEL_COUNTS, P_QUERY_DATASET_LEVEL_BOOLEAN],
 }
 
-
-async def check_permission(permission: Permission) -> bool:
-    return await authz_middleware.async_evaluate_one(request, RESOURCE_EVERYTHING, permission, mark_authz_done=True)
+# deprecated, scopeless
+# async def check_permission(permission: Permission) -> bool:
+#     return await authz_middleware.async_evaluate_one(request, RESOURCE_EVERYTHING, permission, mark_authz_done=True)
 
 
 async def evaluate_permissions_on_resource(project_id: str, dataset_id: str) -> dict[Permission, bool]:
@@ -59,7 +62,7 @@ async def evaluate_permissions_on_resource(project_id: str, dataset_id: str) -> 
     """
     # permissions are checked in katsu, so some code here will be redundant in some cases, but:
     # - it's not checked yet in gohan
-    # - in some cases (like overviews) beacon needs uncensored katsu data, and has to check permissions itself
+    # - in many cases beacon needs uncensored katsu data, and has to check permissions itself
 
     resource = build_resource(project_id, dataset_id)
     level = resource_level(project_id, dataset_id)  # or something else?

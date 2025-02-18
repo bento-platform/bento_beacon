@@ -1,10 +1,6 @@
-from bento_lib.auth.permissions import (
-    P_DOWNLOAD_DATA,
-    P_QUERY_DATA,
-)
 from flask import Blueprint, g
 from functools import reduce
-from ..authz.middleware import authz_middleware, check_permission
+from ..authz.utils import has_download_data_permissions
 from ..utils.beacon_request import summary_stats_requested
 from ..utils.beacon_response import (
     add_info_to_response,
@@ -104,7 +100,7 @@ async def individuals_full_results(ids):
     # if len(ids) > 100:
     #     return {"message": "too many ids for full response"}
 
-    handover_permission = await check_permission(P_DOWNLOAD_DATA)
+    handover_permission = has_download_data_permissions(g.permissions)
     handover = (await handover_for_ids(ids)) if handover_permission else {}
     phenopackets_by_result_set = (await phenopackets_for_ids(ids)).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
@@ -130,11 +126,31 @@ async def individuals_full_results(ids):
     return result_sets, numTotalResults
 
 
+
+
+
+
+#############################
+# individual by id endpoint
+# permissions issue: this has @deco_require_permissions_on_resource decorator, but needs to know scope (just checks "everything" permissions if no scope given)
+# this isn't possible in current decorator implementation, since we're supposed to pass scope as a param
+# but decorator is imported at app setup, not when the wrapped function is called, so there is no request to read then, so no scope either
+#
+# most straightforward fix is to use something other than a decorator here.
+#
+# also, we are asking for a particular individual, so the concept of scope is not that meaningful
+# we can still read project id / dataset id from request
+# but they're not particularly relevant because we're only asking for one person
+#######################################3
+
+
 # forbidden / unauthorized if no permissions
 @route_with_optional_project_id("/individuals/<id>", methods=["GET", "POST"])
-@authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})
+# @authz_middleware.deco_require_permissions_on_resource({P_QUERY_DATA})   # now needs scope, but I can't access scope in the decorator
 async def individual_by_id(id, project_id=None):
     result_sets, numTotalResults = await individuals_full_results([id])  # needs project scoping, dataset scoping harder
+
+    # TODO: reimplement permissions previously handled by decorator
 
     # return 404 if not found
     # only authorized users will get 404 here, so this can't be used to probe ids

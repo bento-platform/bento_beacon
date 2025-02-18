@@ -1,6 +1,7 @@
 from bento_lib.auth.permissions import (
     Permission,
     P_QUERY_DATA,
+    P_DOWNLOAD_DATA,
     P_QUERY_PROJECT_LEVEL_COUNTS,
     P_QUERY_PROJECT_LEVEL_BOOLEAN,
     P_QUERY_DATASET_LEVEL_COUNTS,
@@ -15,6 +16,13 @@ PermissionsDict = dict[Permission, bool]
 # "dataset_id" param (scope is dataset if it exists, otherwise not)
 # "dataset_level" param (bool equivalent of above)
 # named scope levels "everything", "project", "dataset"  
+# ...  plus the resource produced by bento_lib build_resource()
+
+
+# two possibilities for these methods:
+# 1. purely functional (always use permissions parameter)
+# 2. no parameter, just pull current permissions from flask g
+# ... note that most callers will be pulling permissions from g anyhow
 
 
 def has_bool_permissions(dataset_id: str, permissions: PermissionsDict) -> bool:
@@ -35,6 +43,10 @@ def has_count_permissions(dataset_id: str, permissions: PermissionsDict) -> bool
 # are these always going to be the same thing?
 def has_full_record_permissions(permissions: PermissionsDict) -> bool:
     return permissions.get(P_QUERY_DATA, False)
+
+
+def has_download_data_permissions(permissions: PermissionsDict) -> bool:
+    return permissions.get(P_DOWNLOAD_DATA, False)
 
 
 # useful fns stolen from katsu

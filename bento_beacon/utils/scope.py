@@ -21,10 +21,10 @@ def scoped_route_decorator_for_blueprint(blueprint):
             blueprint.add_url_rule(rule, view_func=f, **options)
             blueprint.add_url_rule(f"/<project_id>{rule}", view_func=f, **options)
 
-            async def wrappper(*args, **kwargs):
+            async def wrapper(*args, **kwargs):
                 return await f(*args, **kwargs)
 
-            return wrappper
+            return wrapper
 
         return deco
 
@@ -32,7 +32,7 @@ def scoped_route_decorator_for_blueprint(blueprint):
 
 
 # used by info endpoints that don't check censorship settings
-async def verify_request_project_scope():
+async def verify_request_project_scope() -> None:
     view_args = request.view_args if request.view_args else {}
     project_id = view_args.get("project_id")
     project_ids = [p["identifier"] for p in (await katsu_projects()).get("results", [])]
