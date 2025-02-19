@@ -1,3 +1,5 @@
+from functools import wraps
+from flask import g
 from bento_lib.auth.permissions import (
     Permission,
     P_QUERY_DATA,
@@ -7,6 +9,7 @@ from bento_lib.auth.permissions import (
     P_QUERY_DATASET_LEVEL_COUNTS,
     P_QUERY_DATASET_LEVEL_BOOLEAN,
 )
+from ..utils.exceptions import PermissionsException
 
 PermissionsDict = dict[Permission, bool]
 
@@ -24,6 +27,8 @@ PermissionsDict = dict[Permission, bool]
 # 2. no parameter, just pull current permissions from flask g
 # ... note that most callers will be pulling permissions from g anyhow,
 # alternative is passing request everywhere, but request is also global in flask, so again, there's not much point
+
+# third possibility: decorators
 
 
 def has_bool_permissions(dataset_id: str, permissions: PermissionsDict) -> bool:
@@ -58,3 +63,16 @@ def bool_permission_for_scope(dataset_level: bool) -> Permission:
 
 def counts_permission_for_scope(dataset_level: bool) -> Permission:
     return P_QUERY_DATASET_LEVEL_COUNTS if dataset_level else P_QUERY_PROJECT_LEVEL_COUNTS
+
+
+# why not decorators?
+def requires_full_record_permissions(f):
+    wraps(f)
+
+    def decorated_func(*args, **kwargs):
+        if g.permissions.get(P_QUERY_DATA, False):
+            return f(*args, **kwargs)
+        else:
+            raise PermissionsException()
+
+    return decorated_func

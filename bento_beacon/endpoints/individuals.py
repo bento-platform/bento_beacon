@@ -1,6 +1,6 @@
 from flask import Blueprint, g
 from functools import reduce
-from ..authz.utils import has_download_data_permissions, has_full_record_permissions
+from ..authz.utils import has_download_data_permissions, requires_full_record_permissions
 from ..utils.beacon_request import summary_stats_requested
 from ..utils.beacon_response import (
     add_info_to_response,
@@ -128,10 +128,13 @@ async def individuals_full_results(ids, project_id=None, dataset_id=None):
 
 # forbidden / unauthorized if no permissions
 @route_with_optional_project_id("/individuals/<id>", methods=["GET", "POST"])
+# replaces "deco_require_permissions_on_resource" decorator, which is difficult to modify from default "everything" scope
+@requires_full_record_permissions
 async def individual_by_id(id, project_id=None):
-    # replaces "deco_require_permissions_on_resource" decorator
-    if not has_full_record_permissions(g.permissions):
-        raise PermissionsException()
+
+    # or use this permissions check if you don't like the decorator
+    # if not has_full_record_permissions(g.permissions):
+    #     raise PermissionsException()
 
     dataset_id = g.beacon_query["dataset_id"]
     result_sets, numTotalResults = await individuals_full_results([id], project_id=project_id, dataset_id=dataset_id)
