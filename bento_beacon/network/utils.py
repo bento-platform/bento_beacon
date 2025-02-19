@@ -125,7 +125,7 @@ async def call_network_beacon_for_init(url):
         # .... so we don't have to make two calls here, with different response formats
         individual_and_variant_stats = b.get("overview", {}).get("counts")
         biosample_and_experiment_stats = (
-            (await network_beacon_post(url, OVERVIEW_STATS_QUERY, DEFAULT_ENDPOINT)).get("info", {}).get("bento")
+            (await network_beacon_post(url, overview_stats_query(), DEFAULT_ENDPOINT)).get("info", {}).get("bento")
         )
 
         beacon_info["overview"] = {
