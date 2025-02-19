@@ -21,11 +21,6 @@ from .bento_public_query import fields_intersection, fields_union
 PUBLIC_SEARCH_FIELDS_PATH = "/api/metadata/api/public_search_fields"
 
 DEFAULT_ENDPOINT = "individuals"
-OVERVIEW_STATS_QUERY = {
-    "meta": {"apiVersion": "2.0.0"},
-    "query": {"requestParameters": {}, "filters": [], "includeResultsetResponses": "ALL"},
-    "bento": {"showSummaryStatistics": True},
-}
 HOST_VIEWS_BY_ENDPOINT = {
     "biosamples": get_biosamples,
     "cohorts": get_cohorts,
@@ -33,6 +28,14 @@ HOST_VIEWS_BY_ENDPOINT = {
     "individuals": get_individuals,
     "variants": get_variants,
 }
+
+
+def overview_stats_query():
+    return {
+        "meta": {"apiVersion": current_app.config["BEACON_VERSION_FOR_NETWORK_REQUESTS"]},
+        "query": {"requestParameters": {}, "filters": [], "includeResultsetResponses": "ALL"},
+        "bento": {"showSummaryStatistics": True},
+    }
 
 
 # get network node info for this beacon, which is also hosting the network

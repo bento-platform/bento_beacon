@@ -36,7 +36,7 @@ RESPONSE_SPEC_FILENAMES = {
 # --------------------------------------------------------
 
 BEACON_REQUEST_BODY = {
-    "meta": {"apiVersion": "2.0.0"},
+    "meta": {"apiVersion": "2.1.1"},
     "query": {
         "requestParameters": {
             "g_variant": {"referenceName": "3", "start": [189631388], "assemblyId": "GRCh38", "end": [189897276]}
