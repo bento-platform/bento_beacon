@@ -73,6 +73,6 @@ def requires_full_record_permissions(f):
         if g.permissions.get(P_QUERY_DATA, False):
             return f(*args, **kwargs)
         else:
-            raise PermissionsException()
+            raise PermissionsException(f"Insufficient permissions: requires permission {P_QUERY_DATA}")
 
     return decorated_func
