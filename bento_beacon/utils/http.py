@@ -2,7 +2,7 @@ import aiohttp
 
 
 def tcp_connector(c):
-    return aiohttp.TCPConnector(verify_ssl=not c["BENTO_DEBUG"])
+    return aiohttp.TCPConnector(ssl=not c["BENTO_DEBUG"])
 
 
 # aiohttp refuses to encode bools
