@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 from flask import current_app
+from packaging.version import Version
 from urllib.parse import urlsplit, urlunsplit
 from json import JSONDecodeError
 from ..utils.http import tcp_connector
@@ -17,7 +18,7 @@ from ..endpoints.variants import get_variants
 from .bento_public_query import fields_intersection, fields_union
 
 # future versions will pull metadata query info directly from network beacons instead of network katsus
-# to deprecate in Bento 18
+# to deprecate in Bento 19
 PUBLIC_SEARCH_FIELDS_PATH = "/api/metadata/api/public_search_fields"
 
 DEFAULT_ENDPOINT = "individuals"
@@ -33,6 +34,10 @@ HOST_VIEWS_BY_ENDPOINT = {
     "individuals": get_individuals,
     "variants": get_variants,
 }
+
+# temp hack to accommodate katsu url changes in Bento 18 (== beacon 0.19.0)
+# we should not call katsu at all in later versions
+BEACON_VERSION_ZERO_POINT_NINETEEN = Version("0.19.0")
 
 
 # get network node info for this beacon, which is also hosting the network
@@ -133,7 +138,7 @@ async def call_network_beacon_for_init(url):
 
         # temp, call katsu for bento public "query_sections"
         # TODO change to beacon spec filters, don't call katsu
-        beacon_info["querySections"] = (await get_public_search_fields(url)).get("sections", [])
+        beacon_info["querySections"] = (await get_public_search_fields(beacon_info)).get("sections", [])
 
     except APIException as e:
         current_app.logger.error(f"failed trying to initialize network beacon {url}")
@@ -186,18 +191,32 @@ async def init_network_service_registry():
 # Temp utils for bento public search terms
 
 
-# deprecate in Bento 18
-async def get_public_search_fields(beacon_url):
-    fields_url = public_search_fields_url(beacon_url)
+def is_pr_build(url):
+    return url.startswith("pr-")
+
+
+# to deprecate
+async def get_public_search_fields(beacon):
+    fields_url = public_search_fields_url(beacon)
     current_app.logger.info(f"trying public fields url {fields_url}")
     fields = await network_beacon_get(fields_url)
     return fields
 
 
-# deprecate in Bento 18
-def public_search_fields_url(beacon_url):
-    split_url = urlsplit(beacon_url)
-    return urlunsplit((split_url.scheme, "portal." + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", ""))
+# to deprecate
+def public_search_fields_url(beacon):
+    split_url = urlsplit(beacon["apiUrl"])
+    version_string = beacon["version"]
+
+    # fix for katsu url change in Bento 18
+    # pr version names break version parsing but are assumed to be recent
+    url_prefix = (
+        ""
+        if is_pr_build(version_string) or Version(version_string) >= BEACON_VERSION_ZERO_POINT_NINETEEN
+        else "portal."
+    )
+
+    return urlunsplit((split_url.scheme, url_prefix + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", ""))
 
 
 def filters_union(all_search_fields):
