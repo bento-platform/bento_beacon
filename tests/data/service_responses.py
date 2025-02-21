@@ -2497,5 +2497,4 @@ network_beacon_overview_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_be
 network_beacon_overview_bento_18_with_pr_build["response"]["id"] = pr_patch_beacon_id
 
 network_beacon_query_response_bento_18_with_pr_build = deepcopy(network_beacon_query_response_bento_18)
-network_beacon_overview_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id
-network_beacon_overview_bento_18_with_pr_build["response"]["id"] = pr_patch_beacon_id
+network_beacon_query_response_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id

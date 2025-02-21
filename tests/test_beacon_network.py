@@ -18,6 +18,7 @@ from .data.service_responses import (
     network_beacon_query_response_bento_18,
     katsu_config_search_fields_response,
     network_beacon_overview_bento_18_with_pr_build,
+    network_beacon_query_response_bento_18_with_pr_build,
 )
 
 
@@ -48,7 +49,7 @@ def mock_network_beacon_bento_18_query_response(aioresponse):
 
 def mock_network_beacon_bento_18_query_response_from_pr_build(aioresponse):
     url = "https://fake-patched.bento.ca/api/beacon/individuals"
-    aioresponse.post(url, payload=network_beacon_query_response_bento_18)
+    aioresponse.post(url, payload=network_beacon_query_response_bento_18_with_pr_build)
 
 
 def mock_network_katsu_public_fields_response_bento_17(aioresponse):
