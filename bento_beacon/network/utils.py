@@ -191,8 +191,8 @@ async def init_network_service_registry():
 # Temp utils for bento public search terms
 
 
-def is_pr_build(url):
-    return url.startswith("pr-")
+def is_pr_build(version_string):
+    return version_string.startswith("pr-")
 
 
 def is_below_bento_beacon_version_19(beacon):
