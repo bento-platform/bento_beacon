@@ -2492,7 +2492,7 @@ pr_patch_tag = "pr-123"
 pr_patch_beacon_id = "ca.fake-patched.bento.beacon"
 
 network_beacon_overview_bento_18_with_pr_build = deepcopy(network_beacon_overview_bento_18)
-network_beacon_overview_bento_18_with_pr_build["version"] = pr_patch_tag
+network_beacon_overview_bento_18_with_pr_build["response"]["version"] = pr_patch_tag
 network_beacon_overview_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id
 network_beacon_overview_bento_18_with_pr_build["response"]["id"] = pr_patch_beacon_id
 
