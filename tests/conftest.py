@@ -28,7 +28,7 @@ def beacon_test_app():
             "CONFIG_ABSOLUTE_PATH": str(mock_config_files_dir),
             "BENTOV2_DOMAIN": "test.local",
             "BENTOV2_PUBLIC_URL": "http://test.local",
-            "BEACON_BASE_URL": "http://test.local/api/beacon",
+            "BEACON_BASE_URL": "https://test.local/api/beacon",
             "BENTO_BEACON_VERSION": "test",
             "KATSU_BASE_URL": KATSU_URL,
             "BEACON_KATSU_TIMEOUT": "1",
