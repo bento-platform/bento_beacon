@@ -195,6 +195,14 @@ def is_pr_build(url):
     return url.startswith("pr-")
 
 
+def is_below_bento_beacon_version_19(beacon):
+    version_string = beacon["version"]
+    # pr version names break version parsing but are assumed to be recent
+    if is_pr_build(version_string):
+        return False
+    return Version(version_string) < BEACON_VERSION_ZERO_POINT_NINETEEN
+
+
 # to deprecate
 async def get_public_search_fields(beacon):
     fields_url = public_search_fields_url(beacon)
@@ -205,17 +213,10 @@ async def get_public_search_fields(beacon):
 
 # to deprecate
 def public_search_fields_url(beacon):
-    split_url = urlsplit(beacon["apiUrl"])
-    version_string = beacon["version"]
-
     # fix for katsu url change in Bento 18
-    # pr version names break version parsing but are assumed to be recent
-    url_prefix = (
-        ""
-        if is_pr_build(version_string) or Version(version_string) >= BEACON_VERSION_ZERO_POINT_NINETEEN
-        else "portal."
-    )
+    url_prefix = "portal." if is_below_bento_beacon_version_19(beacon) else ""
 
+    split_url = urlsplit(beacon["apiUrl"])
     return urlunsplit((split_url.scheme, url_prefix + split_url.netloc, PUBLIC_SEARCH_FIELDS_PATH, "", ""))
 
 
