@@ -360,15 +360,3 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     assert response.status_code == 200
     assert "responseSummary" in data
     assert data["responseSummary"]["numTotalResults"] == 0
-
-
-# --------------------------------------------------------
-# network
-# --------------------------------------------------------
-
-
-def test_network_endpoint(app_config, client, aioresponse):
-    mock_permissions_none(app_config, aioresponse)
-    response = client.get("/network")
-    assert response.status_code == 200
-    assert "beacons" in response.get_json()

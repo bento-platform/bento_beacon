@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 katsu_projects_response = {
     "count": 2,
     "next": None,
@@ -2316,3 +2318,183 @@ token_response = {
     "not-before-policy": 0,
     "scope": "profile email",
 }
+
+
+network_beacon_overview_bento_17 = {
+    "meta": {"apiVersion": "v2.0.0", "beaconId": "ca.fake1.bento.beacon", "returnedSchemas": [{}]},
+    "response": {
+        "apiVersion": "v2.0.0",
+        "description": "this is a beacon",
+        "environment": "prod",
+        "id": "ca.fake1.bento.beacon",
+        "name": "Fake Beacon",
+        "organization": {
+            "contactUrl": "https://computationalgenomics.ca/contact-us/",
+            "id": "local",
+            "logoUrl": "https://bentov2.local/public/assets/icon_small.png",
+            "name": "Local Beacon",
+            "welcomeUrl": "https://computationalgenomics.ca/",
+        },
+        "overview": {
+            "biosamples": {
+                "count": 4881,
+                "sampled_tissue": [
+                    {"label": "blood", "value": 2522},
+                    {"label": "Plasma", "value": 451},
+                    {"label": "Serum", "value": 1005},
+                ],
+            },
+            "counts": {"individuals": 2624, "variants": {"GRCh37": 24765426, "GRCh38": 27530622, "GRCm38": 14070}},
+            "experiments": {
+                "count": 4058,
+                "experiment_type": [
+                    {"label": "Metabolite profiling", "value": 152},
+                    {"label": "Neutralizing antibody titers", "value": 381},
+                    {"label": "Other", "value": 237},
+                    {"label": "Proteomic profiling", "value": 472},
+                    {"label": "RNA-Seq", "value": 294},
+                    {"label": "WGS", "value": 2522},
+                ],
+            },
+            "individuals": {"count": 2624},
+            "variants": {"GRCh37": 24765426, "GRCh38": 27530622, "GRCm38": 14070},
+        },
+        "version": "0.17.0",
+        "welcomeUrl": "https://fake1.bento.local/beacon_ui",
+    },
+}
+
+network_beacon_overview_bento_18 = {
+    "meta": {"apiVersion": "v2.0.0", "beaconId": "ca.fake2.bento.beacon", "returnedSchemas": [{}]},
+    "response": {
+        "apiVersion": "v2.0.0",
+        "description": "this is a beacon",
+        "environment": "dev",
+        "id": "ca.fake2.bento.beacon",
+        "name": "Another Fake Beacon",
+        "organization": {
+            "contactUrl": "https://genomics.example.com",
+            "id": "local",
+            "logoUrl": "https://bentov2.local/public/assets/icon_small.png",
+            "name": "Local Beacon",
+            "welcomeUrl": "https://genomics.example.com/welcome",
+        },
+        "overview": {
+            "biosamples": {
+                "count": 4881,
+                "sampled_tissue": [
+                    {"label": "blood", "value": 2522},
+                    {"label": "Plasma", "value": 451},
+                    {"label": "Serum", "value": 1005},
+                ],
+            },
+            "counts": {"individuals": 2624, "variants": {"GRCh37": 24765426, "GRCh38": 27530622, "GRCm38": 14070}},
+            "experiments": {
+                "count": 4058,
+                "experiment_type": [
+                    {"label": "Metabolite profiling", "value": 152},
+                    {"label": "Neutralizing antibody titers", "value": 381},
+                    {"label": "Other", "value": 237},
+                    {"label": "Proteomic profiling", "value": 472},
+                    {"label": "RNA-Seq", "value": 294},
+                    {"label": "WGS", "value": 2522},
+                ],
+            },
+            "individuals": {"count": 2624},
+            "variants": {"GRCh37": 24765426, "GRCh38": 27530622, "GRCm38": 14070},
+        },
+        # Bento 18 == beacon 0.19.0
+        "version": "0.19.0",
+        "welcomeUrl": "https://fake2.bento.local/beacon_ui",
+    },
+}
+
+network_beacon_query_response_bento_17 = {
+    "info": {
+        "bento": {
+            "biosamples": {
+                "count": 4881,
+                "sampled_tissue": [
+                    {"label": "blood", "value": 2522},
+                    {"label": "Plasma", "value": 451},
+                    {"label": "Serum", "value": 1005},
+                ],
+            },
+            "experiments": {
+                "count": 199,
+                "experiment_type": [{"label": "RNA-Seq", "value": 64}, {"label": "WES", "value": 135}],
+            },
+        },
+        "messages": [{"description": "no query found, returning total count", "level": "info"}],
+    },
+    "meta": {
+        "apiVersion": "v2.0.0",
+        "beaconId": "ca.fake1.bento.beacon",
+        "receivedRequestSummary": {
+            "apiVersion": "2.0.0",
+            "bento": {"showSummaryStatistics": True},
+            "pagination": {"limit": 10, "skip": 0},
+            "requestParameters": {"g_variant": {}},
+            "requestedGranularity": "count",
+            "requestedSchemas": [],
+        },
+        "returnedGranularity": "count",
+        "returnedSchemas": [],
+    },
+    "responseSummary": {"exists": True, "numTotalResults": 511},
+}
+
+
+network_beacon_query_response_bento_18 = {
+    "info": {
+        "bento": {
+            "biosamples": {
+                "count": 4881,
+                "sampled_tissue": [
+                    {"label": "blood", "value": 2522},
+                    {"label": "Plasma", "value": 451},
+                    {"label": "Serum", "value": 1005},
+                ],
+            },
+            "experiments": {
+                "count": 4058,
+                "experiment_type": [
+                    {"label": "Metabolite profiling", "value": 152},
+                    {"label": "Neutralizing antibody titers", "value": 381},
+                    {"label": "Other", "value": 237},
+                    {"label": "Proteomic profiling", "value": 472},
+                    {"label": "RNA-Seq", "value": 294},
+                    {"label": "WGS", "value": 2522},
+                ],
+            },
+            "individuals": {"count": 2624},
+        },
+        "messages": [{"description": "no query found, returning total count", "level": "info"}],
+    },
+    "meta": {
+        "apiVersion": "v2.0.0",
+        "beaconId": "ca.fake2.bento.beacon",
+        "receivedRequestSummary": {
+            "apiVersion": "2.0.0",
+            "bento": {"showSummaryStatistics": True},
+            "pagination": {"limit": 10, "skip": 0},
+            "requestedGranularity": "count",
+            "requestedSchemas": [],
+        },
+        "returnedGranularity": "count",
+        "returnedSchemas": [],
+    },
+    "responseSummary": {"exists": True, "numTotalResults": 2624},
+}
+
+
+pr_patch_tag = "pr-123"
+pr_patch_beacon_id = "ca.fake-patched.bento.beacon"
+
+network_beacon_overview_bento_18_with_pr_build = deepcopy(network_beacon_overview_bento_18)
+network_beacon_overview_bento_18_with_pr_build["response"]["version"] = pr_patch_tag
+network_beacon_overview_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id
+network_beacon_overview_bento_18_with_pr_build["response"]["id"] = pr_patch_beacon_id
+
+network_beacon_query_response_bento_18_with_pr_build = deepcopy(network_beacon_query_response_bento_18)
+network_beacon_query_response_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id
