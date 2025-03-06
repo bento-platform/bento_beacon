@@ -69,16 +69,37 @@ def mock_retrieve_token(app_config, aioresponse):
     aioresponse.post(token_url, payload=token_response, repeat=True)
 
 
+# scoped permissions (in order):
+# "query:data"
+# "download:data"
+# "query:project_level_counts"
+# "query:project_level_boolean"
+# "query:dataset_level_counts"
+# "query:dataset_level_boolean"
+
+
 def mock_permissions_all(app_config, aioresponse):
     mock_retrieve_token(app_config, aioresponse)
     authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[True]]})
+    aioresponse.post(authz_evaluate_url, payload={"result": [[True, True, True, True, True, True, True]]})
 
 
 def mock_permissions_none(app_config, aioresponse):
     mock_retrieve_token(app_config, aioresponse)
     authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[False]]})
+    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, False, False, False, False, False]]})
+
+
+def mock_permissions_project_counts(app_config, aioresponse):
+    mock_retrieve_token(app_config, aioresponse)
+    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
+    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, True, True, True, True]]})
+
+
+def mock_permissions_dataset_counts(app_config, aioresponse):
+    mock_retrieve_token(app_config, aioresponse)
+    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
+    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, False, False, True, True]]})
 
 
 def mock_katsu_public_rules(app_config, aioresponse, project_id=None, dataset_id=None):
@@ -356,10 +377,8 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     data = response.get_json()
 
-    # expect normal response with zero results
-    assert response.status_code == 200
-    assert "responseSummary" in data
-    assert data["responseSummary"]["numTotalResults"] == 0
+    # expect permissions error
+    assert response.status_code == 403
 
 
 # --------------------------------------------------------
@@ -368,7 +387,7 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
 
 
 def test_network_endpoint(app_config, client, aioresponse):
-    mock_permissions_none(app_config, aioresponse)
+    mock_permissions_project_counts(app_config, aioresponse)
     response = client.get("/network")
     assert response.status_code == 200
     assert "beacons" in response.get_json()
