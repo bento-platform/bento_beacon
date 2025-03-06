@@ -254,7 +254,7 @@ async def katsu_config_filtering_terms(project_id, dataset_id):
                 "id": field["id"],
                 "label": field["title"],
                 #
-                # longer lablel / helptext
+                # longer label / helptext
                 "description": field.get("description", ""),
                 #
                 # bento internal use fields, more to come
@@ -272,6 +272,11 @@ async def katsu_config_filtering_terms(project_id, dataset_id):
                 # filter scope for us is always all queryable entities in this beacon, but that can vary per beacon
                 # we can infer this from the queryable endpoints / blueprints that are active
             }
+
+            # optional field not in spec
+            if units := field.get("config", {}).get("units"):
+                filtering_term["units"] = units
+
             filtering_terms.append(filtering_term)
 
     return filtering_terms

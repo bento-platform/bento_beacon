@@ -7,8 +7,9 @@ from ..utils.scope import scoped_route_decorator_for_blueprint, verify_request_p
 info = Blueprint("info", __name__)
 route_with_optional_project_id = scoped_route_decorator_for_blueprint(info)
 
+
 # this blueprint does not check project / dataset permissions or take requests
-# but needs to verify project ids in the url path 
+# but needs to verify project ids in the url path
 @info.before_request
 async def before_info_request():
     await verify_request_project_scope()

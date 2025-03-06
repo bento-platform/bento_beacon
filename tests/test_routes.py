@@ -375,7 +375,6 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
-    data = response.get_json()
 
     # expect permissions error
     assert response.status_code == 403
