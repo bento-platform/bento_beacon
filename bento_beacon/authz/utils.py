@@ -69,9 +69,9 @@ def counts_permission_for_scope(dataset_level: bool) -> Permission:
 def requires_full_record_permissions(f):
     wraps(f)
 
-    def decorated_func(*args, **kwargs):
+    async def decorated_func(*args, **kwargs):
         if g.permissions.get(P_QUERY_DATA, False):
-            return f(*args, **kwargs)
+            return await f(*args, **kwargs)
         else:
             raise PermissionsException(f"Insufficient permissions: requires permission {P_QUERY_DATA}")
 
