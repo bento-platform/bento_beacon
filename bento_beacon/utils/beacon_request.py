@@ -226,10 +226,3 @@ async def retrieve_permissions(project_id: str, dataset_id: str) -> PermissionsD
     # store and return?
     g.permissions = permissions
     return permissions
-
-
-def requested_resource():
-    view_args = request.view_args if request.view_args else {}
-    project_id = view_args.get("project_id")
-    dataset_id = g.beacon_query.get("dataset_id")
-    return build_resource(project_id, dataset_id)
