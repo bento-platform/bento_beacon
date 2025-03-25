@@ -64,6 +64,9 @@ BEACON_TOO_MANY_DATASETS["query"]["datasets"] = {"datasetIds": [PROJECT_1_DATASE
 BEACON_FULL_RECORD_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
 BEACON_FULL_RECORD_REQUEST_BODY["query"]["requestedGranularity"] = "record"
 
+BEACON_BOOL_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
+BEACON_BOOL_REQUEST_BODY["query"]["requestedGranularity"] = "boolean"
+
 # aioresponses includes query params when matching urls
 KATSU_QUERY_PARAMS = "sex=FEMALE"
 KATSU_QUERY_PARAMS_PROJECT_SCOPED = f"project={PROJECT_1}&sex=FEMALE"
@@ -408,6 +411,21 @@ def test_individuals_full_record_query_all_permissions_except_download(app_confi
     assert data["responseSummary"]["numTotalResults"] == 9
 
 
+def test_individuals_boolean_query(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    mock_drs_queries(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_BOOL_REQUEST_BODY)
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["responseSummary"]["exists"] == True
+
+
 def test_individuals_query_scoped(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
@@ -458,6 +476,19 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
+
+    # expect permissions error
+    assert response.status_code == 403
+
+
+def test_individuals_by_id_query_no_permissions(app_config, client, aioresponse):
+    mock_permissions_none(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.get("/individuals/abc123")
 
     # expect permissions error
     assert response.status_code == 403
