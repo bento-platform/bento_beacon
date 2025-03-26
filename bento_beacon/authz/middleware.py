@@ -1,5 +1,5 @@
 from typing import Literal
-from flask import request, current_app
+from flask import request
 from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from bento_lib.auth.permissions import (
     Permission,
@@ -10,9 +10,7 @@ from bento_lib.auth.permissions import (
     P_QUERY_DATASET_LEVEL_COUNTS,
     P_QUERY_DATASET_LEVEL_BOOLEAN,
 )
-from bento_lib.auth.resources import build_resource, RESOURCE_EVERYTHING
 
-# from bento_lib.auth.types import EvaluationResultDict
 from ..config_files.config import Config
 from ..utils.beacon_response import middleware_meta_callback
 
@@ -50,12 +48,8 @@ permissions_by_scope_level = {
     "dataset": [P_QUERY_DATA, P_DOWNLOAD_DATA, P_QUERY_DATASET_LEVEL_COUNTS, P_QUERY_DATASET_LEVEL_BOOLEAN],
 }
 
-# deprecated, scopeless
-# async def check_permission(permission: Permission) -> bool:
-#     return await authz_middleware.async_evaluate_one(request, RESOURCE_EVERYTHING, permission, mark_authz_done=True)
 
-
-async def evaluate_permissions_on_resource(project_id: str, dataset_id: str) -> dict[Permission, bool]:
+async def evaluate_permissions_on_resource(resource: dict) -> dict[Permission, bool]:
     """
     Returns a dict of permissions types and true/false for each one,
     e.g. {P_QUERY_DATA: false, P_QUERY_PROJECT_LEVEL_COUNTS: true, ... }
@@ -64,19 +58,16 @@ async def evaluate_permissions_on_resource(project_id: str, dataset_id: str) -> 
     # - it's not checked yet in gohan
     # - in many cases beacon needs uncensored katsu data, and has to check permissions itself
 
-    resource = build_resource(project_id, dataset_id)
-    level = resource_level(project_id, dataset_id)  # or something else?
-
+    level = resource_level(resource)
     checked_permissions = permissions_by_scope_level[level]
     r = await authz_middleware.async_evaluate_to_dict(request, [resource], checked_permissions, mark_authz_done=True)
     return r[0] if r else {}
 
 
-# better typing here, perhaps "Level" from lib middleware
-def resource_level(project_id=None, dataset_id=None) -> Literal["everything", "project", "dataset"]:
+def resource_level(resource: dict) -> Literal["everything", "project", "dataset"]:
     level = "everything"
-    if project_id:
-        if dataset_id:
+    if resource.get("project"):
+        if resource.get("dataset"):
             level = "dataset"
         else:
             level = "project"

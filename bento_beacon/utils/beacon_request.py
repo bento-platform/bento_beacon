@@ -3,7 +3,7 @@ from flask import current_app, request, g
 from bento_lib.auth.resources import build_resource
 from .exceptions import InvalidQuery, PermissionsException
 from .scope import MESSAGE_FOR_TOO_MANY_DATASETS
-from ..authz.middleware import evaluate_permissions_on_resource, resource_level
+from ..authz.middleware import evaluate_permissions_on_resource
 from ..authz.utils import PermissionsDict, has_bool_permissions, has_count_permissions, has_full_record_permissions
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
@@ -194,35 +194,40 @@ def summary_stats_requested():
 
 
 async def verify_permissions():
-    view_args = request.view_args if request.view_args else {}
-    project_id = view_args.get("project_id")
-    dataset_id = g.beacon_query.get("dataset_id")
-    permissions = await retrieve_permissions(project_id, dataset_id)
-    check_permissions_sufficient_for_request(permissions, dataset_id)
+    resource = requested_resource()
+    permissions = await retrieve_permissions(resource)
+    check_permissions_sufficient_for_request(permissions, resource)
 
 
-def check_permissions_sufficient_for_request(permissions: PermissionsDict, dataset_id: str) -> None:
+def check_permissions_sufficient_for_request(permissions: PermissionsDict, resource: dict) -> None:
     # permissions are for the resource being requested
-    # we don't need to re-verify which resource is being requested, so we don't need project_id
+    # so we don't need to re-verify which resource is being requested
     # but we do need to know whether we are at dataset level or project level
-    # so need either dataset_id or an equivalent is_dataset_level bool
-    # TODO
+    is_dataset_level = True if resource.get("dataset") else False
+
     requested_granularity = g.request_data["requestedGranularity"]
 
     if requested_granularity == GRANULARITY_RECORD and not has_full_record_permissions(permissions):
         raise PermissionsException()
 
-    if requested_granularity == GRANULARITY_COUNT and not has_count_permissions(dataset_id, permissions):
+    if requested_granularity == GRANULARITY_COUNT and not has_count_permissions(is_dataset_level, permissions):
         raise PermissionsException()
 
-    if requested_granularity == GRANULARITY_BOOLEAN and not has_bool_permissions(dataset_id, permissions):
+    if requested_granularity == GRANULARITY_BOOLEAN and not has_bool_permissions(is_dataset_level, permissions):
         raise PermissionsException()
 
 
-async def retrieve_permissions(project_id: str, dataset_id: str) -> PermissionsDict:
+async def retrieve_permissions(resource: dict) -> PermissionsDict:
     # for now we only need to check a single resource (either a dataset, a project, or the "everything" resource)
-    permissions = await evaluate_permissions_on_resource(project_id, dataset_id)
+    permissions = await evaluate_permissions_on_resource(resource)
 
     # store and return?
     g.permissions = permissions
     return permissions
+
+
+def requested_resource() -> dict:
+    view_args = request.view_args if request.view_args else {}
+    project_id = view_args.get("project_id")
+    dataset_id = g.beacon_query.get("dataset_id")
+    return build_resource(project_id, dataset_id)

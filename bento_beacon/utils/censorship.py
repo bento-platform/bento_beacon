@@ -33,9 +33,8 @@ async def censorship_settings_lookup() -> tuple[int, int]:
 
 async def get_censorship_settings_for_this_request() -> None:
 
-    # XXXXXXXXXXXXx requires katsu patch, does not respond correctly for boolean permissions
-    # incorrectly returns 0 for max query params
-
+    # XXXXXXXXXXXXx requires katsu patch (pr-564) for correct boolean permissions response
+    # otherwise incorrectly returns 0 for max query params
     g.max_filters, g.count_threshold = await censorship_settings_lookup()
 
 
