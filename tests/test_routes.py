@@ -173,7 +173,6 @@ def mock_katsu_public_search_no_query(app_config, aioresponse):
 
 def mock_katsu_public_search_query(app_config, aioresponse, query_params):
     public_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
-    print(f"mocking public search url: {public_search_url}")
     aioresponse.get(public_search_url, payload=katsu_public_search_response)
 
 
@@ -192,13 +191,15 @@ def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
     aioresponse.post(private_search_url, payload=katsu_private_search_for_phenopackets)
 
 
-def mock_katsu_private_search_query_scoped(app_config, aioresponse):
+def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
     private_search_url = (
         app_config["KATSU_BASE_URL"]
         + app_config["KATSU_SEARCH_ENDPOINT"]
         + "?"
-        + f"project={PROJECT_1}&dataset={PROJECT_1_DATASET}"
+        + f"project={project_id}"
     )
+    if dataset_id:
+        private_search_url += f"&dataset={dataset_id}"
     aioresponse.post(private_search_url, payload=katsu_private_search_response)
 
 
@@ -322,9 +323,9 @@ def test_overview(app_config, client, aioresponse):
     assert "overview" in response.get_json().get("response")
 
 
-# # --------------------------------------------------------
-# # entities
-# # --------------------------------------------------------
+# --------------------------------------------------------
+# entities
+# --------------------------------------------------------
 
 
 def test_datasets(app_config, client, aioresponse):
@@ -426,25 +427,25 @@ def test_individuals_boolean_query(app_config, client, aioresponse):
     assert data["responseSummary"]["exists"] == True
 
 
-def test_individuals_query_scoped(app_config, client, aioresponse):
+def test_individuals_query_project_scoped(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_PROJECT_SCOPED)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_PROJECT_SCOPED)
+    mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=PROJECT_1)
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
-    response = client.post(f"/{PROJECT_1}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
+    response = client.post(f"/{PROJECT_1}/individuals", json=BEACON_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
     assert data["responseSummary"]["numTotalResults"] == 9
 
 
-def test_individuals_query_scoped(app_config, client, aioresponse):
+def test_individuals_query_dataset_scoped(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse)
+    mock_katsu_private_search_query_scoped(app_config, aioresponse,project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET )
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
@@ -481,8 +482,8 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     assert response.status_code == 403
 
 
-def test_individuals_by_id_query_no_permissions(app_config, client, aioresponse):
-    mock_permissions_none(app_config, aioresponse)
+def test_individuals_by_id_query_wrong_permissions(app_config, client, aioresponse):
+    mock_permissions_project_counts(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
     mock_katsu_private_search_query(app_config, aioresponse)
@@ -513,7 +514,7 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
     mock_permissions_dataset_counts_for_dataset_resource(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse)
+    mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
@@ -522,9 +523,9 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
     assert data["responseSummary"]["numTotalResults"] == 9
 
 
-# # --------------------------------------------------------
-# # network
-# # --------------------------------------------------------
+# --------------------------------------------------------
+# network
+# --------------------------------------------------------
 
 
 def test_network_endpoint(app_config, client, aioresponse):
