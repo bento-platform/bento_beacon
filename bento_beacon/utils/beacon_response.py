@@ -122,9 +122,9 @@ def response_granularity():
     return requested_g if requested_g else default_g
 
 
-async def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
+async def build_query_response(ids=None, num_total_results=None, full_record_handler=None):
     granularity = response_granularity()
-    count = len(ids) if numTotalResults is None else numTotalResults
+    count = len(ids) if num_total_results is None else num_total_results
     returned_count = await censored_count(count)
     if returned_count == 0 and (await get_censorship_threshold()) > 0:
         add_no_results_censorship_message_to_response()
@@ -136,8 +136,8 @@ async def build_query_response(ids=None, numTotalResults=None, full_record_handl
         if full_record_handler is None:
             # user asked for full response where it doesn't exist yet, e.g. in variants
             raise InvalidQuery("record response not available for this entry type")
-        result_sets, numTotalResults = await full_record_handler(ids)
-        return beacon_result_set_response(result_sets, numTotalResults)
+        result_sets, num_total_results = await full_record_handler(ids)
+        return beacon_result_set_response(result_sets, num_total_results)
 
 
 # --------------------------------
@@ -231,12 +231,12 @@ def beacon_collections_response(results):
 # uncensored full record response, typically for authorized users
 # any fine-grained permissions are handled before we get here
 # TODO: pagination (ideally after katsu search gets paginated)
-def beacon_result_set_response(result_sets, numTotalResults):
+def beacon_result_set_response(result_sets, num_total_results):
     returned_schemas = schemas_this_query()
     returned_granularity = "record"
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
-        "responseSummary": {"numTotalResults": numTotalResults, "exists": numTotalResults > 0},
+        "responseSummary": {"numTotalResults": num_total_results, "exists": num_total_results > 0},
         "response": {"resultSets": result_sets},
     }
     info = response_info()

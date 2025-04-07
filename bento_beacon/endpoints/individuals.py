@@ -44,7 +44,7 @@ async def get_individuals(project_id=None):
         total_count = await katsu_total_individuals_count(project_id=project_id, dataset_id=dataset_id)
         if summary_stats_requested():
             await add_overview_stats_to_response(project_id=project_id, dataset_id=dataset_id)
-        return await build_query_response(numTotalResults=total_count)
+        return await build_query_response(num_total_results=total_count)
 
     # ----------------------------------------------------------
     #  collect biosample ids from variant and experiment search
@@ -97,20 +97,20 @@ async def get_individuals(project_id=None):
 async def individuals_full_results(ids, project_id=None, dataset_id=None):
 
     # temp
-    # if len(ids) > 100:
-    #     return {"message": "too many ids for full response"}
+    if len(ids) > 100:
+        raise NotFoundException("too many results") ####################
 
     handover_permission = has_download_data_permissions(g.permissions)
     handover = (await handover_for_ids(ids, project_id, dataset_id)) if handover_permission else {}
     phenopackets_by_result_set = (await phenopackets_for_ids(ids, project_id, dataset_id)).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
     result_sets = {}
-    numTotalResults = 0
+    num_total_results = 0
 
     for r_id in result_ids:
         results_this_id = phenopackets_by_result_set.get(r_id, {}).get("matches", [])
         results_count = len(results_this_id)
-        numTotalResults += results_count
+        num_total_results += results_count
         result = {
             "id": r_id,
             "setType": "individual",
@@ -123,7 +123,7 @@ async def individuals_full_results(ids, project_id=None, dataset_id=None):
             result["resultsHandovers"] = handover_this_id
         result_sets[r_id] = result
 
-    return result_sets, numTotalResults
+    return result_sets, num_total_results
 
 
 # forbidden / unauthorized if no permissions
@@ -137,14 +137,14 @@ async def individual_by_id(id, project_id=None):
     #     raise PermissionsException()
 
     dataset_id = g.beacon_query["dataset_id"]
-    result_sets, numTotalResults = await individuals_full_results([id], project_id=project_id, dataset_id=dataset_id)
+    result_sets, num_total_results = await individuals_full_results([id], project_id=project_id, dataset_id=dataset_id)
 
     # return 404 if not found
     # only authorized users will get 404 here, so this can't be used to probe ids
     if not result_sets:
         raise NotFoundException()
 
-    return beacon_result_set_response(result_sets, numTotalResults)
+    return beacon_result_set_response(result_sets, num_total_results)
 
 
 # -------------------------------------------------------
