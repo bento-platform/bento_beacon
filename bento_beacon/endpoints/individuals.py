@@ -97,8 +97,8 @@ async def get_individuals(project_id=None):
 async def individuals_full_results(ids, project_id=None, dataset_id=None):
 
     # temp
-    if len(ids) > 100:
-        raise NotFoundException("too many results") ####################
+    # if len(ids) > 100:
+    #     return {"message": "too many ids for full response"}
 
     handover_permission = has_download_data_permissions(g.permissions)
     handover = (await handover_for_ids(ids, project_id, dataset_id)) if handover_permission else {}
