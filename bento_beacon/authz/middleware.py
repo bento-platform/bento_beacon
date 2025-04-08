@@ -2,7 +2,11 @@ from typing import Literal
 from flask import request
 from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from bento_lib.auth.permissions import (
+    Level,
     Permission,
+    LEVEL_DATASET,
+    LEVEL_PROJECT,
+    LEVEL_INSTANCE,
     P_QUERY_DATA,
     P_DOWNLOAD_DATA,
     P_QUERY_PROJECT_LEVEL_COUNTS,
@@ -28,7 +32,7 @@ authz_middleware = FlaskAuthMiddleware(
 )
 
 permissions_by_scope_level = {
-    "everything": [
+    LEVEL_INSTANCE: [
         P_QUERY_DATA,
         P_DOWNLOAD_DATA,
         P_QUERY_PROJECT_LEVEL_COUNTS,
@@ -36,8 +40,8 @@ permissions_by_scope_level = {
         P_QUERY_DATASET_LEVEL_COUNTS,
         P_QUERY_DATASET_LEVEL_BOOLEAN,
     ],
-    # same as "everything" :(  xxxxxxxxxxxx
-    "project": [
+    # same as instance level :(
+    LEVEL_PROJECT: [
         P_QUERY_DATA,
         P_DOWNLOAD_DATA,
         P_QUERY_PROJECT_LEVEL_COUNTS,
@@ -45,7 +49,7 @@ permissions_by_scope_level = {
         P_QUERY_DATASET_LEVEL_COUNTS,
         P_QUERY_DATASET_LEVEL_BOOLEAN,
     ],
-    "dataset": [P_QUERY_DATA, P_DOWNLOAD_DATA, P_QUERY_DATASET_LEVEL_COUNTS, P_QUERY_DATASET_LEVEL_BOOLEAN],
+    LEVEL_DATASET: [P_QUERY_DATA, P_DOWNLOAD_DATA, P_QUERY_DATASET_LEVEL_COUNTS, P_QUERY_DATASET_LEVEL_BOOLEAN],
 }
 
 
@@ -64,11 +68,11 @@ async def evaluate_permissions_on_resource(resource: dict) -> dict[Permission, b
     return r[0] if r else {}
 
 
-def resource_level(resource: dict) -> Literal["everything", "project", "dataset"]:
-    level = "everything"
+def resource_level(resource: dict) -> Level:
+    level = LEVEL_INSTANCE
     if resource.get("project"):
         if resource.get("dataset"):
-            level = "dataset"
+            level = LEVEL_DATASET
         else:
-            level = "project"
+            level = LEVEL_PROJECT
     return level
