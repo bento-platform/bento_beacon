@@ -1,4 +1,3 @@
-from typing import Literal
 from flask import request
 from bento_lib.auth.middleware.flask import FlaskAuthMiddleware
 from bento_lib.auth.permissions import (

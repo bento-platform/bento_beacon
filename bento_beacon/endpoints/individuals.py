@@ -18,7 +18,7 @@ from ..utils.katsu_utils import (
 )
 from ..utils.search import biosample_id_search
 from ..utils.handover_utils import handover_for_ids
-from ..utils.exceptions import NotFoundException, PermissionsException
+from ..utils.exceptions import NotFoundException
 from ..utils.scope import scoped_route_decorator_for_blueprint
 
 individuals = Blueprint("individuals", __name__)
@@ -128,14 +128,8 @@ async def individuals_full_results(ids, project_id=None, dataset_id=None):
 
 # forbidden / unauthorized if no permissions
 @route_with_optional_project_id("/individuals/<id>", methods=["GET", "POST"])
-# replaces "deco_require_permissions_on_resource" decorator, which is difficult to modify from default "everything" scope
 @requires_full_record_permissions
 async def individual_by_id(id, project_id=None):
-
-    # or use this permissions check if you don't like the decorator
-    # if not has_full_record_permissions(g.permissions):
-    #     raise PermissionsException()
-
     dataset_id = g.beacon_query["dataset_id"]
     result_sets, num_total_results = await individuals_full_results([id], project_id=project_id, dataset_id=dataset_id)
 

@@ -32,7 +32,6 @@ def has_download_data_permissions(permissions: PermissionsDict) -> bool:
     return permissions.get(P_DOWNLOAD_DATA, False)
 
 
-# useful fns stolen from katsu
 def bool_permission_for_scope(is_dataset_level: bool) -> Permission:
     return P_QUERY_DATASET_LEVEL_BOOLEAN if is_dataset_level else P_QUERY_PROJECT_LEVEL_BOOLEAN
 

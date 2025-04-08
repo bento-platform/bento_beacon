@@ -1,5 +1,5 @@
 import aiohttp
-from flask import current_app, request
+from flask import current_app
 from functools import reduce
 from json import JSONDecodeError
 from urllib.parse import urlencode, urlsplit, urlunsplit

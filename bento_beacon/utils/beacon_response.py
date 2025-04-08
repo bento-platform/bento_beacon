@@ -6,8 +6,8 @@ from .censorship import (
     censored_chart_data,
     MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS,
 )
-from ..authz.utils import has_count_permissions, has_full_record_permissions
-from .exceptions import InvalidQuery, APIException
+from ..authz.utils import has_count_permissions
+from .exceptions import InvalidQuery
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
