@@ -193,10 +193,7 @@ def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
 
 def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
     private_search_url = (
-        app_config["KATSU_BASE_URL"]
-        + app_config["KATSU_SEARCH_ENDPOINT"]
-        + "?"
-        + f"project={project_id}"
+        app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"] + "?" + f"project={project_id}"
     )
     if dataset_id:
         private_search_url += f"&dataset={dataset_id}"
@@ -445,7 +442,7 @@ def test_individuals_query_dataset_scoped(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse,project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET )
+    mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
@@ -469,7 +466,7 @@ def test_individuals_query_mismatched_scope(app_config, client, aioresponse):
     assert response.status_code == 500
 
 
-def test_individuals_query_no_permissions(app_config, client, aioresponse):
+def test_individuals_count_query_no_permissions(app_config, client, aioresponse):
     mock_permissions_none(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
@@ -477,6 +474,32 @@ def test_individuals_query_no_permissions(app_config, client, aioresponse):
     mock_katsu_private_search_overview(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
+
+    # expect permissions error
+    assert response.status_code == 403
+
+
+def test_individuals_full_record_query_no_permissions(app_config, client, aioresponse):
+    mock_permissions_none(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_FULL_RECORD_REQUEST_BODY)
+
+    # expect permissions error
+    assert response.status_code == 403
+
+
+def test_individuals_bool_query_no_permissions(app_config, client, aioresponse):
+    mock_permissions_none(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_BOOL_REQUEST_BODY)
 
     # expect permissions error
     assert response.status_code == 403
