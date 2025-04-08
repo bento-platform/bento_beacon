@@ -1,6 +1,7 @@
 from flask import current_app, g, request
 from .exceptions import APIException, InvalidQuery
 from .katsu_utils import katsu_censorship_settings
+from ..authz.utils import has_full_record_permissions
 
 
 MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS = "No results. Either none were found, or the query produced results numbering at or below the threshold for censorship."
@@ -31,6 +32,9 @@ async def censorship_settings_lookup() -> tuple[int, int]:
 
 
 async def get_censorship_settings_for_this_request() -> None:
+
+    # XXXXXXXXXXXXx requires katsu patch (pr-564) for correct boolean permissions response
+    # otherwise incorrectly returns 0 for max query params
     g.max_filters, g.count_threshold = await censorship_settings_lookup()
 
 
@@ -47,7 +51,8 @@ async def max_filters_retry() -> int:
 
 
 async def get_censorship_threshold() -> int:
-    if g.permission_query_data:
+    user_permissions = g.permissions
+    if has_full_record_permissions(user_permissions):
         return 0
     threshold = g.get("count_threshold")
     return threshold if threshold is not None else await threshold_retry()
@@ -68,7 +73,8 @@ async def get_max_filters() -> int:
 
 # ugly side-effect code, but keeps censorship code together
 async def reject_if_too_many_filters() -> None:
-    if g.permission_query_data:
+    user_permissions = g.permissions
+    if has_full_record_permissions(user_permissions):
         return
     max_filters = await get_max_filters()
     request_filters = g.get("request_data", {}).get("filters", [])
@@ -92,7 +98,11 @@ def query_has_experiment_filter() -> bool:
 
 # some anonymous queries are not permitted
 def reject_query_if_not_permitted() -> None:
-    if g.permission_query_data or not current_app.config["CENSORED_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY"]:
+    user_permissions = g.permissions
+    if (
+        has_full_record_permissions(user_permissions)
+        or not current_app.config["CENSORED_METADATA_QUERY_USES_DISCOVERY_CONFIG_ONLY"]
+    ):
         return
     if query_has_phenopacket_filter() or query_has_experiment_filter():
         raise InvalidQuery("insufficient permissions for this request, use filters from discovery config only")

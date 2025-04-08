@@ -22,7 +22,7 @@ async def get_variants():
     if not (variants_query or has_filters):
         add_info_to_response("no query found, returning total count")
         total_count = await gohan_total_variants_count()
-        return await build_query_response(numTotalResults=total_count)
+        return await build_query_response(num_total_results=total_count)
 
     #  collect biosample ids from all filters
     sample_ids = []
@@ -57,7 +57,7 @@ async def get_variants():
         else:
             gohan_count = sum(variant_totals.values())
 
-    return await build_query_response(numTotalResults=gohan_count)
+    return await build_query_response(num_total_results=gohan_count)
 
 
 # -------------------------------------------------------

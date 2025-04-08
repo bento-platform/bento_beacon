@@ -1,5 +1,5 @@
 import aiohttp
-from flask import current_app, request
+from flask import current_app
 from functools import reduce
 from json import JSONDecodeError
 from urllib.parse import urlencode, urlsplit, urlunsplit
@@ -335,11 +335,11 @@ async def katsu_dataset_by_id(id, project_id=None):
     return {}  # or return None?
 
 
-async def phenopackets_for_ids(ids):
+async def phenopackets_for_ids(ids, project_id, dataset_id):
     # retrieve from katsu search
     payload = {"data_type": "phenopacket", "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]}
     endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
-    return await katsu_post(payload, endpoint)
+    return await katsu_post(payload, endpoint=endpoint, project_id=project_id, dataset_id=dataset_id)
 
 
 async def biosample_ids_for_individuals(individual_ids):

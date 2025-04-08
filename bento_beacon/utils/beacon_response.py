@@ -6,7 +6,8 @@ from .censorship import (
     censored_chart_data,
     MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS,
 )
-from .exceptions import InvalidQuery, APIException
+from ..authz.utils import has_count_permissions
+from .exceptions import InvalidQuery
 from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
 
 
@@ -45,7 +46,18 @@ async def add_overview_stats_to_response(project_id=None, dataset_id=None):
 
 
 async def summary_stats(ids, project_id=None, dataset_id=None):
+    # several cases where summary stats are not given:
+
+    # 1. results are below threshold, so all summary stats will be below it as well
     if ids is not None and len(ids) <= (await get_censorship_threshold()):
+        return None
+
+    # 2. user does not have count permissions at this scope
+    if not has_count_permissions(dataset_id, g.permissions):
+        return None
+
+    # 3. count stats don't make sense for a boolean request, regardless of permissions
+    if g.request_data.get("requestedGranularity") == GRANULARITY_BOOLEAN:
         return None
 
     if ids is None:
@@ -95,48 +107,24 @@ def received_request():
 # --------------------------------------------------------------------
 #  Response control flow
 #
-#  - determine response granularity (boolean, count, record) from
-#    permissions and user request, then route response accordingly
+#  - return requested granularity or a default
+#    users with bad permissions are rejected before reaching here
 #
-#  - apply censorship to bool and count responses for anonymous users;
-#    full-record censorship is done elsewhere, typically by not
-#    permitting a response
+#  - apply censorship to bool and count responses to users without P_QUERY_DATA permissions
+#    full-record responses are censored elsewhere, typically by rejecting the query
 # --------------------------------------------------------------------
 
 
 def response_granularity():
-    """
-    Determine response granularity from requested granularity and permissions.
-    Returns requested granularity when requested <= max, returns max otherwise,
-    where max is the highest granularity allowed, based on this user's permissions
-    and the ordering is "boolean" < "count" < "record"
-    """
-
     # GET requests impossible to handle without a default, since "requestedGranularity" exists only in POST body
     default_g = current_app.config["DEFAULT_GRANULARITY"].get(request.blueprint)
-
-    max_g = GRANULARITY_RECORD if g.permission_query_data else default_g
     requested_g = g.request_data.get("requestedGranularity")
-
-    # below would be cleaner with an ordered enum, but that adds serialization headaches
-
-    # if max is "record" everything is permitted
-    if max_g == GRANULARITY_RECORD:
-        return requested_g
-    # if max if "boolean" nothing else is permitted
-    if max_g == GRANULARITY_BOOLEAN:
-        return max_g
-    # only thing lower than count is boolean
-    if max_g == GRANULARITY_COUNT:
-        return requested_g if requested_g == GRANULARITY_BOOLEAN else max_g
-
-    # no other cases
-    raise APIException()
+    return requested_g if requested_g else default_g
 
 
-async def build_query_response(ids=None, numTotalResults=None, full_record_handler=None):
+async def build_query_response(ids=None, num_total_results=None, full_record_handler=None):
     granularity = response_granularity()
-    count = len(ids) if numTotalResults is None else numTotalResults
+    count = len(ids) if num_total_results is None else num_total_results
     returned_count = await censored_count(count)
     if returned_count == 0 and (await get_censorship_threshold()) > 0:
         add_no_results_censorship_message_to_response()
@@ -148,8 +136,8 @@ async def build_query_response(ids=None, numTotalResults=None, full_record_handl
         if full_record_handler is None:
             # user asked for full response where it doesn't exist yet, e.g. in variants
             raise InvalidQuery("record response not available for this entry type")
-        result_sets, numTotalResults = await full_record_handler(ids)
-        return beacon_result_set_response(result_sets, numTotalResults)
+        result_sets, num_total_results = await full_record_handler(ids)
+        return beacon_result_set_response(result_sets, num_total_results)
 
 
 # --------------------------------
@@ -170,7 +158,7 @@ def response_meta(returned_schemas, returned_granularity):
 def middleware_meta_callback():
     # meta for error responses from middleware
     # errors don't return schemas or use granularity
-    # but stragely both fields are required
+    # but strangely both fields are required
     returned_schemas = []
     returned_granularity = None
     return response_meta(returned_schemas, returned_granularity)
@@ -243,12 +231,12 @@ def beacon_collections_response(results):
 # uncensored full record response, typically for authorized users
 # any fine-grained permissions are handled before we get here
 # TODO: pagination (ideally after katsu search gets paginated)
-def beacon_result_set_response(result_sets, numTotalResults):
+def beacon_result_set_response(result_sets, num_total_results):
     returned_schemas = schemas_this_query()
     returned_granularity = "record"
     r = {
         "meta": response_meta(returned_schemas, returned_granularity),
-        "responseSummary": {"numTotalResults": numTotalResults, "exists": numTotalResults > 0},
+        "responseSummary": {"numTotalResults": num_total_results, "exists": num_total_results > 0},
         "response": {"resultSets": result_sets},
     }
     info = response_info()
