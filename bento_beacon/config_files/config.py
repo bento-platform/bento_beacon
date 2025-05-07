@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
+from .. import __version__
 
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
@@ -24,9 +25,6 @@ logging.getLogger("aiocache").setLevel(logging.WARNING)
 
 class Config:
     BEACON_SPEC_VERSION = "v2.0.0"
-
-    # version of this implementation
-    BENTO_BEACON_VERSION = os.environ.get("BENTO_BEACON_VERSION")
 
     # default when no requested granularity, as well as max granularity for anonymous users
     # no granularity for info endpoints

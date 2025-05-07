@@ -3,6 +3,7 @@ from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import katsu_get, katsu_datasets
 from ..utils.scope import scoped_route_decorator_for_blueprint, verify_request_project_scope
+from .. import __version__
 
 info = Blueprint("info", __name__)
 route_with_optional_project_id = scoped_route_decorator_for_blueprint(info)
@@ -109,7 +110,7 @@ async def beacon_format_service_details(project_id=None):
         "apiVersion": current_app.config["BEACON_SPEC_VERSION"],
         "environment": "dev" if current_app.config["DEBUG"] else "prod",
         "organization": info["organization"],
-        "version": current_app.config["BENTO_BEACON_VERSION"],
+        "version": __version__,
     }
 
     # url for beacon ui
@@ -128,11 +129,11 @@ def ga4gh_service_info():
     return {
         "id": current_app.config["BEACON_ID"],
         "name": current_app.config["BEACON_NAME"],
-        "type": {"artifact": "Beacon v2", "group": "org.ga4gh", "version": current_app.config["BENTO_BEACON_VERSION"]},
+        "type": {"artifact": "Beacon v2", "group": "org.ga4gh", "version": current_app.config["BEACON_SPEC_VERSION"]},
         "environment": "dev" if current_app.config["DEBUG"] else "prod",
         "organization": {"name": info["organization"]["name"], "url": info["organization"].get("welcomeUrl", "")},
         "contactUrl": info["organization"]["contactUrl"],
-        "version": current_app.config["BENTO_BEACON_VERSION"],
+        "version": __version__,
         "bento": {"serviceKind": "beacon"},
     }
 
