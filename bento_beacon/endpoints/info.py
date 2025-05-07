@@ -129,7 +129,7 @@ def ga4gh_service_info():
     return {
         "id": current_app.config["BEACON_ID"],
         "name": current_app.config["BEACON_NAME"],
-        "type": {"artifact": "Beacon v2", "group": "org.ga4gh", "version": __version__},
+        "type": {"artifact": "Beacon v2", "group": "org.ga4gh", "version": current_app.config["BEACON_SPEC_VERSION"]},
         "environment": "dev" if current_app.config["DEBUG"] else "prod",
         "organization": {"name": info["organization"]["name"], "url": info["organization"].get("welcomeUrl", "")},
         "contactUrl": info["organization"]["contactUrl"],
