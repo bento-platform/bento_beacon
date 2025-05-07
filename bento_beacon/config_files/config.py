@@ -26,9 +26,6 @@ logging.getLogger("aiocache").setLevel(logging.WARNING)
 class Config:
     BEACON_SPEC_VERSION = "v2.0.0"
 
-    # version of this implementation
-    BENTO_BEACON_VERSION = __version__
-
     # default when no requested granularity, as well as max granularity for anonymous users
     # no granularity for info endpoints
     DEFAULT_GRANULARITY = {
