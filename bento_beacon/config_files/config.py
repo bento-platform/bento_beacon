@@ -24,7 +24,7 @@ logging.getLogger("aiocache").setLevel(logging.WARNING)
 
 
 class Config:
-    BEACON_SPEC_VERSION = "v2.0.0"
+    BEACON_SPEC_VERSION = "v2.1.1"
 
     # default when no requested granularity, as well as max granularity for anonymous users
     # no granularity for info endpoints
@@ -54,36 +54,36 @@ class Config:
             "name": "Biosample",
             "ontologyTermForThisType": {"id": "NCIT:C70699", "label": "Biospecimen"},
             "defaultSchema": {
-                "id": "ga4gh-beacon-biosample-v2.0.0",
+                "id": f"ga4gh-beacon-biosample-{BEACON_SPEC_VERSION}",
                 "name": "Default schema for biosamples",
                 "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/biosamples/defaultSchema.json",
-                "schemaVersion": "v2.0.0",
+                "schemaVersion": BEACON_SPEC_VERSION,
             },
-            "partOfSpecification": "Beacon v2.0.0",
+            "partOfSpecification": f"Beacon {BEACON_SPEC_VERSION}",
         },
         "cohorts": {
             "entryType": "cohort",
             "name": "Cohort",
             "ontologyTermForThisType": {"id": "NCIT:C61512", "label": "Cohort"},
             "defaultSchema": {
-                "id": "ga4gh-beacon-cohort-v2.0.0",
+                "id": f"ga4gh-beacon-cohort-{BEACON_SPEC_VERSION}",
                 "name": "Default schema for cohorts",
                 "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/cohorts/defaultSchema.json",
-                "schemaVersion": "v2.0.0",
+                "schemaVersion": BEACON_SPEC_VERSION,
             },
-            "partOfSpecification": "Beacon v2.0.0",
+            "partOfSpecification": f"Beacon {BEACON_SPEC_VERSION}",
         },
         "datasets": {
             "entryType": "dataset",
             "name": "Dataset",
             "ontologyTermForThisType": {"id": "NCIT:C47824", "label": "Data set"},
             "defaultSchema": {
-                "id": "ga4gh-beacon-dataset-v2.0.0",
+                "id": f"ga4gh-beacon-dataset-{BEACON_SPEC_VERSION}",
                 "name": "Default schema for datasets",
                 "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/datasets/defaultSchema.json",
-                "schemaVersion": "v2.0.0",
+                "schemaVersion": BEACON_SPEC_VERSION,
             },
-            "partOfSpecification": "Beacon v2.0.0",
+            "partOfSpecification": f"Beacon {BEACON_SPEC_VERSION}",
         },
         "individuals": {
             "entryType": "individual",
@@ -93,7 +93,7 @@ class Config:
                 "id": "phenopacket-v2",
                 "name": "phenopacket v2",
                 "referenceToSchemaDefinition": f"{BEACON_BASE_URL}/individual_schema",
-                "schemaVersion": "v2.0.0",
+                "schemaVersion": BEACON_SPEC_VERSION,
             },
             "partOfSpecification": "Phenopacket v2",
         },
@@ -102,12 +102,12 @@ class Config:
             "name": "Genomic Variant",
             "ontologyTermForThisType": {"id": "ENSGLOSSARY:0000092", "label": "Variant"},
             "defaultSchema": {
-                "id": "ga4gh-beacon-variant-v2.0.0",
+                "id": f"ga4gh-beacon-variant-{BEACON_SPEC_VERSION}",
                 "name": "Default schema for a genomic variation",
                 "referenceToSchemaDefinition": f"{GA4GH_BEACON_REPO_URL}/main/models/json/beacon-v2-default-model/genomicVariations/defaultSchema.json",
-                "schemaVersion": "v2.0.0",
+                "schemaVersion": BEACON_SPEC_VERSION,
             },
-            "partOfSpecification": "Beacon v2.0.0",
+            "partOfSpecification": f"Beacon {BEACON_SPEC_VERSION}",
         },
     }
 
