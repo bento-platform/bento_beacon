@@ -15,6 +15,12 @@ def flatten(nested_list):
     return [item for nested_items in nested_list for item in nested_items]
 
 
+# don't stringify fields that are explicitly set to null / None
+def field_string(field: dict, key: str) -> str:
+    value = field.get(key)
+    return "__" + value if value is not None else ""
+
+
 def fields_dict(search_fields):
     """
     Given a list of bento_public search fields, one for each instance,
@@ -31,7 +37,12 @@ def fields_dict(search_fields):
     # make a dict of entries, keyed to phenopackets mapping + group_by, etc, keeping duplicate values
     all_fields_by_mapping = {}
     for f in all_fields:
-        field_key = f["mapping"] + f.get("group_by", "") + f.get("group_by_value", "") + f.get("value_mapping", "")
+        field_key = (
+            f["mapping"]
+            + field_string(f, "group_by")
+            + field_string(f, "group_by_value")
+            + field_string(f, "value_mapping")
+        )
         all_fields_by_mapping[field_key] = all_fields_by_mapping.get(field_key, []) + [f]
 
     return all_fields_by_mapping
