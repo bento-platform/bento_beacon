@@ -11,7 +11,7 @@ packages = [{include = "bento_beacon"}]
 python = "^3.10"
 bento-lib = "^12.2.3"
 flask = {extras = ["async"], version = "^3.1.1"}
-requests = "^2.32.3"
+requests = "^2.32.4"
 asyncio = "^3.4.3"
 aiohttp = "^3.10.10"
 aiocache = "^0.12.3"
