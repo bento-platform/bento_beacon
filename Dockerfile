@@ -1,4 +1,4 @@
-FROM ghcr.io/bento-platform/bento_base_image:python-debian-2025.01.21
+FROM ghcr.io/bento-platform/bento_base_image:python-debian-2025.06.01
 
 SHELL ["/bin/bash", "-c"]
 
@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir gunicorn==23.0.0 && \
 
 # Copy whole project directory
 COPY . .
+
+# Install the module itself, locally (similar to `pip install -e .`)
+RUN poetry install --without dev
 
 # Use base image entrypoint to set up non-root user & drop into run.bash
 
