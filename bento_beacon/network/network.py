@@ -1,13 +1,11 @@
 from flask import current_app, request, Blueprint
-from ..utils.exceptions import NotFoundException
-from .utils import network_beacon_get, network_beacon_post, host_beacon_response, init_network_service_registry
+from ..utils.exceptions import NotFoundException, APIException
+from .network_beacons import init_network_service_registry
 
 
 network = Blueprint("network", __name__, url_prefix="/network")
 
-
-# TODOs:
-# filtering terms XXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Long-term TODOs:
 # handle GET args
 
 # and perhaps standard beacon info endpoints at the network level: /map, /configuration, /service-info etc
@@ -17,17 +15,13 @@ network = Blueprint("network", __name__, url_prefix="/network")
 
 @network.route("")
 @network.route("/beacons")
-async def network_beacons():
+async def beacon_network():
+    config = current_app.config["NETWORK_CONFIG"]
+    if not config:
+        raise APIException("can't find beacon network config")
 
-    beacons_dict = await init_network_service_registry()
-    current_app.config["NETWORK_BEACONS"] = beacons_dict
-
-    # filters handling still experimental
-    return {
-        "filtersUnion": current_app.config["ALL_NETWORK_FILTERS"],
-        "filtersIntersection": current_app.config["COMMON_NETWORK_FILTERS"],
-        "beacons": list(beacons_dict.values()),
-    }
+    results = await init_network_service_registry()
+    return results
 
 
 # returns 404 if endpoint missing
@@ -41,19 +35,11 @@ async def query(beacon_id, endpoint):
     if endpoint not in current_app.config["NETWORK_VALID_QUERY_ENDPOINTS"]:
         raise NotFoundException()
 
-    # special handling for host beacon, avoid circular http calls
-    host_id = current_app.config["BEACON_ID"]
-    if beacon_id == host_id:
-        return await host_beacon_response(endpoint)
-
-    # all other beacons
-    api_url = beacon.get("apiUrl")
-
     if request.method == "POST":
         payload = request.get_json()
-        r = await network_beacon_post(api_url, payload, endpoint)
+        r = await beacon.query_beacon(payload, endpoint)
     else:
-        # TODO: pass get args
-        r = await network_beacon_get(api_url, endpoint)
+        # network is post-only for the moment
+        raise APIException("network accepts POST only")
 
     return r
