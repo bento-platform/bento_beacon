@@ -257,8 +257,8 @@ async def katsu_config_filtering_terms(project_id, dataset_id):
                 # longer label / helptext
                 "description": field.get("description", ""),
                 #
-                # bento internal use fields, more to come
-                "bento": {"section": section["section_title"]},
+                # bento internal use fields
+                "bento": {"section": section["section_title"], "mapping": field["mapping"]},
                 #
                 # as of beacon 2.1.1
                 "values": field["options"],
