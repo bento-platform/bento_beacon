@@ -2340,7 +2340,7 @@ network_beacon_overview_bento_18 = {
         "name": "Another Fake Beacon",
         "organization": {
             "contactUrl": "https://genomics.example.com",
-            "id": "local",
+            "id": "genomics.example",
             "logoUrl": "https://bentov2.local/public/assets/icon_small.png",
             "name": "Local Beacon",
             "welcomeUrl": "https://genomics.example.com/welcome",

@@ -69,17 +69,39 @@ def test_network_config_missing(app_config, client):
     assert response.status_code == 500
 
 
-def test_network_query_bad_endpoint(app_config, client, aioresponse):
+def test_network_beacon_query(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_network_init(app_config, aioresponse)
     mock_network_beacon_query_response(aioresponse)
+    response = client.post(f"/network/beacons/ca.fake2.bento.beacon/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 200
+
+
+def test_network_beacon_query_bad_endpoint(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_network_init(app_config, aioresponse)
     INCORRECT_ENDPOINT = "individualzz"
     response = client.post(f"/network/beacons/ca.fake2.bento.beacon/{INCORRECT_ENDPOINT}", json=BEACON_REQUEST_BODY)
     assert response.status_code == 404
 
 
-def test_network_query_bad_http_verb(app_config, client, aioresponse):
+def test_network_beacon_query_bad_http_verb(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_network_init(app_config, aioresponse)
     response = client.get(f"/network/beacons/ca.fake2.bento.beacon/individuals")
     assert response.status_code == 500
+
+def test_network_beacon_query_bad_beacon_id(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_network_init(app_config, aioresponse)
+    mock_network_beacon_query_response(aioresponse)
+    INCORRECT_ID = "bad-id"
+    response = client.post(f"/network/beacons/{INCORRECT_ID}/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 404
+
+
+def test_network_local_beacon_query(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_network_init(app_config, aioresponse)
+    response = client.post(f"/network/beacons/local.test.beacon/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 200
