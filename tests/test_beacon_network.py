@@ -5,8 +5,7 @@ from .test_routes import (
     mock_gohan_overview,
     mock_katsu_individuals,
     mock_katsu_public_search_fields,
-    mock_katsu_public_search_query,
-    mock_katsu_public_search_no_query,
+    mock_katsu_public_search,
     mock_katsu_private_search_query,
     mock_katsu_private_search_overview,
     mock_gohan_query,
@@ -69,7 +68,7 @@ def mock_network_katsu_public_fields_response_bento_18_from_pr_build(aioresponse
 
 
 def test_network_endpoint(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
 
     # calls to network beacons
     mock_network_beacon_bento_17_overview(aioresponse)
@@ -87,14 +86,14 @@ def test_network_endpoint(app_config, client, aioresponse):
     # calls for local beacon hosting the network
     mock_katsu_public_rules(app_config, aioresponse)
     mock_katsu_public_search_fields(app_config, aioresponse)
-    mock_katsu_projects(app_config, aioresponse)
-    mock_gohan_overview(app_config, aioresponse)
-    mock_katsu_individuals(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_public_search_no_query(app_config, aioresponse)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_katsu_projects(aioresponse)
+    mock_gohan_overview(aioresponse)
+    mock_katsu_individuals(aioresponse)
+    mock_katsu_public_search(aioresponse, query_params=KATSU_QUERY_PARAMS)
+    mock_katsu_public_search(aioresponse)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
 
     response = client.get("/network")
     assert response.status_code == 200

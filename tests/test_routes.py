@@ -1,4 +1,8 @@
 from copy import deepcopy
+
+from aioresponses import aioresponses
+from bento_beacon.utils import gohan_endpoints as ge, http, katsu_endpoints as ke
+
 from .data.service_responses import (
     katsu_projects_response,
     katsu_public_rules_response,
@@ -15,6 +19,7 @@ from .data.service_responses import (
     drs_query_response,
 )
 
+from . import conftest as conf
 from .conftest import (
     validate_response,
     TOKEN_ENDPOINT_CONFIG_RESPONSE,
@@ -72,7 +77,13 @@ KATSU_QUERY_PARAMS = "sex=FEMALE"
 KATSU_QUERY_PARAMS_PROJECT_SCOPED = f"project={PROJECT_1}&sex=FEMALE"
 KATSU_QUERY_PARAMS_DATASET_SCOPED = f"dataset={PROJECT_1_DATASET}&project={PROJECT_1}&sex=FEMALE"
 
-GOHAN_QUERY_PARAMS = "assemblyId=GRCh38&chromosome=3&getSampleIdsOnly=True&lowerBound=189631389&upperBound=189897276"
+GOHAN_QUERY_PARAMS = {
+    "assemblyId": "GRCh38",
+    "chromosome": "3",
+    "getSampleIdsOnly": True,
+    "lowerBound": 189631389,
+    "upperBound": 189897276,
+}
 
 HANDOVER_FILES = [
     "HG00100.vcf.gz",
@@ -80,11 +91,22 @@ HANDOVER_FILES = [
 ]
 
 
-def mock_retrieve_token(app_config, aioresponse):
-    openid_config_url = app_config["OPENID_CONFIG_URL"]
-    token_url = app_config["AUTHZ_URL"] + "/fake/token"
-    aioresponse.get(openid_config_url, payload=TOKEN_ENDPOINT_CONFIG_RESPONSE)
+def mock_retrieve_token(aioresponse: aioresponses):
+    token_url = conf.AUTHZ_URL + "/fake/token"
+    aioresponse.get(conf.OPENID_CONFIG_URL, payload=TOKEN_ENDPOINT_CONFIG_RESPONSE)
     aioresponse.post(token_url, payload=token_response, repeat=True)
+
+
+def mock_service_registry(aioresponse: aioresponses):
+    # For use by the "service manager" singleton
+    pass
+
+
+AUTHZ_EVALUATE_URL = conf.AUTHZ_URL + "/policy/evaluate"
+KATSU_DISCOVERY_URL = conf.KATSU_URL + ke.KATSU_BEACON_SEARCH
+KATSU_DISCOVERY_RULES_URL = conf.KATSU_URL + ke.KATSU_PUBLIC_RULES
+KATSU_PRIVATE_SEARCH_URL = conf.KATSU_URL + ke.KATSU_SEARCH_ENDPOINT
+KATSU_INDIVIDUALS_URL = conf.KATSU_URL + ke.KATSU_INDIVIDUALS_ENDPOINT
 
 
 # checked permissions (in order):
@@ -96,140 +118,113 @@ def mock_retrieve_token(app_config, aioresponse):
 # "query:dataset_level_boolean"
 
 
-def mock_permissions_all(app_config, aioresponse):
-    mock_retrieve_token(app_config, aioresponse)
-    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[True, True, True, True, True, True, True]]})
+def mock_permissions_all(aioresponse: aioresponses):
+    mock_retrieve_token(aioresponse)
+    aioresponse.post(AUTHZ_EVALUATE_URL, payload={"result": [[True, True, True, True, True, True, True]]})
 
 
-def mock_permissions_all_except_download(app_config, aioresponse):
-    mock_retrieve_token(app_config, aioresponse)
-    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[True, False, True, True, True, True, True]]})
+def mock_permissions_all_except_download(aioresponse: aioresponses):
+    mock_retrieve_token(aioresponse)
+    aioresponse.post(AUTHZ_EVALUATE_URL, payload={"result": [[True, False, True, True, True, True, True]]})
 
 
-def mock_permissions_none(app_config, aioresponse):
-    mock_retrieve_token(app_config, aioresponse)
-    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, False, False, False, False, False]]})
+def mock_permissions_none(aioresponse: aioresponses):
+    mock_retrieve_token(aioresponse)
+    aioresponse.post(AUTHZ_EVALUATE_URL, payload={"result": [[False, False, False, False, False, False, False]]})
 
 
-def mock_permissions_project_counts(app_config, aioresponse):
-    mock_retrieve_token(app_config, aioresponse)
-    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, True, True, True, True]]})
+def mock_permissions_project_counts(aioresponse: aioresponses):
+    mock_retrieve_token(aioresponse)
+    aioresponse.post(AUTHZ_EVALUATE_URL, payload={"result": [[False, False, True, True, True, True]]})
 
 
-def mock_permissions_dataset_counts_for_non_dataset_resource(app_config, aioresponse):
-    mock_retrieve_token(app_config, aioresponse)
-    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, False, False, True, True]]})
+def mock_permissions_dataset_counts_for_non_dataset_resource(aioresponse: aioresponses):
+    mock_retrieve_token(aioresponse)
+    aioresponse.post(AUTHZ_EVALUATE_URL, payload={"result": [[False, False, False, False, True, True]]})
 
 
 # does not include project permissions
-def mock_permissions_dataset_counts_for_dataset_resource(app_config, aioresponse):
-    mock_retrieve_token(app_config, aioresponse)
-    authz_evaluate_url = app_config["AUTHZ_URL"] + "/policy/evaluate"
-    aioresponse.post(authz_evaluate_url, payload={"result": [[False, False, True, True]]})
+def mock_permissions_dataset_counts_for_dataset_resource(aioresponse: aioresponses):
+    mock_retrieve_token(aioresponse)
+    aioresponse.post(AUTHZ_EVALUATE_URL, payload={"result": [[False, False, True, True]]})
 
 
-def mock_katsu_public_rules(app_config, aioresponse, project_id=None, dataset_id=None):
-    params = ""
-    if dataset_id or project_id:
-        params = "?"
-        if dataset_id:
-            params += f"dataset={PROJECT_1_DATASET}&"
-        if project_id:
-            params += f"project={PROJECT_1}"
-    public_rules_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_RULES"] + params
+def mock_katsu_public_rules(aioresponse: aioresponses, project_id=None, dataset_id=None):
+    public_rules_url = KATSU_DISCOVERY_RULES_URL + http.params_str({"project_id": project_id, "dataset_id": dataset_id})
     aioresponse.get(public_rules_url, payload=katsu_public_rules_response)
 
 
-def mock_katsu_public_rules_mismatched_scope(app_config, aioresponse):
+def mock_katsu_public_rules_mismatched_scope(aioresponse: aioresponses):
     mismatched_rules_url = (
-        app_config["KATSU_BASE_URL"]
-        + app_config["KATSU_PUBLIC_RULES"]
-        + f"?dataset={PROJECT_1_DATASET}&project={PROJECT_2}"
+        KATSU_DISCOVERY_RULES_URL + http.params_str({"dataset": PROJECT_1_DATASET, "project": PROJECT_2})
     )
     aioresponse.get(mismatched_rules_url, payload=katsu_scope_error_response)
 
 
-def mock_katsu_projects(app_config, aioresponse):
-    projects_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
+def mock_katsu_projects(aioresponse: aioresponses):
+    projects_url = conf.KATSU_URL + ke.KATSU_PROJECTS_ENDPOINT + "?format=phenopackets"
     aioresponse.get(projects_url, payload=katsu_projects_response)
 
 
-def mock_katsu_public_search_fields(app_config, aioresponse, project_id=None):
-    search_fields_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_CONFIG_ENDPOINT"]
-    if project_id:
-        search_fields_url += f"?project={project_id}"
+def mock_katsu_public_search_fields(aioresponse, project_id=None):
+    search_fields_url = conf.KATSU_URL + ke.KATSU_PUBLIC_CONFIG_ENDPOINT + http.params_str({"project_id": project_id})
     aioresponse.get(search_fields_url, payload=katsu_config_search_fields_response)
 
 
-def mock_katsu_public_search_no_query(app_config, aioresponse):
-    public_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"]
-    aioresponse.get(public_search_url, payload=katsu_public_search_response)
-
-
-def mock_katsu_public_search_query(app_config, aioresponse, query_params):
-    public_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
-    aioresponse.get(public_search_url, payload=katsu_public_search_response)
-
-
-def mock_katsu_private_search_query(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    aioresponse.post(private_search_url, payload=katsu_private_search_response)
-
-
-def mock_katsu_private_search_for_handover_files(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    aioresponse.post(private_search_url, payload=katsu_private_search_for_files)
-
-
-def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    aioresponse.post(private_search_url, payload=katsu_private_search_for_phenopackets)
-
-
-def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
-    private_search_url = (
-        app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"] + "?" + f"project={project_id}"
+def mock_katsu_public_search(aioresponse, query_params: str | None = None):
+    aioresponse.get(
+        KATSU_DISCOVERY_URL + ("?" + query_params if query_params else ""),
+        payload=katsu_public_search_response,
     )
+
+
+def mock_katsu_private_search_query(aioresponse):
+    aioresponse.post(KATSU_PRIVATE_SEARCH_URL, payload=katsu_private_search_response)
+
+
+def mock_katsu_private_search_for_handover_files(aioresponse):
+    aioresponse.post(KATSU_PRIVATE_SEARCH_URL, payload=katsu_private_search_for_files)
+
+
+def mock_katsu_private_search_for_phenopackets(aioresponse):
+    aioresponse.post(KATSU_PRIVATE_SEARCH_URL, payload=katsu_private_search_for_phenopackets)
+
+
+def mock_katsu_private_search_query_scoped(aioresponse: aioresponses, project_id=None, dataset_id=None):
+    private_search_url = KATSU_PRIVATE_SEARCH_URL + f"?project={project_id}"
     if dataset_id:
         private_search_url += f"&dataset={dataset_id}"
     aioresponse.post(private_search_url, payload=katsu_private_search_response)
 
 
-def mock_katsu_private_search_overview(app_config, aioresponse):
-    search_overview_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_OVERVIEW"]
+def mock_katsu_private_search_overview(aioresponse: aioresponses):
+    search_overview_url = conf.KATSU_URL + ke.KATSU_SEARCH_OVERVIEW
     aioresponse.post(search_overview_url, payload=katsu_private_search_overview_response)
 
 
-def mock_katsu_individuals(app_config, aioresponse):
-    individuals_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + "?page_size=1"
+def mock_katsu_individuals(aioresponse: aioresponses):
+    individuals_url = KATSU_INDIVIDUALS_URL + "?page_size=1"
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
 
 
-def mock_katsu_individuals_scoped(app_config, aioresponse):
-    individuals_url = (
-        app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + f"?page_size=1&project={PROJECT_1}"
-    )
+def mock_katsu_individuals_scoped(aioresponse: aioresponses):
+    individuals_url = KATSU_INDIVIDUALS_URL + f"?page_size=1&project={PROJECT_1}"
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
 
 
-def mock_gohan_overview(app_config, aioresponse):
-    gohan_overview_url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_OVERVIEW_ENDPOINT"]
+def mock_gohan_overview(aioresponse: aioresponses):
+    gohan_overview_url = conf.GOHAN_URL + ge.GOHAN_OVERVIEW_ENDPOINT
     aioresponse.get(gohan_overview_url, payload=gohan_search_response)
 
 
-def mock_gohan_query(app_config, aioresponse):
-    gohan_search_url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_SEARCH_ENDPOINT"] + "?" + GOHAN_QUERY_PARAMS
+def mock_gohan_query(aioresponse: aioresponses):
+    gohan_search_url = conf.GOHAN_URL + ge.GOHAN_SEARCH_ENDPOINT + http.params_str(GOHAN_QUERY_PARAMS)
     aioresponse.get(gohan_search_url, payload=gohan_search_response)
 
 
-def mock_drs_queries(app_config, aioresponse):
+def mock_drs_queries(aioresponse: aioresponses):
     for vcf in HANDOVER_FILES:
-        drs_query_url = app_config["DRS_URL"] + "/search?name=" + vcf
+        drs_query_url = conf.DRS_URL + "/search?name=" + vcf
         aioresponse.get(drs_query_url, payload=drs_query_response)
 
 
@@ -238,79 +233,79 @@ def mock_drs_queries(app_config, aioresponse):
 # --------------------------------------------------------
 
 
-def test_service_info(app_config, client, aioresponse):
-    mock_katsu_projects(app_config, aioresponse)
+def test_service_info(app_config, client, aioresponse: aioresponses):
+    mock_katsu_projects(aioresponse)
     response = client.get("/service-info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["service-info"])
 
 
-def test_service_info_scoped(app_config, client, aioresponse):
-    mock_katsu_projects(app_config, aioresponse)
+def test_service_info_scoped(app_config, client, aioresponse: aioresponses):
+    mock_katsu_projects(aioresponse)
     response = client.get(f"/{PROJECT_1}/service-info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["service-info"])
 
 
-def test_root(app_config, client, aioresponse):
-    mock_katsu_projects(app_config, aioresponse)  # scope check before request
-    mock_katsu_projects(app_config, aioresponse)  # collecting dataset descriptions
+def test_root(app_config, client, aioresponse: aioresponses):
+    mock_katsu_projects(aioresponse)  # scope check before request
+    mock_katsu_projects(aioresponse)  # collecting dataset descriptions
     response = client.get("/")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
 
 
 def test_info(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_projects(app_config, aioresponse)
-    mock_katsu_public_search_no_query(app_config, aioresponse)
-    mock_katsu_individuals(app_config, aioresponse)
-    mock_gohan_overview(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_projects(aioresponse)
+    mock_katsu_public_search(aioresponse)
+    mock_katsu_individuals(aioresponse)
+    mock_gohan_overview(aioresponse)
     response = client.get("/info")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
 
 
 def test_map(app_config, client, aioresponse):
-    mock_katsu_projects(app_config, aioresponse)
+    mock_katsu_projects(aioresponse)
     response = client.get("/map")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["map"])
 
 
 def test_entry_types(app_config, client, aioresponse):
-    mock_katsu_projects(app_config, aioresponse)
+    mock_katsu_projects(aioresponse)
     response = client.get("/entry_types")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["entry_types"])
 
 
 def test_configuration_endpoint(app_config, client, aioresponse):
-    mock_katsu_projects(app_config, aioresponse)
+    mock_katsu_projects(aioresponse)
     response = client.get("/configuration")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["configuration"])
 
 
 def test_filtering_terms(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_projects(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_fields(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_projects(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search_fields(aioresponse)
     response = client.get("/filtering_terms")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["filtering_terms"])
 
 
 def test_filtering_terms_scoped(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_projects(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1)
-    mock_katsu_public_search_fields(app_config, aioresponse, project_id=PROJECT_1)
+    mock_permissions_all(aioresponse)
+    mock_katsu_projects(aioresponse)
+    mock_katsu_public_rules(aioresponse, project_id=PROJECT_1)
+    mock_katsu_public_search_fields(aioresponse, project_id=PROJECT_1)
     response = client.get(f"{PROJECT_1}/filtering_terms")
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["filtering_terms"])
 
 
 def test_overview(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_projects(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_individuals(app_config, aioresponse)
-    mock_katsu_public_search_no_query(app_config, aioresponse)
-    mock_gohan_overview(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_projects(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_individuals(aioresponse)
+    mock_katsu_public_search(app_config, aioresponse)
+    mock_gohan_overview(aioresponse)
     response = client.get("/overview")
 
     # /overview endpoint is bento-only, does not exist in beacon spec
@@ -326,27 +321,27 @@ def test_overview(app_config, client, aioresponse):
 
 
 def test_datasets(app_config, client, aioresponse):
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_projects(app_config, aioresponse)
-    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_projects(aioresponse)
+    mock_permissions_all(aioresponse)
     response = client.get("/datasets")
     assert response.status_code == 200
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["collections_response"])
 
 
 def test_individuals_no_query(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_individuals(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_individuals(aioresponse)
+    mock_katsu_public_rules(aioresponse)
     response = client.get("/individuals")
     assert response.status_code == 200
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["count_response"])
 
 
 def test_individuals_no_query_project_scoped(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_individuals_scoped(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1)
+    mock_permissions_all(aioresponse)
+    mock_katsu_individuals_scoped(aioresponse)
+    mock_katsu_public_rules(aioresponse, project_id=PROJECT_1)
     response = client.get(f"/{PROJECT_1}/individuals")
     assert response.status_code == 200
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["count_response"])
@@ -358,12 +353,12 @@ def test_individuals_no_query_project_scoped(app_config, client, aioresponse):
 
 
 def test_individuals_query_all_permissions(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, query_params=KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     data = response.get_json()
 
@@ -377,15 +372,15 @@ def test_individuals_query_all_permissions(app_config, client, aioresponse):
 
 
 def test_individuals_full_record_query_all_permissions(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_for_handover_files(app_config, aioresponse)
-    mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
-    mock_drs_queries(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, query_params=KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_for_handover_files(aioresponse)
+    mock_katsu_private_search_for_phenopackets(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
+    mock_drs_queries(aioresponse)
     response = client.post("/individuals", json=BEACON_FULL_RECORD_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
@@ -394,14 +389,14 @@ def test_individuals_full_record_query_all_permissions(app_config, client, aiore
 
 
 def test_individuals_full_record_query_all_permissions_except_download(app_config, client, aioresponse):
-    mock_permissions_all_except_download(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
-    mock_drs_queries(app_config, aioresponse)
+    mock_permissions_all_except_download(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_for_phenopackets(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
+    mock_drs_queries(aioresponse)
     response = client.post("/individuals", json=BEACON_FULL_RECORD_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
@@ -410,14 +405,14 @@ def test_individuals_full_record_query_all_permissions_except_download(app_confi
 
 
 def test_individuals_boolean_query(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
-    mock_drs_queries(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_for_phenopackets(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
+    mock_drs_queries(aioresponse)
     response = client.post("/individuals", json=BEACON_BOOL_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
@@ -425,13 +420,13 @@ def test_individuals_boolean_query(app_config, client, aioresponse):
 
 
 def test_individuals_query_project_scoped(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_PROJECT_SCOPED)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_PROJECT_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=PROJECT_1)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules(aioresponse, project_id=PROJECT_1)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS_PROJECT_SCOPED)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS_PROJECT_SCOPED)
+    mock_katsu_private_search_query_scoped(aioresponse, project_id=PROJECT_1)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=BEACON_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
@@ -439,12 +434,12 @@ def test_individuals_query_project_scoped(app_config, client, aioresponse):
 
 
 def test_individuals_query_dataset_scoped(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules(aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
+    mock_katsu_private_search_query_scoped(aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
@@ -452,14 +447,14 @@ def test_individuals_query_dataset_scoped(app_config, client, aioresponse):
 
 
 def test_individuals_query_scoped_too_many_datasets(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=BEACON_TOO_MANY_DATASETS)
     assert response.status_code == 400
 
 
 def test_individuals_query_mismatched_scope(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules_mismatched_scope(app_config, aioresponse)
+    mock_permissions_all(aioresponse)
+    mock_katsu_public_rules_mismatched_scope(aioresponse)
     response = client.post(f"/{PROJECT_2}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
 
     # currently katsu 404s are obscured
@@ -467,12 +462,12 @@ def test_individuals_query_mismatched_scope(app_config, client, aioresponse):
 
 
 def test_individuals_count_query_no_permissions(app_config, client, aioresponse):
-    mock_permissions_none(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_none(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
 
     # expect permissions error
@@ -480,12 +475,12 @@ def test_individuals_count_query_no_permissions(app_config, client, aioresponse)
 
 
 def test_individuals_full_record_query_no_permissions(app_config, client, aioresponse):
-    mock_permissions_none(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_none(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post("/individuals", json=BEACON_FULL_RECORD_REQUEST_BODY)
 
     # expect permissions error
@@ -493,12 +488,12 @@ def test_individuals_full_record_query_no_permissions(app_config, client, aiores
 
 
 def test_individuals_bool_query_no_permissions(app_config, client, aioresponse):
-    mock_permissions_none(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_none(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post("/individuals", json=BEACON_BOOL_REQUEST_BODY)
 
     # expect permissions error
@@ -506,12 +501,12 @@ def test_individuals_bool_query_no_permissions(app_config, client, aioresponse):
 
 
 def test_individuals_by_id_query_wrong_permissions(app_config, client, aioresponse):
-    mock_permissions_project_counts(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_project_counts(aioresponse)
+    mock_katsu_public_rules(aioresponse)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(aioresponse)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.get("/individuals/abc123")
 
     # expect permissions error
@@ -524,8 +519,8 @@ def test_individuals_by_id_query_wrong_permissions(app_config, client, aiorespon
 
 
 def test_individuals_query_project_with_dataset_permissions(app_config, client, aioresponse):
-    mock_permissions_dataset_counts_for_non_dataset_resource(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1)
+    mock_permissions_dataset_counts_for_non_dataset_resource(aioresponse)
+    mock_katsu_public_rules(aioresponse, project_id=PROJECT_1)
     response = client.post(f"/{PROJECT_1}/individuals", json=BEACON_REQUEST_BODY)  # url
     data = response.get_json()
 
@@ -534,12 +529,12 @@ def test_individuals_query_project_with_dataset_permissions(app_config, client, 
 
 
 def test_individuals_query_dataset_with_dataset_permissions(app_config, client, aioresponse):
-    mock_permissions_dataset_counts_for_dataset_resource(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
-    mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query(app_config, aioresponse)
+    mock_permissions_dataset_counts_for_dataset_resource(aioresponse)
+    mock_katsu_public_rules(aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
+    mock_katsu_public_search(aioresponse, KATSU_QUERY_PARAMS_DATASET_SCOPED)
+    mock_katsu_private_search_query_scoped(aioresponse, project_id=PROJECT_1, dataset_id=PROJECT_1_DATASET)
+    mock_katsu_private_search_overview(aioresponse)
+    mock_gohan_query(aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=DATASET_SCOPED_BEACON_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 200
@@ -552,7 +547,7 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
 
 
 def test_network_endpoint(app_config, client, aioresponse):
-    mock_permissions_project_counts(app_config, aioresponse)
+    mock_permissions_project_counts(aioresponse)
     response = client.get("/network")
     assert response.status_code == 200
     assert "beacons" in response.get_json()

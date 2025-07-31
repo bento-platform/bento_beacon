@@ -1,9 +1,16 @@
 import aiohttp
 from flask import current_app
-from .http import tcp_connector, aiohttp_params
+from . import gohan_endpoints as ge
+from .http import tcp_connector, process_params
 from ..authz.access import create_access_header_or_fall_back
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from .reference import gene_position_lookup
+from .service_manager import get_service_url_or_raise
+
+
+async def _get_gohan_base_url() -> str:
+    return await get_service_url_or_raise("gohan", current_app.logger)
+
 
 # -------------------------------------------------------
 #       query mapping
@@ -171,8 +178,7 @@ async def generic_gohan_query(gohan_args, granularity, ids_only):
         return await gohan_full_record_query(gohan_args)
 
     # count or boolean query follows
-    config = current_app.config
-    query_url = config["GOHAN_BASE_URL"] + config["GOHAN_COUNT_ENDPOINT"]
+    query_url = (await _get_gohan_base_url()) + ge.GOHAN_COUNT_ENDPOINT
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
     results = await gohan_results(query_url, gohan_args)
     count = results.get("count") if results else None
@@ -180,8 +186,7 @@ async def generic_gohan_query(gohan_args, granularity, ids_only):
 
 
 async def gohan_ids_only_query(gohan_args, granularity):
-    config = current_app.config
-    query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
+    query_url = (await _get_gohan_base_url()) + ge.GOHAN_SEARCH_ENDPOINT
     current_app.logger.debug(f"launching gohan query: {gohan_args}")
     results = await gohan_results(query_url, gohan_args)
     return unpackage_sample_ids(results)
@@ -207,7 +212,7 @@ async def gohan_network_call(url, gohan_args):
                 url,
                 headers=await create_access_header_or_fall_back(),
                 timeout=c["GOHAN_TIMEOUT"],
-                params=aiohttp_params(gohan_args),
+                params=process_params(gohan_args),
             ) as r:
 
                 # handle gohan errors or any bad responses
@@ -226,15 +231,13 @@ async def gohan_network_call(url, gohan_args):
 
 # currently used internally only
 async def gohan_full_record_query(gohan_args):
-    config = current_app.config
-    query_url = config["GOHAN_BASE_URL"] + config["GOHAN_SEARCH_ENDPOINT"]
+    query_url = (await _get_gohan_base_url()) + ge.GOHAN_SEARCH_ENDPOINT
     response = await gohan_results(query_url, gohan_args)
     return response.get("calls")
 
 
 async def gohan_overview():
-    config = current_app.config
-    url = config["GOHAN_BASE_URL"] + config["GOHAN_OVERVIEW_ENDPOINT"]
+    url = (await _get_gohan_base_url()) + ge.GOHAN_OVERVIEW_ENDPOINT
     return await gohan_network_call(url, {})
 
 

@@ -4,20 +4,22 @@ from urllib.parse import urlsplit, urlunsplit
 from .katsu_utils import katsu_post
 from .exceptions import APIException
 from .http import tcp_connector
+from .service_manager import get_service_url_or_raise
 from ..authz.headers import auth_header_from_request
 
 
 DRS_TIMEOUT_SECONDS = 10
 
 
-def drs_url_components(c):
-    return urlsplit(c["DRS_URL"])
+async def drs_url_components():
+    drs_url = await get_service_url_or_raise("drs", current_app.logger)
+    return urlsplit(drs_url)
 
 
 async def drs_network_call(path, query):
     c = current_app.config
 
-    base_url_components = drs_url_components(c)
+    base_url_components = await drs_url_components()
     url = urlunsplit(
         (
             base_url_components.scheme,

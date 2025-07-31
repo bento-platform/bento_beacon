@@ -2,12 +2,13 @@ import aiohttp
 from flask import current_app
 from functools import reduce
 from json import JSONDecodeError
+from typing import Literal
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
+from . import katsu_endpoints as ke
 from .exceptions import APIException, InvalidQuery
-from .http import tcp_connector
-from typing import Literal
-from .exceptions import APIException, InvalidQuery
+from .http import tcp_connector, params_str
+from .service_manager import get_service_url_or_raise
 from ..authz.access import create_access_header_or_fall_back
 from ..authz.headers import auth_header_from_request
 
@@ -52,26 +53,22 @@ async def katsu_filters_and_sample_ids_query(beacon_filters, datatype, sample_id
     return await katsu_filters_query(filters_copy, datatype, project_id=project_id, dataset_id=dataset_id)
 
 
-async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
+async def _get_katsu_base_url() -> str:
+    return await get_service_url_or_raise("metadata", current_app.logger)
+
+
+async def katsu_post(payload, endpoint: str = ke.KATSU_SEARCH_ENDPOINT, project_id=None, dataset_id=None):
     c = current_app.config
+    timeout = c["KATSU_TIMEOUT"]
 
-    # awkward default since current_app not available in function params
-    endpoint = c["KATSU_SEARCH_ENDPOINT"] if endpoint is None else endpoint
-
-    query_dict = {}
-    if project_id is not None:
-        query_dict["project"] = project_id
-    if dataset_id is not None:
-        query_dict["dataset"] = dataset_id
-
-    url = c["KATSU_BASE_URL"] + endpoint + ("?" + urlencode(query_dict) if query_dict else "")
+    url = (await _get_katsu_base_url()) + endpoint + params_str({"project": project_id, "dataset": dataset_id})
 
     current_app.logger.debug(f"calling katsu url {url}")
 
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
             async with s.post(
-                url, headers=await create_access_header_or_fall_back(), timeout=c["KATSU_TIMEOUT"], json=payload
+                url, headers=await create_access_header_or_fall_back(), timeout=timeout, json=payload
             ) as r:
 
                 katsu_response = await r.json()
@@ -92,18 +89,19 @@ async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
 
 
 async def katsu_get(
-    endpoint,
-    entity_id=None,
-    project_id=None,
-    dataset_id=None,
-    query_dict=None,
+    endpoint: str,
+    entity_id: str | None = None,
+    project_id: str | None = None,
+    dataset_id: str | None = None,
+    query_dict: dict[str, str] | None = None,
     requires_auth: RequiresAuthOptions = "none",
 ):
+    katsu_base_url = await _get_katsu_base_url()
+
     c = current_app.config
-    katsu_base_url = c["KATSU_BASE_URL"]
     timeout = c["KATSU_TIMEOUT"]
 
-    query_dict = {} if query_dict is None else query_dict
+    query_dict: dict[str, str] = query_dict or {}
 
     if project_id is not None:
         query_dict["project"] = project_id
@@ -128,6 +126,7 @@ async def katsu_get(
         headers = auth_header_from_request()
     elif requires_auth == "full":
         headers = await create_access_header_or_fall_back()
+
     try:
         async with aiohttp.ClientSession(connector=tcp_connector(c)) as s:
             async with s.get(query_url, headers=headers, timeout=timeout) as r:
@@ -157,7 +156,7 @@ async def search_from_config(config_filters, project_id=None, dataset_id=None):
     # query error checking handled in katsu
     query_dict = {cf["id"]: cf["value"] for cf in config_filters}
     response = await katsu_get(
-        current_app.config["KATSU_BEACON_SEARCH"],
+        ke.KATSU_BEACON_SEARCH,
         project_id=project_id,
         dataset_id=dataset_id,
         query_dict=query_dict,
@@ -168,10 +167,7 @@ async def search_from_config(config_filters, project_id=None, dataset_id=None):
 
 async def get_katsu_config_search_fields(project_id=None, dataset_id=None):
     fields = await katsu_get(
-        current_app.config["KATSU_PUBLIC_CONFIG_ENDPOINT"],
-        project_id=project_id,
-        dataset_id=dataset_id,
-        requires_auth="forwarded",
+        ke.KATSU_PUBLIC_CONFIG_ENDPOINT, project_id=project_id, dataset_id=dataset_id, requires_auth="forwarded"
     )
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
@@ -294,10 +290,12 @@ async def get_filtering_terms(project_id, dataset_id):
 
 
 async def katsu_total_individuals_count(project_id=None, dataset_id=None):
-    c = current_app.config
-    endpoint = c["KATSU_INDIVIDUALS_ENDPOINT"]
     count_response = await katsu_get(
-        endpoint, query_dict={"page_size": "1"}, requires_auth="full", project_id=project_id, dataset_id=dataset_id
+        ke.KATSU_INDIVIDUALS_ENDPOINT,
+        query_dict={"page_size": "1"},
+        requires_auth="full",
+        project_id=project_id,
+        dataset_id=dataset_id,
     )
     count = count_response.get("count")
     return count
@@ -305,10 +303,7 @@ async def katsu_total_individuals_count(project_id=None, dataset_id=None):
 
 async def katsu_projects(project_id=None):
     return await katsu_get(
-        current_app.config["KATSU_PROJECTS_ENDPOINT"],
-        entity_id=project_id,
-        query_dict={"format": "phenopackets"},
-        requires_auth="none",
+        ke.KATSU_PROJECTS_ENDPOINT, entity_id=project_id, query_dict={"format": "phenopackets"}, requires_auth="none"
     )
 
 
@@ -338,8 +333,7 @@ async def katsu_dataset_by_id(id, project_id=None):
 async def phenopackets_for_ids(ids, project_id, dataset_id):
     # retrieve from katsu search
     payload = {"data_type": "phenopacket", "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]]}
-    endpoint = current_app.config["KATSU_SEARCH_ENDPOINT"]
-    return await katsu_post(payload, endpoint=endpoint, project_id=project_id, dataset_id=dataset_id)
+    return await katsu_post(payload, endpoint=ke.KATSU_SEARCH_ENDPOINT, project_id=project_id, dataset_id=dataset_id)
 
 
 async def biosample_ids_for_individuals(individual_ids):
@@ -351,18 +345,13 @@ async def biosample_ids_for_individuals(individual_ids):
 
 # scope done elsewhere, summary based on ids
 async def search_summary_statistics(ids):
-    endpoint = current_app.config["KATSU_SEARCH_OVERVIEW"]
-    payload = {"id": ids}
-    return await katsu_post(payload, endpoint)
+    return await katsu_post({"id": ids}, ke.KATSU_SEARCH_OVERVIEW)
 
 
 async def overview_statistics(project_id=None, dataset_id=None):
     # call katsu for censored public overview
     stats = await katsu_get(
-        current_app.config["KATSU_BEACON_SEARCH"],
-        project_id=project_id,
-        dataset_id=dataset_id,
-        requires_auth="forwarded",
+        ke.KATSU_BEACON_SEARCH, project_id=project_id, dataset_id=dataset_id, requires_auth="forwarded"
     )
 
     # here we mostly pass katsu response unmodified
@@ -386,10 +375,7 @@ async def overview_statistics(project_id=None, dataset_id=None):
 
 async def katsu_censorship_settings(project_id=None, dataset_id=None) -> tuple[int | None, int | None]:
     rules = await katsu_get(
-        current_app.config["KATSU_PUBLIC_RULES"],
-        project_id=project_id,
-        dataset_id=dataset_id,
-        requires_auth="forwarded",
+        ke.KATSU_PUBLIC_RULES, project_id=project_id, dataset_id=dataset_id, requires_auth="forwarded"
     )
     max_filters = rules.get("max_query_parameters")
     count_threshold = rules.get("count_threshold")

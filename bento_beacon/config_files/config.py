@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
-from .. import __version__
 
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
@@ -17,6 +16,9 @@ def reverse_domain_id(domain):
 
 
 BENTO_DEBUG = str_to_bool(os.environ.get("BENTO_DEBUG", os.environ.get("FLASK_DEBUG", "false")))
+BENTO_VALIDATE_SSL = str_to_bool(os.environ.get("BENTO_VALIDATE_SSL", str(not BENTO_DEBUG)))
+
+BENTO_SERVICE_REGISTRY_URL = os.environ.get("BENTO_SERVICE_REGISTRY_URL")
 
 # silence logspam
 logging.getLogger("asyncio").setLevel(logging.WARNING)
@@ -40,6 +42,7 @@ class Config:
     DEFAULT_PAGINATION_PAGE_SIZE = 10
 
     BENTO_DEBUG = BENTO_DEBUG
+    BENTO_VALIDATE_SSL = BENTO_VALIDATE_SSL
     BENTO_DOMAIN = os.environ.get("BENTOV2_DOMAIN")
     BEACON_BASE_URL = os.environ.get("BEACON_BASE_URL")
     BENTO_PUBLIC_URL = os.environ.get("BENTOV2_PUBLIC_URL")
@@ -138,23 +141,15 @@ class Config:
         },
         "/overview": {},
     }
+
+    # -------------------
+    # service registry
+
+    SERVICE_REGISTRY_URL = BENTO_SERVICE_REGISTRY_URL
+
     # -------------------
     # katsu
 
-    KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
-    KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
-    KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
-    KATSU_PROJECTS_ENDPOINT = "/api/projects"
-    KATSU_DATASETS_ENDPOINT = "/api/datasets"
-    KATSU_SEARCH_ENDPOINT = "/private/search"
-    KATSU_RESOURCES_ENDPOINT = "/api/resources"
-    KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/public_search_fields"
-    KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
-    KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
-    KATSU_BEACON_SEARCH = "/api/public"
-    KATSU_SEARCH_OVERVIEW = "/api/search_overview"
-    KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
-    KATSU_PUBLIC_RULES = "/api/public_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))
@@ -167,20 +162,7 @@ class Config:
     # -------------------
     # gohan
 
-    GOHAN_BASE_URL = os.environ.get("GOHAN_BASE_URL")
-    GOHAN_SEARCH_ENDPOINT = "/variants/get/by/variantId"
-    GOHAN_COUNT_ENDPOINT = "/variants/count/by/variantId"
-    GOHAN_OVERVIEW_ENDPOINT = "/variants/overview"
     GOHAN_TIMEOUT = int(os.environ.get("BEACON_GOHAN_TIMEOUT", 60))
-
-    # -------------------
-    # drs
-
-    DRS_URL = os.environ.get("DRS_URL")
-
-    # -------------------
-    # reference
-    REFERENCE_URL = os.environ.get("REFERENCE_URL")
 
     # -------------------
     # authorization
