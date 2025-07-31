@@ -102,7 +102,7 @@ class NetworkBeacon(NetworkNode):
         # apply any versioning to request payload
 
         results = await self._network_beacon_post(payload, endpoint)
-        
+
         # apply any versioning to response format
         return results
 
@@ -150,6 +150,7 @@ class NetworkBeacon(NetworkNode):
 
 # -----------------------------------
 
+
 async def init_network_service_registry():
     config = current_app.config["NETWORK_CONFIG"]
     network_beacons = config.get("beacons")
@@ -181,7 +182,7 @@ async def init_network_service_registry():
     current_app.config["NETWORK_BEACONS"] = {b.id: b for b in responding_beacons}
 
     results = {
-        "beacons": [b.node_info_to_json() for b in beacons],
+        "beacons": [b.node_info_to_json() for b in responding_beacons],
         "filtersIntersection": network_filtering_terms.get("filtersIntersection"),
         "filtersUnion": network_filtering_terms.get("filtersUnion"),
     }
@@ -203,6 +204,7 @@ async def get_network_filtering_terms(beacons: list[NetworkNode]):
 # -------------------------------
 # filter utils
 # could probably go in a different file
+
 
 def flatten(nested_list):
     return [item for nested_items in nested_list for item in nested_items]
@@ -269,4 +271,3 @@ def values_intersection(options_list):
 # list of assemblies in network (currently computed by client)
 # links for gene name lookups for each assembly (some may not exist in local beacon)
 # note that for network queries, we only need gene *names*, position information is looked up locally on each beacon.
-
