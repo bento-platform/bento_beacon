@@ -544,15 +544,3 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
     data = response.get_json()
     assert response.status_code == 200
     assert data["responseSummary"]["numTotalResults"] == 9
-
-
-# --------------------------------------------------------
-# network
-# --------------------------------------------------------
-
-
-def test_network_endpoint(app_config, client, aioresponse):
-    mock_permissions_project_counts(app_config, aioresponse)
-    response = client.get("/network")
-    assert response.status_code == 200
-    assert "beacons" in response.get_json()

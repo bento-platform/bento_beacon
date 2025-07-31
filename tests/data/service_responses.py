@@ -2330,51 +2330,6 @@ token_response = {
     "scope": "profile email",
 }
 
-
-network_beacon_overview_bento_17 = {
-    "meta": {"apiVersion": "v2.0.0", "beaconId": "ca.fake1.bento.beacon", "returnedSchemas": [{}]},
-    "response": {
-        "apiVersion": "v2.0.0",
-        "description": "this is a beacon",
-        "environment": "prod",
-        "id": "ca.fake1.bento.beacon",
-        "name": "Fake Beacon",
-        "organization": {
-            "contactUrl": "https://computationalgenomics.ca/contact-us/",
-            "id": "local",
-            "logoUrl": "https://bentov2.local/public/assets/icon_small.png",
-            "name": "Local Beacon",
-            "welcomeUrl": "https://computationalgenomics.ca/",
-        },
-        "overview": {
-            "biosamples": {
-                "count": 4881,
-                "sampled_tissue": [
-                    {"label": "blood", "value": 2522},
-                    {"label": "Plasma", "value": 451},
-                    {"label": "Serum", "value": 1005},
-                ],
-            },
-            "counts": {"individuals": 2624, "variants": {"GRCh37": 24765426, "GRCh38": 27530622, "GRCm38": 14070}},
-            "experiments": {
-                "count": 4058,
-                "experiment_type": [
-                    {"label": "Metabolite profiling", "value": 152},
-                    {"label": "Neutralizing antibody titers", "value": 381},
-                    {"label": "Other", "value": 237},
-                    {"label": "Proteomic profiling", "value": 472},
-                    {"label": "RNA-Seq", "value": 294},
-                    {"label": "WGS", "value": 2522},
-                ],
-            },
-            "individuals": {"count": 2624},
-            "variants": {"GRCh37": 24765426, "GRCh38": 27530622, "GRCm38": 14070},
-        },
-        "version": "0.17.0",
-        "welcomeUrl": "https://fake1.bento.local/beacon_ui",
-    },
-}
-
 network_beacon_overview_bento_18 = {
     "meta": {"apiVersion": "v2.0.0", "beaconId": "ca.fake2.bento.beacon", "returnedSchemas": [{}]},
     "response": {
@@ -2420,41 +2375,6 @@ network_beacon_overview_bento_18 = {
     },
 }
 
-network_beacon_query_response_bento_17 = {
-    "info": {
-        "bento": {
-            "biosamples": {
-                "count": 4881,
-                "sampled_tissue": [
-                    {"label": "blood", "value": 2522},
-                    {"label": "Plasma", "value": 451},
-                    {"label": "Serum", "value": 1005},
-                ],
-            },
-            "experiments": {
-                "count": 199,
-                "experiment_type": [{"label": "RNA-Seq", "value": 64}, {"label": "WES", "value": 135}],
-            },
-        },
-        "messages": [{"description": "no query found, returning total count", "level": "info"}],
-    },
-    "meta": {
-        "apiVersion": "v2.0.0",
-        "beaconId": "ca.fake1.bento.beacon",
-        "receivedRequestSummary": {
-            "apiVersion": "2.0.0",
-            "bento": {"showSummaryStatistics": True},
-            "pagination": {"limit": 10, "skip": 0},
-            "requestParameters": {"g_variant": {}},
-            "requestedGranularity": "count",
-            "requestedSchemas": [],
-        },
-        "returnedGranularity": "count",
-        "returnedSchemas": [],
-    },
-    "responseSummary": {"exists": True, "numTotalResults": 511},
-}
-
 
 network_beacon_query_response_bento_18 = {
     "info": {
@@ -2498,17 +2418,183 @@ network_beacon_query_response_bento_18 = {
     "responseSummary": {"exists": True, "numTotalResults": 2624},
 }
 
-
-pr_patch_tag = "pr-123"
-pr_patch_beacon_id = "ca.fake-patched.bento.beacon"
-
-network_beacon_overview_bento_18_with_pr_build = deepcopy(network_beacon_overview_bento_18)
-network_beacon_overview_bento_18_with_pr_build["response"]["version"] = pr_patch_tag
-network_beacon_overview_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id
-network_beacon_overview_bento_18_with_pr_build["response"]["id"] = pr_patch_beacon_id
-
-network_beacon_query_response_bento_18_with_pr_build = deepcopy(network_beacon_query_response_bento_18)
-network_beacon_query_response_bento_18_with_pr_build["meta"]["beaconId"] = pr_patch_beacon_id
+network_beacon_filtering_terms_response_bento_18 = {
+    "filteringTerms": [
+        {
+            "bento": {"section": "General"},
+            "description": "Age",
+            "id": "age",
+            "label": "Age",
+            "type": "alphanumeric",
+            "units": "years",
+            "values": [
+                "< 10",
+                "[10, 20)",
+                "[20, 30)",
+                "[30, 40)",
+                "[40, 50)",
+                "[50, 60)",
+                "[60, 70)",
+                "[70, 80)",
+                "[80, 90)",
+                "[90, 100)",
+                "≥ 100",
+            ],
+        },
+        {
+            "bento": {"section": "General"},
+            "description": "Sex at birth",
+            "id": "sex",
+            "label": "Sex",
+            "type": "alphanumeric",
+            "values": ["MALE", "FEMALE"],
+        },
+        {
+            "bento": {"section": "General"},
+            "description": "Individual phenotypic features, observed as either present or absent",
+            "id": "phenotypic_features",
+            "label": "Phenotypic Features",
+            "type": "alphanumeric",
+            "values": [
+                "Motor delay",
+                "Asthma",
+                "Muscular hypotonia of the trunk",
+                "Progressive visual loss",
+                "Distal arthrogryposis",
+                "Seizures",
+                "Retinal pigment epithelial atrophy",
+                "Increased CSF lactate",
+                "Vomiting",
+                "Skeletal muscle atrophy",
+                "Motor deterioration",
+                "Nausea",
+                "Breast carcinoma",
+                "Quadriceps muscle atrophy",
+                "Metamorphopsia",
+                "Neoplasm of the breast",
+                "Abnormality of retinal pigmentation",
+                "Fever",
+                "Decreased body weight",
+                "Pneumothorax",
+                "Hypertension",
+                "Cognitive impairment",
+                "Muscle weakness",
+                "Obesity",
+                "Sensory axonal neuropathy",
+                "Myalgia",
+                "Ovarian neoplasm",
+                "Developmental stagnation",
+                "Neonatal hypotonia",
+                "Neck muscle weakness",
+                "Patient immunosuppressed",
+                "Muscular hypotonia",
+                "Arthrogryposis multiplex congenita",
+                "Loss of sense of smell",
+                "Muscular dystrophy",
+                "Lactic acidosis",
+                "Intellectual disability",
+                "Motor axonal neuropathy",
+                "Increased CSF protein",
+                "Colon cancer",
+                "Abdominal pain",
+                "Cardiac arrest",
+                "Developmental regression",
+                "Viral pneumonia/pneumonitis",
+                "Inability to walk",
+                "HIV Infection",
+                "Scotoma",
+                "Epileptic encephalopathy",
+                "Weakness of facial musculature",
+                "Abnormality of macular pigmentation",
+                "Microcephaly",
+                "Decreased fertility",
+                "Intellectual disability, progressive",
+                "Loss of appetite",
+                "Elevated serum creatine phosphokinase",
+                "Myoclonic spasms",
+                "Reduced visual acuity",
+                "Headache",
+                "Cough",
+                "Recurrent lower respiratory tract infections",
+                "Pulmonary hypertension",
+                "Neurodevelopmental delay",
+                "Hyperglycemia",
+                "Hepatomegaly",
+                "Chest pain",
+                "Congenital hip dislocation",
+                "Dementia",
+            ],
+        },
+        {
+            "bento": {"section": "General"},
+            "description": "Diseases observed as either present or absent",
+            "id": "diseases",
+            "label": "Diseases",
+            "type": "alphanumeric",
+            "values": [
+                "CENTRAL CORE DISEASE OF MUSCLE",
+                "Congenital myopathy",
+                "Renal Carcinoma",
+                "viral pneumonia",
+                "Hereditary breast and ovarian cancer syndrome",
+                "Glioblastoma",
+                "Polycythemia vera",
+                "Miller syndrome",
+                "Cystic fibrosis",
+                "coronary artery disease, autosomal dominant, 1",
+                "Hashimoto Thyroiditis",
+                "Rheumatologic disease",
+                "Takotsubo cardiomyopathy",
+                "autoimmune disorder of cardiovascular system",
+                "Melanoma",
+                "COVID-19",
+                "Marfan syndrome",
+                "Non-Hodgkin Lymphoma",
+                "diabetes mellitus",
+            ],
+        },
+        {
+            "bento": {"section": "Interpretations"},
+            "description": "Status of attempted diagnosis",
+            "id": "interpretation_status",
+            "label": "Interpretation Progress Status",
+            "type": "alphanumeric",
+            "values": ["COMPLETED", "UNKNOWN_PROGRESS", "SOLVED", "UNSOLVED"],
+        },
+        {
+            "bento": {"section": "Interpretations"},
+            "description": "ACMG Pathogenicity category for a particular variant (BENIGN, PATHOGENIC, etc)",
+            "id": "acmg_pathogenicity_classification",
+            "label": "Variant Pathogenicity",
+            "type": "alphanumeric",
+            "values": ["PATHOGENIC"],
+        },
+        {
+            "bento": {"section": "Experiments"},
+            "description": "Types of experiments performed on a sample",
+            "id": "experiment_type",
+            "label": "Experiment Types",
+            "type": "alphanumeric",
+            "values": [
+                "Other",
+                "Neutralizing antibody titers",
+                "Metabolite profiling",
+                "RNA-Seq",
+                "WGS",
+                "Proteomic profiling",
+            ],
+        },
+        {
+            "bento": {"section": "Experiments"},
+            "description": "Study type of the experiment (e.g. Genomics, Transcriptomics, etc.)",
+            "id": "experiment_study_type",
+            "label": "Study Types",
+            "type": "alphanumeric",
+            "values": ["Serology", "Other", "Genomics", "Proteomics", "Transcriptomics", "Metabolomics"],
+        },
+    ],
+    "resources": [],
+}
 
 
 drs_query_response = [
