@@ -87,17 +87,19 @@ class NetworkBeacon(NetworkNode):
         self.id = self.service_details.get("id")
         self.overview = overview
 
-        filtering_terms = await self.get_filtering_terms()
-        # if there are versioning changes necessary for this beacon, apply them here
-        # then save
-        self.filtering_terms = filtering_terms
+        self.filtering_terms = await self.get_filtering_terms()
 
     async def get_filtering_terms(self):
         try:
             response = (await self._network_beacon_get(FILTERING_TERMS_ENDPOINT)).get("response", {})
         except APIException:
             response = {}
-        return response.get("filteringTerms", [])
+
+        filters = response.get("filteringTerms", [])
+
+        # if there are versioning changes necessary for this beacon, apply them here
+
+        return filters
 
     async def query_beacon(self, payload, endpoint):
         # apply any versioning to request payload
@@ -204,7 +206,6 @@ async def get_network_filtering_terms(beacons: list[NetworkNode]):
 
 # -------------------------------
 # filter utils
-# could probably go in a different file
 
 
 def flatten(nested_list):
@@ -255,9 +256,8 @@ def values_union(options_list):
 
 def values_intersection(options_list):
     num_instances = len(options_list)
-    flat_options = flatten(
-        options_list[:]
-    )  ## shallow copy attempt here probably fails? ######### why is it here at all?
+    flat_options = flatten(options_list[:])
+
     # only keep options that are present in all instances, preserving order
     counter = {}
     for option in flat_options:
