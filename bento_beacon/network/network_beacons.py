@@ -86,6 +86,10 @@ class NetworkBeacon(NetworkNode):
         overview_response = (await self._network_beacon_get(OVERVIEW_ENDPOINT)).get("response")
         service_details = {k: v for k, v in overview_response.items() if k != "overview"}
         overview = overview_response.get("overview", {})
+        self.service_details = service_details
+        self.id = self.service_details.get("id")
+        self.overview = overview
+
         # does not handle API error
         filtering_terms = (
             (await self._network_beacon_get(FILTERING_TERMS_ENDPOINT)).get("response", {}).get("filteringTerms", [])
@@ -93,9 +97,7 @@ class NetworkBeacon(NetworkNode):
 
         # if there are versioning changes necessary for this beacon, apply them here
         # then save
-        self.service_details = service_details
-        self.id = self.service_details.get("id")
-        self.overview = overview
+
         self.filtering_terms = filtering_terms
 
     async def query_beacon(self, payload, endpoint):
@@ -121,6 +123,7 @@ class NetworkBeacon(NetworkNode):
 
     async def _network_beacon_call(self, method, url, timeout, payload=None):
         current_app.logger.info(f"Calling network url: {url}")
+
         try:
             async with aiohttp.ClientSession(connector=tcp_connector(current_app.config)) as s:
                 async with (
