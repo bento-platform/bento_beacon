@@ -69,8 +69,8 @@ class HostBeacon(NetworkNode):
         self.filtering_terms = await local_beacon_filtering_terms(project_id=None, dataset_id=None)
 
     async def query_beacon(self, _, endpoint):
-        # we're bypassing the usual route to host beacon, so have to invoke censorship manually
-        # *** we're bypassing this in /app, but then reapplying it, so just stop bypassing
+        # apply censorship for local beacon 
+        # other nodes in network handle their own censorship settings
         await set_censorship()
 
         # payload is pulled directly from request data rather than passed here
