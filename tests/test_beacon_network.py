@@ -1,3 +1,5 @@
+from aiohttp import ClientConnectionError
+
 from .test_routes import (
     mock_permissions_all,
     mock_katsu_public_rules,
@@ -28,6 +30,13 @@ def mock_network_beacon_overview(aioresponse):
 def mock_network_beacon_query_response(aioresponse):
     url = "https://fake2.bento.ca/api/beacon/individuals"
     aioresponse.post(url, payload=network_beacon_query_response_bento_18)
+
+
+def mock_network_beacon_query_throws_exception(aioresponse):
+    url = "https://fake2.bento.ca/api/beacon/individuals"
+    aioresponse.post(
+        url, payload=network_beacon_query_response_bento_18, exception=ClientConnectionError("Connection refused")
+    )
 
 
 def mock_network_beacon_filtering_terms(aioresponse):
@@ -77,6 +86,14 @@ def test_network_beacon_query(app_config, client, aioresponse):
     assert response.status_code == 200
 
 
+def test_network_beacon_query_failed(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_network_init(app_config, aioresponse)
+    mock_network_beacon_query_throws_exception(aioresponse)
+    response = client.post(f"/network/beacons/ca.fake2.bento.beacon/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 500
+
+
 def test_network_beacon_query_bad_endpoint(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_network_init(app_config, aioresponse)
@@ -90,6 +107,7 @@ def test_network_beacon_query_bad_http_verb(app_config, client, aioresponse):
     mock_network_init(app_config, aioresponse)
     response = client.get(f"/network/beacons/ca.fake2.bento.beacon/individuals")
     assert response.status_code == 500
+
 
 def test_network_beacon_query_bad_beacon_id(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
