@@ -87,7 +87,7 @@ class NetworkBeacon(NetworkNode):
         self.id = self.service_details.get("id")
         self.overview = overview
 
-        filtering_terms = self.get_filtering_terms()
+        filtering_terms = await self.get_filtering_terms()
         # if there are versioning changes necessary for this beacon, apply them here
         # then save
         self.filtering_terms = filtering_terms
