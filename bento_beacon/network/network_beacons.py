@@ -34,9 +34,8 @@ class NetworkNode(ABC):
 
     # shared constructor for subclasses
     def __init__(self, config):
-        current_app.logger.info(f"init beacon {config.get('name')}")
-        self.config = config  # needed? we can just pull what we need / partition into useful parts
         self.api_url = config.get("api_url")
+        self.config = config  # store arbitrary versioning fields in config
 
         # filled in after calls
         self.id = None
@@ -61,7 +60,6 @@ class NetworkNode(ABC):
 class HostBeacon(NetworkNode):
 
     async def retrieve_beacon_info(self):
-        # gather? most of this code isn't really async
         self.service_details = await local_beacon_format_service_details()
         self.id = self.service_details.get("id")
         self.bento_beacon_version = self.service_details.get("version")
@@ -69,12 +67,11 @@ class HostBeacon(NetworkNode):
         self.filtering_terms = await local_beacon_filtering_terms(project_id=None, dataset_id=None)
 
     async def query_beacon(self, _, endpoint):
-        # apply censorship for local beacon 
+        # apply censorship for local beacon
         # other nodes in network handle their own censorship settings
         await set_censorship()
 
         # payload is pulled directly from request data rather than passed here
-
         # endpoint already known to be valid
         return await HOST_VIEWS_BY_ENDPOINT[endpoint]()
 
@@ -90,15 +87,17 @@ class NetworkBeacon(NetworkNode):
         self.id = self.service_details.get("id")
         self.overview = overview
 
-        # does not handle API error
-        filtering_terms = (
-            (await self._network_beacon_get(FILTERING_TERMS_ENDPOINT)).get("response", {}).get("filteringTerms", [])
-        )
-
+        filtering_terms = self.get_filtering_terms()
         # if there are versioning changes necessary for this beacon, apply them here
         # then save
-
         self.filtering_terms = filtering_terms
+
+    async def get_filtering_terms(self):
+        try:
+            response = (await self._network_beacon_get(FILTERING_TERMS_ENDPOINT)).get("response", {})
+        except APIException:
+            response = {}
+        return response.get("filteringTerms", [])
 
     async def query_beacon(self, payload, endpoint):
         # apply any versioning to request payload
@@ -178,7 +177,6 @@ async def init_network_service_registry():
     responding_beacons = [b for b in beacons if b.id is not None]
 
     # create network-wide filtering terms
-    # do we need to save these?
     network_filtering_terms = await get_network_filtering_terms(responding_beacons)
 
     # save beacons as a dict by id
@@ -242,7 +240,7 @@ def get_intersection_of_filtering_terms(filters_dict, num_beacons_in_network):
 
 def get_filters_dict(filters_list):
     # make a dict of entries, keyed to bento query id, keeping duplicates in an array
-    # TODO: change key to model mapping (phenopackets / experiments path) instead of bento id
+    # TODO next version: change key to model mapping (phenopackets / experiments path) instead of bento id
     filters_by_id = {}
     for f in filters_list:
         filter_id = f["id"]
@@ -257,7 +255,9 @@ def values_union(options_list):
 
 def values_intersection(options_list):
     num_instances = len(options_list)
-    flat_options = flatten(options_list[:])
+    flat_options = flatten(
+        options_list[:]
+    )  ## shallow copy attempt here probably fails? ######### why is it here at all?
     # only keep options that are present in all instances, preserving order
     counter = {}
     for option in flat_options:
