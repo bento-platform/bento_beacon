@@ -72,7 +72,8 @@ def test_network_endpoint(app_config, client, aioresponse):
     assert "beacons" in response.get_json()
 
 
-def test_network_config_missing(app_config, client):
+def test_network_config_missing(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
     app_config["NETWORK_CONFIG"] = {}
     response = client.get("/network")
     assert response.status_code == 500
