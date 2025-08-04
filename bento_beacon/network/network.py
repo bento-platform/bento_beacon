@@ -21,6 +21,7 @@ async def beacon_network():
         raise APIException("can't find beacon network config")
 
     results = await init_network_service_registry()
+
     return results
 
 
