@@ -29,6 +29,7 @@ HOST_VIEWS_BY_ENDPOINT = {
     "variants": get_variants,
 }
 
+
 # parent class for host beacon & beacons in the network
 class NetworkNode(ABC):
 
