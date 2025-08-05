@@ -2,18 +2,18 @@ import asyncio
 import aiohttp
 from json import JSONDecodeError
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from flask import current_app
-from ..utils.http import tcp_connector
-from ..utils.exceptions import APIException
-from ..utils.censorship import set_censorship
-from ..endpoints.biosamples import get_biosamples
-from ..endpoints.cohorts import get_cohorts
-from ..endpoints.datasets import get_datasets
-from ..endpoints.individuals import get_individuals
-from ..endpoints.variants import get_variants
-from ..endpoints.info import beacon_format_service_details as local_beacon_format_service_details
-from ..endpoints.info_scoped import (
+from .filters import get_filters_dict, get_intersection_of_filtering_terms, get_union_of_filtering_terms, flatten
+from ...utils.http import tcp_connector
+from ...utils.exceptions import APIException
+from ...utils.censorship import set_censorship
+from ...endpoints.biosamples import get_biosamples
+from ...endpoints.cohorts import get_cohorts
+from ...endpoints.datasets import get_datasets
+from ...endpoints.individuals import get_individuals
+from ...endpoints.variants import get_variants
+from ...endpoints.info import beacon_format_service_details as local_beacon_format_service_details
+from ...endpoints.info_scoped import (
     get_filtering_terms as local_beacon_filtering_terms,
     overview as local_beacon_overview,
 )
@@ -29,7 +29,7 @@ HOST_VIEWS_BY_ENDPOINT = {
     "variants": get_variants,
 }
 
-
+# parent class for host beacon & beacons in the network
 class NetworkNode(ABC):
 
     # shared constructor for subclasses
@@ -202,75 +202,3 @@ async def get_network_filtering_terms(beacons: list[NetworkNode]):
         "filtersUnion": get_union_of_filtering_terms(filters_dict),
         "filtersIntersection": get_intersection_of_filtering_terms(filters_dict, num_beacons_answering),
     }
-
-
-# -------------------------------
-# filter utils
-
-
-def flatten(nested_list):
-    return [item for nested_items in nested_list for item in nested_items]
-
-
-def get_union_of_filtering_terms(filters_dict):
-    # create an entry for each filter
-    union_filters = []
-    for f in filters_dict.values():
-        filter = deepcopy(f[0])  # arbitrarily get name, description, etc from first entry
-        filter["values"] = values_union([entry["values"] for entry in f])
-        union_filters.append(filter)
-
-    return union_filters
-
-
-def get_intersection_of_filtering_terms(filters_dict, num_beacons_in_network):
-    # remove any fields not in all entries
-    intersection_dict = {id: entries for id, entries in filters_dict.items() if len(entries) == num_beacons_in_network}
-
-    # create one entry for each id
-    intersection_filters = []
-    for f in intersection_dict.values():
-        filter = deepcopy(f[0])  # arbitrarily get name, description, etc from first entry
-        values = values_intersection([entry["values"] for entry in f])
-        if values:
-            filter["values"] = values
-            intersection_filters.append(filter)
-
-    return intersection_filters
-
-
-def get_filters_dict(filters_list):
-    # make a dict of entries, keyed to bento query id, keeping duplicates in an array
-    # TODO next version: change key to model mapping (phenopackets / experiments path) instead of bento id
-    filters_by_id = {}
-    for f in filters_list:
-        filter_id = f["id"]
-        filters_by_id[filter_id] = filters_by_id.get(filter_id, []) + [f]
-    return filters_by_id
-
-
-def values_union(options_list):
-    # remove duplicates but keep any ordering
-    return list(dict.fromkeys(flatten(options_list[:])))
-
-
-def values_intersection(options_list):
-    num_instances = len(options_list)
-    flat_options = flatten(options_list[:])
-
-    # only keep options that are present in all instances, preserving order
-    counter = {}
-    for option in flat_options:
-        counter[option] = counter.get(option, 0) + 1
-
-    intersection = [key for key in counter if counter[key] == num_instances]
-    return intersection
-
-
-# -----------------------
-# reference utils
-
-# TODO later:
-# list of assemblies in network (currently computed by client)
-# links for gene name lookups for each assembly (some may not exist in local beacon)
-# note that for network queries, we only need gene *names*, position information is looked up locally on each beacon.
