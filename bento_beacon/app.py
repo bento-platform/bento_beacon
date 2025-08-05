@@ -9,7 +9,7 @@ from .endpoints.variants import variants
 from .endpoints.biosamples import biosamples
 from .endpoints.cohorts import cohorts
 from .endpoints.datasets import datasets
-from .network.network import network
+from .network.endpoints import network
 from .utils.exceptions import APIException
 from werkzeug.exceptions import HTTPException
 from .authz.middleware import authz_middleware
