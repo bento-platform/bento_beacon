@@ -10,8 +10,10 @@ import pytest
 TESTS_DIR = pathlib.Path(__file__).parent.absolute()
 BEACON_RESPONSE_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/responses/"
 AUTHZ_URL = "http://bento-authz.local"
+DRS_URL = "http://drs.local"
 KATSU_URL = "http://katsu.local"
 GOHAN_URL = "http://gohan.local"
+REFERENCE_URL = "http://reference.local"
 OPENID_CONFIG_URL = AUTHZ_URL + "/fake/openid-configuration"
 TOKEN_URL = AUTHZ_URL + "/fake/token"
 
@@ -29,12 +31,9 @@ def beacon_test_app():
             "BENTOV2_DOMAIN": "test.local",
             "BENTOV2_PUBLIC_URL": "http://test.local",
             "BEACON_BASE_URL": "https://test.local/api/beacon",
-            "KATSU_BASE_URL": KATSU_URL,
             "BEACON_KATSU_TIMEOUT": "1",
-            "GOHAN_BASE_URL": GOHAN_URL,
             "BEACON_GOHAN_TIMEOUT": "1",
-            "DRS_URL": "http://drs.local",
-            "REFERENCE_URL": "http://reference.local",
+            "REFERENCE_URL": REFERENCE_URL,
             "MAX_RETRIES_FOR_CENSORSHIP_PARAMS": "-1",  # "-1" retries = don't try at all
             "BENTO_AUTHZ_SERVICE_URL": AUTHZ_URL,
             "BENTO_OPENID_CONFIG_URL": OPENID_CONFIG_URL,

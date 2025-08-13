@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
+from ..utils import katsu_endpoints as ke
 from ..utils.beacon_response import beacon_info_response
 from ..utils.katsu_utils import katsu_get, katsu_datasets
 from ..utils.scope import scoped_route_decorator_for_blueprint, verify_request_project_scope
@@ -87,13 +88,13 @@ def beacon_map(project_id=None):
 @route_with_optional_project_id("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_individual_schema(project_id=None):
-    return await katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
+    return await katsu_get(ke.KATSU_INDIVIDUAL_SCHEMA_ENDPOINT, requires_auth="none")
 
 
 @route_with_optional_project_id("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_experiment_schema(project_id=None):
-    return await katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
+    return await katsu_get(ke.KATSU_EXPERIMENT_SCHEMA_ENDPOINT, requires_auth="none")
 
 
 # -------------------------------------------------------
