@@ -1,5 +1,5 @@
 from flask import current_app, request, Blueprint
-from ..utils.exceptions import NotFoundException, APIException
+from ..utils.exceptions import NotFoundException, APIException, NotImplemented
 from .utils.network_beacons import init_network_service_registry
 
 
@@ -40,6 +40,6 @@ async def query(beacon_id, endpoint):
         r = await beacon.query_beacon(payload, endpoint)
     else:
         # network is post-only for the moment
-        raise APIException("network accepts POST only")
+        raise NotImplemented("network accepts POST only")
 
     return r
