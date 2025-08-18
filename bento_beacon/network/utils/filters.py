@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import deepcopy
 
 
@@ -35,10 +36,10 @@ def get_intersection_of_filtering_terms(filters_dict, num_beacons_in_network):
 def get_filters_dict(filters_list):
     # make a dict of entries, keyed to bento query id, keeping duplicates in an array
     # TODO next version: change key to model mapping (phenopackets / experiments path) instead of bento id
-    filters_by_id = {}
+    filters_by_id = defaultdict(list)
     for f in filters_list:
         filter_id = f["id"]
-        filters_by_id[filter_id] = filters_by_id.get(filter_id, []) + [f]
+        filters_by_id[filter_id].append(f)
     return filters_by_id
 
 
