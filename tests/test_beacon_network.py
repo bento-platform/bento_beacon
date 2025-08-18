@@ -107,7 +107,7 @@ def test_network_beacon_query_bad_http_verb(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_network_init(app_config, aioresponse)
     response = client.get(f"/network/beacons/ca.fake2.bento.beacon/individuals")
-    assert response.status_code == 500
+    assert response.status_code == 501
 
 
 def test_network_beacon_query_bad_beacon_id(app_config, client, aioresponse):
