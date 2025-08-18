@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 from copy import deepcopy
 
 
@@ -53,9 +53,6 @@ def values_intersection(options_list):
     flat_options = flatten(options_list[:])
 
     # only keep options that are present in all instances, preserving order
-    counter = {}
-    for option in flat_options:
-        counter[option] = counter.get(option, 0) + 1
-
+    counter = Counter(flat_options)
     intersection = [key for key in counter if counter[key] == num_instances]
     return intersection
