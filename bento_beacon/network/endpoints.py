@@ -35,11 +35,10 @@ async def query(beacon_id, endpoint):
     if endpoint not in current_app.config["NETWORK_VALID_QUERY_ENDPOINTS"]:
         raise NotFoundException()
 
-    if request.method == "POST":
-        payload = request.get_json()
-        r = await beacon.query_beacon(payload, endpoint)
-    else:
+    if request.method != "POST":
         # network is post-only for the moment
         raise NotImplemented("network accepts POST only")
 
+    payload = request.get_json()
+    r = await beacon.query_beacon(payload, endpoint)
     return r
