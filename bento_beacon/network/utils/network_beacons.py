@@ -170,9 +170,7 @@ async def init_network_service_registry(network_config, app_config, logger):
             beacons.append(NetworkBeacon(node_config, app_config, logger))
 
     # fill in service details and filtering terms for each beacon
-    beacon_calls = []
-    for b in beacons:
-        beacon_calls.append(b.retrieve_beacon_info())
+    beacon_calls = [b.retrieve_beacon_info() for b in beacons]
     await asyncio.gather(*beacon_calls, return_exceptions=True)
 
     # filter out failed beacons
