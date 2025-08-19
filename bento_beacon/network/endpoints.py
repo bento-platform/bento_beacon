@@ -16,11 +16,11 @@ network = Blueprint("network", __name__, url_prefix="/network")
 @network.route("")
 @network.route("/beacons")
 async def beacon_network():
-    config = current_app.config["NETWORK_CONFIG"]
-    if not config:
+    network_config = current_app.config["NETWORK_CONFIG"]
+    if not network_config:
         raise APIException("can't find beacon network config")
 
-    results = await init_network_service_registry()
+    results = await init_network_service_registry(network_config, current_app.config, current_app.logger)
     return results
 
 

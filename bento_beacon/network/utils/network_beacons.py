@@ -34,9 +34,11 @@ HOST_VIEWS_BY_ENDPOINT = {
 class NetworkNode(ABC):
 
     # shared constructor for subclasses
-    def __init__(self, config):
-        self.api_url = config.get("api_url")
-        self.config = config  # store arbitrary versioning fields in config
+    def __init__(self, node_config, app_config, logger):
+        self.api_url = node_config.get("api_url")
+        self.node_config = node_config  # network config for this node
+        self.app_config = app_config  # flask config
+        self.logger = logger
 
         # filled in after calls
         self.id = None
@@ -112,9 +114,9 @@ class NetworkBeacon(NetworkNode):
 
     def request_timeout(self, payload=None):
         return (
-            current_app.config["NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS"]
+            self.app_config["NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS"]
             if self.has_variants_query(payload)
-            else current_app.config["NETWORK_DEFAULT_TIMEOUT_SECONDS"]
+            else self.app_config["NETWORK_DEFAULT_TIMEOUT_SECONDS"]
         )
 
     def has_variants_query(self, payload):
@@ -123,16 +125,17 @@ class NetworkBeacon(NetworkNode):
         query = payload.get("requestParameters", {}).get("g_variant")
         return bool(query)
 
-    async def _network_beacon_call(self, method, url, timeout, payload=None):
-        current_app.logger.info(f"Calling network url: {url}")
+    async def _network_beacon_call(self, method, url, payload=None):
+        self.logger.info(f"Calling network url: {url}")
+        timeout = self.request_timeout(payload)
 
         try:
-            async with aiohttp.ClientSession(connector=tcp_connector(current_app.config)) as s:
+            async with aiohttp.ClientSession(connector=tcp_connector(self.app_config)) as s:
                 async with (
                     s.get(url, timeout=timeout) if method == "GET" else s.post(url, timeout=timeout, json=payload)
                 ) as r:
                     if not r.ok:
-                        current_app.logger.error(f"failed network call to {url}")
+                        self.logger.error(f"failed network call to {url}")
                         raise APIException()
                     beacon_response = await r.json()
 
@@ -144,30 +147,27 @@ class NetworkBeacon(NetworkNode):
 
     async def _network_beacon_get(self, endpoint=None):
         url = self.api_url if endpoint is None else self.api_url + "/" + endpoint
-        timeout = current_app.config["NETWORK_DEFAULT_TIMEOUT_SECONDS"]
-        return await self._network_beacon_call("GET", url, timeout)
+        return await self._network_beacon_call("GET", url)
 
     async def _network_beacon_post(self, payload, endpoint=None):
         url = self.api_url if endpoint is None else self.api_url + "/" + endpoint
-        timeout = self.request_timeout(payload)
-        return await self._network_beacon_call("POST", url, timeout, payload)
+        return await self._network_beacon_call("POST", url, payload)
 
 
 # -----------------------------------
 
 
-async def init_network_service_registry():
-    config = current_app.config["NETWORK_CONFIG"]
-    network_beacons = config.get("beacons")
-    host_beacon_url = current_app.config["BEACON_BASE_URL"]
+async def init_network_service_registry(network_config, app_config, logger):
+    network_beacons = network_config.get("beacons")
+    host_beacon_url = app_config["BEACON_BASE_URL"]
 
     # instantiate skeleton beacon objects
     beacons = []
-    for config in network_beacons.values():
-        if config.get("api_url") == host_beacon_url:
-            beacons.append(HostBeacon(config))
+    for node_config in network_beacons.values():
+        if node_config.get("api_url") == host_beacon_url:
+            beacons.append(HostBeacon(node_config, app_config, logger))
         else:
-            beacons.append(NetworkBeacon(config))
+            beacons.append(NetworkBeacon(node_config, app_config, logger))
 
     # fill in service details and filtering terms for each beacon
     beacon_calls = []
