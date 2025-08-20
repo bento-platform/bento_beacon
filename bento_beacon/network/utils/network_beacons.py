@@ -96,6 +96,7 @@ class NetworkBeacon(NetworkNode):
         try:
             response = (await self._network_beacon_get(FILTERING_TERMS_ENDPOINT)).get("response", {})
         except APIException:
+            self.logger.error(f"failed to retrieve filtering terms from beacon {self.id}")
             response = {}
 
         filters = response.get("filteringTerms", [])
