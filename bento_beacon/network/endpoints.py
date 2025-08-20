@@ -40,5 +40,4 @@ async def query(beacon_id, endpoint):
         raise NotImplemented("network accepts POST only")
 
     payload = request.get_json()
-    r = await beacon.query_beacon(payload, endpoint)
-    return r
+    return await beacon.query_beacon(payload, endpoint)
