@@ -84,12 +84,9 @@ class NetworkBeacon(NetworkNode):
     async def retrieve_beacon_info(self):
         # two network calls, but both are to the same beacon
         overview_response = (await self._network_beacon_get(OVERVIEW_ENDPOINT)).get("response")
-        service_details = {k: v for k, v in overview_response.items() if k != "overview"}
-        overview = overview_response.get("overview", {})
-        self.service_details = service_details
+        self.service_details = {k: v for k, v in overview_response.items() if k != "overview"}
         self.id = self.service_details.get("id")
-        self.overview = overview
-
+        self.overview = overview_response.get("overview", {})
         self.filtering_terms = await self.get_filtering_terms()
 
     async def get_filtering_terms(self):
