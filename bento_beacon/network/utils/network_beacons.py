@@ -87,7 +87,7 @@ class NetworkBeacon(NetworkNode):
         self.service_details = {k: v for k, v in overview_response.items() if k != "overview"}
         self.id = self.service_details.get("id")
         self.overview = overview_response.get("overview", {})
-        self.filtering_terms = await self.get_filtering_terms()
+        self.filtering_terms = await self.get_filtering_terms() if self.id is not None else []
 
     async def get_filtering_terms(self):
         try:
