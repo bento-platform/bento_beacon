@@ -1,8 +1,12 @@
 {
-    "beacons": [
-        "https://test.local/api/beacon",
-        "https://fake2.bento.local/api/beacon"
-    ],
+    "beacons": {
+        "local": {
+            "api_url": "https://test.local/api/beacon"
+        },
+        "fake2": {
+            "api_url": "https://fake2.bento.ca/api/beacon"
+        }
+    },
     "network_default_timeout_seconds": 30,
     "network_variants_query_timeout_seconds": 120
 }
