@@ -85,6 +85,7 @@ class NetworkBeacon(NetworkNode):
         # two network calls, but both are to the same beacon
         overview_response = (await self._network_beacon_get(OVERVIEW_ENDPOINT)).get("response")
         self.service_details = {k: v for k, v in overview_response.items() if k != "overview"}
+        self.bento_beacon_version = self.service_details.get("version")
         self.id = self.service_details.get("id")
         self.overview = overview_response.get("overview", {})
         self.filtering_terms = await self.get_filtering_terms() if self.id is not None else []
