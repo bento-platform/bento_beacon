@@ -249,16 +249,17 @@ async def katsu_config_filtering_terms(project_id, dataset_id):
     sections = (await get_katsu_config_search_fields(project_id=project_id, dataset_id=dataset_id)).get("sections", [])
     for section in sections:
         for field in section["fields"]:
+            field_definition = field["definition"]
             filtering_term = {
                 "type": "alphanumeric",
                 "id": field["id"],
-                "label": field["title"],
+                "label": field_definition["title"],
                 #
                 # longer label / helptext
-                "description": field.get("description", ""),
+                "description": field_definition.get("description", ""),
                 #
                 # bento internal use fields
-                "bento": {"section": section["section_title"], "mapping": field["mapping"]},
+                "bento": {"section": section["section_title"], "mapping": field_definition["mapping"]},
                 #
                 # as of beacon 2.1.1
                 "values": field["options"],
@@ -274,7 +275,7 @@ async def katsu_config_filtering_terms(project_id, dataset_id):
             }
 
             # optional field not in spec
-            if units := field.get("config", {}).get("units"):
+            if units := field_definition.get("config", {}).get("units"):
                 filtering_term["units"] = units
 
             filtering_terms.append(filtering_term)
