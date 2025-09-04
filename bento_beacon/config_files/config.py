@@ -148,13 +148,13 @@ class Config:
     KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/private/search"
     KATSU_RESOURCES_ENDPOINT = "/api/resources"
-    KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/public_search_fields"
+    KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/discovery_search_fields"
     KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
     KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
     KATSU_BEACON_SEARCH = "/api/public"
     KATSU_SEARCH_OVERVIEW = "/api/search_overview"
     KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
-    KATSU_PUBLIC_RULES = "/api/public_rules"
+    KATSU_PUBLIC_RULES = "/api/discovery_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))
