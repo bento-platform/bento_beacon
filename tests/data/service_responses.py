@@ -404,6 +404,22 @@ katsu_config_search_fields_response = {
 }
 
 
+service_down_html_response = """<html>
+<head>
+	<title>404 Not Found</title>
+</head>
+
+<body>
+	<center>
+		<h1>404 Not Found</h1>
+	</center>
+	<hr>
+	<center>openresty/1.27.1.2</center>
+</body>
+
+</html>"""
+
+
 gohan_search_response = {
     "results": [
         {
