@@ -13,6 +13,8 @@ from ..authz.headers import auth_header_from_request
 
 RequiresAuthOptions = Literal["none", "forwarded", "full"]
 
+KATSU_ERROR_MESSAGE = "error calling katsu metadata service"
+
 
 async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False, project_id=None, dataset_id=None):
     payload = katsu_json_payload(beacon_filters, datatype, get_biosample_ids)
@@ -21,7 +23,7 @@ async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False,
     match_list = []
 
     if results is None:
-        raise APIException(message="error calling metadata service")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
 
     # response correct but nothing found
     if not results:
@@ -76,17 +78,19 @@ async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
 
                 katsu_response = await r.json()
 
-    except JSONDecodeError:
-        # katsu returns html for unhandled exceptions, not json
-        current_app.logger.error(f"katsu error: JSON decode error with POST {url}")
-        raise APIException(message="invalid non-JSON response from katsu")
+    except (JSONDecodeError, aiohttp.ContentTypeError) as e:
+        # katsu html-formatted error responses caught here
+        # older requests library raised JSONDecodeError for unexpected html
+        # aiohttp uses ContentTypeError instead, and raises JSONDecodeError only for malformed json
+        current_app.logger.error(f"katsu error: error reading katsu response from POST {url}")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
     except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
-        raise APIException(message="error calling katsu metadata service")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
 
     if not r.ok:
         current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
-        raise APIException(message="error calling katsu metadata service")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
 
     return katsu_response
 
@@ -133,17 +137,20 @@ async def katsu_get(
             async with s.get(query_url, headers=headers, timeout=timeout) as r:
                 katsu_response = await r.json()
 
-    except JSONDecodeError:
-        # katsu returns html for unhandled exceptions, not json
-        current_app.logger.error(f"katsu error: JSON decode error with GET {query_url}")
-        raise APIException(message="invalid non-JSON response from katsu")
+    except (JSONDecodeError, aiohttp.ContentTypeError) as e:
+        # katsu html-formatted error responses caught here
+        # older requests library raised JSONDecodeError for unexpected html
+        # aiohttp uses ContentTypeError instead, and raises JSONDecodeError only for malformed json
+        current_app.logger.error(f"katsu error: error reading katsu response from GET {query_url}")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
+
     except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
-        raise APIException(message="error calling katsu metadata service")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
 
     if not r.ok:
         current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
-        raise APIException(message="error calling katsu metadata service")
+        raise APIException(message=KATSU_ERROR_MESSAGE)
 
     return katsu_response
 
