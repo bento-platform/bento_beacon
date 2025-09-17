@@ -1,4 +1,5 @@
 from copy import deepcopy
+from aiohttp import ClientError
 from .data.service_responses import (
     katsu_projects_response,
     katsu_public_rules_response,
@@ -240,11 +241,6 @@ def mock_gohan_query(app_config, aioresponse):
     aioresponse.get(gohan_search_url, payload=gohan_search_response)
 
 
-def mock_gohan_query_client_error(aioresponse):
-    bad_gohan_search_url = ""
-    aioresponse.get(bad_gohan_search_url, payload={})
-
-
 def mock_service_down_response(aioresponse, method, url):
     if method == "POST":
         aioresponse.post(url, status=404, body=service_down_html_response, content_type="text/html")
@@ -257,6 +253,13 @@ def mock_service_empty_response(aioresponse, method, url):
         aioresponse.post(url, payload={})
     if method == "GET":
         aioresponse.get(url, payload={})
+
+
+def mock_generic_service_client_error(aioresponse, method, url):
+    if method == "POST":
+        aioresponse.post(url, exception=ClientError)
+    if method == "GET":
+        aioresponse.get(url, exception=ClientError)
 
 
 def mock_drs_queries(app_config, aioresponse):
@@ -507,17 +510,6 @@ def test_individuals_query_bad_katsu_private_search_response(app_config, client,
     assert response.status_code == 500
 
 
-def test_individuals_query_gohan_client_error(app_config, client, aioresponse):
-    mock_permissions_all(app_config, aioresponse)
-    mock_katsu_public_rules(app_config, aioresponse)
-    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    mock_katsu_private_search_query(app_config, aioresponse)
-    mock_katsu_private_search_overview(app_config, aioresponse)
-    mock_gohan_query_client_error(aioresponse)
-    response = client.post("/individuals", json=BEACON_REQUEST_BODY)
-    assert response.status_code == 500
-
-
 def test_individuals_query_scoped_too_many_datasets(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     response = client.post(f"/{PROJECT_1}/individuals", json=BEACON_TOO_MANY_DATASETS)
@@ -619,7 +611,6 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
 
 
 def test_katsu_non_json_response_from_get(app_config, client, aioresponse):
-    katsu_endpoint = app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
     url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
     mock_service_down_response(aioresponse, "GET", url)
     service_info_response = client.get("/service-info")
@@ -645,5 +636,35 @@ def test_gohan_down_response(app_config, client, aioresponse):
     mock_katsu_private_search_overview(app_config, aioresponse)
     url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_SEARCH_ENDPOINT"] + "?" + GOHAN_QUERY_PARAMS
     mock_service_down_response(aioresponse, "GET", url)
+    response = client.post("/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 500
+
+
+def test_katsu_get_client_error(app_config, client, aioresponse):
+    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
+    mock_generic_service_client_error(aioresponse, "GET", url)
+    response = client.get("/service-info")
+    assert response.status_code == 500
+
+
+def test_katsu_post_client_error(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_gohan_query(app_config, aioresponse)
+    katsu_private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    mock_generic_service_client_error(aioresponse, "POST", katsu_private_search_url)
+    response = client.post("/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 500
+
+
+def test_individuals_query_gohan_client_error(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_SEARCH_ENDPOINT"] + "?" + GOHAN_QUERY_PARAMS
+    mock_generic_service_client_error(aioresponse, "GET", url)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     assert response.status_code == 500
