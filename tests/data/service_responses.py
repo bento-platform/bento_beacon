@@ -404,6 +404,12 @@ katsu_config_search_fields_response = {
 }
 
 
+katsu_forbidden_response = {
+    "message": "Insufficient privileges to view data."
+}
+
+
+
 service_down_html_response = """<html>
 <head>
 	<title>404 Not Found</title>
@@ -472,6 +478,11 @@ katsu_private_search_response = {
             ],
         }
     },
+    "time": 0.120896,
+}
+
+katsu_private_search_response_no_results = {
+    "results": {},
     "time": 0.120896,
 }
 
