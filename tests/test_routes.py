@@ -255,7 +255,7 @@ def mock_service_empty_response(aioresponse, method, url):
         aioresponse.get(url, payload={})
 
 
-def mock_generic_service_client_error(aioresponse, method, url):
+def mock_service_client_error(aioresponse, method, url):
     if method == "POST":
         aioresponse.post(url, exception=ClientError)
     if method == "GET":
@@ -642,7 +642,7 @@ def test_gohan_down_response(app_config, client, aioresponse):
 
 def test_katsu_get_client_error(app_config, client, aioresponse):
     url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
-    mock_generic_service_client_error(aioresponse, "GET", url)
+    mock_service_client_error(aioresponse, "GET", url)
     response = client.get("/service-info")
     assert response.status_code == 500
 
@@ -653,7 +653,7 @@ def test_katsu_post_client_error(app_config, client, aioresponse):
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
     mock_gohan_query(app_config, aioresponse)
     katsu_private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    mock_generic_service_client_error(aioresponse, "POST", katsu_private_search_url)
+    mock_service_client_error(aioresponse, "POST", katsu_private_search_url)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     assert response.status_code == 500
 
@@ -665,6 +665,6 @@ def test_individuals_query_gohan_client_error(app_config, client, aioresponse):
     mock_katsu_private_search_query(app_config, aioresponse)
     mock_katsu_private_search_overview(app_config, aioresponse)
     url = app_config["GOHAN_BASE_URL"] + app_config["GOHAN_SEARCH_ENDPOINT"] + "?" + GOHAN_QUERY_PARAMS
-    mock_generic_service_client_error(aioresponse, "GET", url)
+    mock_service_client_error(aioresponse, "GET", url)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     assert response.status_code == 500
