@@ -240,6 +240,11 @@ def mock_gohan_query(app_config, aioresponse):
     aioresponse.get(gohan_search_url, payload=gohan_search_response)
 
 
+def mock_gohan_query_client_error(aioresponse):
+    bad_gohan_search_url = ""
+    aioresponse.get(bad_gohan_search_url, payload={})
+
+
 def mock_service_down_response(aioresponse, method, url):
     if method == "POST":
         aioresponse.post(url, status=404, body=service_down_html_response, content_type="text/html")
@@ -499,6 +504,17 @@ def test_individuals_query_bad_katsu_private_search_response(app_config, client,
     mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     response = client.post("/individuals", json=BEACON_PHENOPACKET_QUERY)
+    assert response.status_code == 500
+
+
+def test_individuals_query_gohan_client_error(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query_client_error(aioresponse)
+    response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     assert response.status_code == 500
 
 
