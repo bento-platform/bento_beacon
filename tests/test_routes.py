@@ -5,6 +5,7 @@ from .data.service_responses import (
     katsu_config_search_fields_response,
     gohan_search_response,
     katsu_private_search_response,
+    katsu_private_search_response_no_results,
     katsu_private_search_for_files,
     katsu_private_search_for_phenopackets,
     katsu_public_search_response,
@@ -69,7 +70,9 @@ BEACON_BOOL_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
 BEACON_BOOL_REQUEST_BODY["query"]["requestedGranularity"] = "boolean"
 
 BEACON_PHENOPACKET_QUERY = deepcopy(BEACON_REQUEST_BODY)
-BEACON_PHENOPACKET_QUERY["query"]["filters"] = [{"id": "phenopacket.diseases/term.label", "operator": "=", "value": "COVID-19"}]
+BEACON_PHENOPACKET_QUERY["query"]["filters"] = [
+    {"id": "phenopacket.diseases/term.label", "operator": "=", "value": "COVID-19"}
+]
 
 
 # aioresponses includes query params when matching urls
@@ -186,6 +189,11 @@ def mock_katsu_private_search_query(app_config, aioresponse):
     aioresponse.post(private_search_url, payload=katsu_private_search_response)
 
 
+def mock_katsu_private_search_query_no_results(app_config, aioresponse):
+    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    aioresponse.post(private_search_url, payload=katsu_private_search_response_no_results)
+
+
 def mock_katsu_private_search_for_handover_files(app_config, aioresponse):
     private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
     aioresponse.post(private_search_url, payload=katsu_private_search_for_files)
@@ -234,7 +242,7 @@ def mock_gohan_query(app_config, aioresponse):
 
 def mock_service_down_response(aioresponse, method, url):
     if method == "POST":
-        aioresponse.post(url, status=404, body=service_down_html_response, content_type='text/html')
+        aioresponse.post(url, status=404, body=service_down_html_response, content_type="text/html")
     if method == "GET":
         aioresponse.get(url, status=404, body=service_down_html_response, content_type="text/html")
 
@@ -337,6 +345,7 @@ def test_overview(app_config, client, aioresponse):
     assert response.status_code == 200
     validate_response(response.get_json(), RESPONSE_SPEC_FILENAMES["info"])
     assert "overview" in response.get_json().get("response")
+
 
 # --------------------------------------------------------
 # entities
@@ -469,6 +478,17 @@ def test_individuals_query_dataset_scoped(app_config, client, aioresponse):
     assert data["responseSummary"]["numTotalResults"] == 9
 
 
+def test_individuals_phenopacket_query_no_katsu_results(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_private_search_query_no_results(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_PHENOPACKET_QUERY)
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["responseSummary"]["numTotalResults"] == 0
+
+
 def test_individuals_query_bad_katsu_private_search_response(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse)
@@ -580,6 +600,7 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
 # --------------------------------------------------------
 # handle service errors
 # --------------------------------------------------------
+
 
 def test_katsu_non_json_response_from_get(app_config, client, aioresponse):
     katsu_endpoint = app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
