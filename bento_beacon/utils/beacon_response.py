@@ -39,9 +39,6 @@ async def add_stats_to_response(ids, project_id=None, dataset_id=None):
 
 
 async def add_overview_stats_to_response(project_id=None, dataset_id=None):
-    # TODO: check permissions
-    # should fail if you don't at least have count rights
-
     await add_stats_to_response(None, project_id, dataset_id)
 
 
@@ -50,15 +47,16 @@ async def summary_stats(ids, project_id=None, dataset_id=None):
 
     # 1. results are below threshold, so all summary stats will be below it as well
     if ids is not None and len(ids) <= (await get_censorship_threshold()):
-        return None
+        return {}
 
     # 2. user does not have count permissions at this scope
-    if not has_count_permissions(dataset_id, g.permissions):
-        return None
+    is_datset_level = dataset_id is not None
+    if not has_count_permissions(is_datset_level, g.permissions):
+        return {}
 
     # 3. count stats don't make sense for a boolean request, regardless of permissions
     if g.request_data.get("requestedGranularity") == GRANULARITY_BOOLEAN:
-        return None
+        return {}
 
     if ids is None:
         return await overview_statistics(project_id=project_id, dataset_id=dataset_id)
