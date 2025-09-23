@@ -88,7 +88,7 @@ async def get_individuals(project_id=None):
     individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
 
     if summary_stats_requested():
-        await add_stats_to_response(individual_ids)
+        await add_stats_to_response(individual_ids, project_id, dataset_id)
 
     return await build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
 
