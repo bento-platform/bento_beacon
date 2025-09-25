@@ -46,7 +46,7 @@ class Config:
     BEACON_ID = reverse_domain_id(BENTO_DOMAIN)
     BEACON_NAME = os.environ.get("BENTO_PUBLIC_CLIENT_NAME", "Bento") + " Beacon"
     BEACON_UI_ENABLED = str_to_bool(os.environ.get("BENTO_BEACON_UI_ENABLED", ""))
-    BEACON_UI_URL = BENTO_PUBLIC_URL + "/#/en/beacon"
+    BEACON_UI_URL = f"{BENTO_PUBLIC_URL}/en/beacon"
 
     ENTRY_TYPES_DETAILS = {
         "biosamples": {
