@@ -145,15 +145,12 @@ class Config:
     KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
     KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
     KATSU_PROJECTS_ENDPOINT = "/api/projects"
-    KATSU_DATASETS_ENDPOINT = "/api/datasets"
     KATSU_SEARCH_ENDPOINT = "/private/search"
-    KATSU_RESOURCES_ENDPOINT = "/api/resources"
     KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/discovery_search_fields"
     KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
     KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
     KATSU_BEACON_SEARCH = "/api/public"
     KATSU_SEARCH_OVERVIEW = "/api/search_overview"
-    KATSU_PUBLIC_OVERVIEW = "/api/public_overview"
     KATSU_PUBLIC_RULES = "/api/discovery_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
@@ -233,7 +230,6 @@ class Config:
 
     NETWORK_CONFIG = retrieve_config_json("beacon_network_config.json")
 
-    NETWORK_URLS = NETWORK_CONFIG.get("beacons", [])
     NETWORK_DEFAULT_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_default_timeout_seconds", 30)
     NETWORK_VARIANTS_QUERY_TIMEOUT_SECONDS = NETWORK_CONFIG.get("network_variants_query_timeout_seconds", GOHAN_TIMEOUT)
     NETWORK_VALID_QUERY_ENDPOINTS = [
