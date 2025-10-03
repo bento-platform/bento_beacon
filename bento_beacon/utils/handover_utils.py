@@ -59,7 +59,7 @@ async def filenames_by_results_set(ids, project_id, dataset_id):
         "data_type": "phenopacket",
         "query": ["#in", ["#resolve", "subject", "id"], ["#list", *ids]],
         "output": "values_list",
-        "field": ["biosamples", "[item]", "experiment", "[item]", "experiment_results", "[item]", "filename"],
+        "field": ["biosamples", "[item]", "experiments", "[item]", "experiment_results", "[item]", "filename"],
     }
 
     response = await katsu_post(payload, project_id=project_id, dataset_id=dataset_id)

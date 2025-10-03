@@ -5,6 +5,8 @@ from ..authz.access import create_access_header_or_fall_back
 from .exceptions import APIException, InvalidQuery, NotImplemented
 from .reference import gene_position_lookup
 
+GOHAN_ERROR_MESSAGE = "error calling gohan variants service"
+
 # -------------------------------------------------------
 #       query mapping
 # -------------------------------------------------------
@@ -213,13 +215,13 @@ async def gohan_network_call(url, gohan_args):
                 # handle gohan errors or any bad responses
                 if not r.ok:
                     current_app.logger.warning(f"gohan error, status: {r.status}, message: {r.text}")
-                    raise APIException(message="error searching gohan variants service")
+                    raise APIException(message=GOHAN_ERROR_MESSAGE)
 
                 gohan_response = await r.json()
 
     except aiohttp.ClientError as e:
         current_app.logger.error(f"gohan error: {e}")
-        raise APIException(message="error calling gohan variants service")
+        raise APIException(message=GOHAN_ERROR_MESSAGE)
 
     return gohan_response
 
