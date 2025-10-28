@@ -21,6 +21,10 @@ def add_info_to_response(info):
     add_message({"description": info, "level": "info"})
 
 
+def add_warning_to_response(warning):
+    add_message({"description": warning, "level": "warning"})
+
+
 def add_message(message_obj):
     messages = g.response_info.get("messages", [])
     messages.append(message_obj)
