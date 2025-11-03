@@ -66,10 +66,5 @@ async def overview(project_id=None, dataset_id=None):
     else:
         variants = {}
 
-    # can be removed once bento_public and beacon network nodes are updated (it reads from counts.variants for assemblyIDs)
-    legacy_format_overview = {"counts": {"individuals": await katsu_total_individuals_count(), "variants": variants}}
-
     katsu_stats = await summary_stats(None)
-    beacon_overview = {"variants": variants, **katsu_stats}
-
-    return {**legacy_format_overview, **beacon_overview}
+    return {"variants": variants, **katsu_stats}
