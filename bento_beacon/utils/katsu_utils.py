@@ -4,16 +4,16 @@ from functools import reduce
 from json import JSONDecodeError
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
-from .exceptions import APIException, InvalidQuery
+from .exceptions import APIException, InvalidQuery, InvalidFilterError
 from .http import tcp_connector
 from typing import Literal
-from .exceptions import APIException, InvalidQuery
 from ..authz.access import create_access_header_or_fall_back
 from ..authz.headers import auth_header_from_request
 
 RequiresAuthOptions = Literal["none", "forwarded", "full"]
 
 KATSU_ERROR_MESSAGE = "error calling katsu metadata service"
+UNSUPPORTED_FIELD_MESSAGE = "Unsupported field used in query"
 
 
 async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False, project_id=None, dataset_id=None):
@@ -149,8 +149,14 @@ async def katsu_get(
         raise APIException(message=KATSU_ERROR_MESSAGE)
 
     if not r.ok:
-        current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        if unsupported_filter := unsupported_filter_in_query(katsu_response):
+            # custom error if query used a discovery config search term not present in this bento instance
+            # this can happen in a network context
+            current_app.logger.warning(f"katsu query used an unsupported search term: {unsupported_filter}")
+            raise InvalidFilterError(unsupported_filter)
+        else:
+            current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
+            raise APIException(message=KATSU_ERROR_MESSAGE)
 
     return katsu_response
 
@@ -182,6 +188,19 @@ async def get_katsu_config_search_fields(project_id=None, dataset_id=None):
     )
     current_app.config["KATSU_CONFIG_SEARCH_FIELDS"] = fields
     return fields
+
+
+def unsupported_filter_in_query(response: dict) -> str | None:
+    errors = response.get("errors", [])
+    for e in errors:
+        # each message is also an array
+        msg_array = e.get("message", [])
+        for m in msg_array:
+            if isinstance(m, str) and m.startswith(UNSUPPORTED_FIELD_MESSAGE):
+                # return the name of the field
+                # katsu only returns one bad field, even if there are several in the query
+                return m.removeprefix(UNSUPPORTED_FIELD_MESSAGE + ": ")
+    return None
 
 
 # -------------------------------------------------------

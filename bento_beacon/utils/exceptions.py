@@ -21,8 +21,8 @@ class InvalidQuery(APIException):
 
 
 class InvalidFilterError(InvalidQuery):
-    def __init__(self):
-        super().__init__(message="Query used an unsupported filter")
+    def __init__(self, filter):
+        super().__init__(message=f"Query used an unsupported filter: {filter}")
 
 
 class NotFoundException(APIException):
