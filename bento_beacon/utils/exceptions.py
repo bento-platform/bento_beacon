@@ -20,6 +20,11 @@ class InvalidQuery(APIException):
         self.status_code = status_code
 
 
+class InvalidFilterError(InvalidQuery):
+    def __init__(self):
+        super().__init__(message="Query used an unsupported filter")
+
+
 class NotFoundException(APIException):
     def __init__(self, message="Not found", status_code=404):
         super().__init__()
