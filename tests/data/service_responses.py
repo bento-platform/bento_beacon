@@ -409,6 +409,15 @@ katsu_forbidden_response = {
 }
 
 
+katsu_response_for_unknown_discovery_config_field = {
+    "code": 400,
+    "message": "Bad Request",
+    "timestamp": "2025-10-27T19:42:41.613100Z",
+    "errors": [
+        {"message": ["Unsupported field used in query: trepanation"]},
+    ],
+}
+
 
 service_down_html_response = """<html>
 <head>

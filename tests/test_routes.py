@@ -1,5 +1,6 @@
 from copy import deepcopy
 from aiohttp import ClientError
+from bento_beacon.utils.exceptions import InvalidFilterError
 from .data.service_responses import (
     katsu_projects_response,
     katsu_public_rules_response,
@@ -16,6 +17,7 @@ from .data.service_responses import (
     token_response,
     drs_query_response,
     service_down_html_response,
+    katsu_response_for_unknown_discovery_config_field,
 )
 
 from .conftest import (
@@ -75,11 +77,14 @@ BEACON_PHENOPACKET_QUERY["query"]["filters"] = [
     {"id": "phenopacket.diseases/term.label", "operator": "=", "value": "COVID-19"}
 ]
 
+BEACON_BAD_CONFIG_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
+BEACON_BAD_CONFIG_REQUEST_BODY["query"]["filters"] = [{"id": "trepanation", "operator": "=", "value": "true"}]
 
 # aioresponses includes query params when matching urls
 KATSU_QUERY_PARAMS = "sex=FEMALE"
 KATSU_QUERY_PARAMS_PROJECT_SCOPED = f"project={PROJECT_1}&sex=FEMALE"
 KATSU_QUERY_PARAMS_DATASET_SCOPED = f"dataset={PROJECT_1_DATASET}&project={PROJECT_1}&sex=FEMALE"
+KATSU_BAD_QUERY_PARAM = "trepanation=true"
 
 GOHAN_QUERY_PARAMS = "assemblyId=GRCh38&chromosome=3&getSampleIdsOnly=True&lowerBound=189631389&upperBound=189897276"
 
@@ -229,6 +234,11 @@ def mock_katsu_individuals_scoped(app_config, aioresponse):
         app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + f"?page_size=1&project={PROJECT_1}"
     )
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
+
+
+def mock_katsu_bad_discovery_field_response(app_config, aioresponse, query_params):
+    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    aioresponse.get(url, status=400, payload=katsu_response_for_unknown_discovery_config_field)
 
 
 def mock_gohan_overview(app_config, aioresponse):
@@ -575,6 +585,19 @@ def test_individuals_by_id_query_wrong_permissions(app_config, client, aiorespon
 
     # expect permissions error
     assert response.status_code == 403
+
+
+def test_individuals_query_bad_discovery_config_field(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_bad_discovery_field_response(app_config, aioresponse, KATSU_BAD_QUERY_PARAM)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_BAD_CONFIG_REQUEST_BODY)
+    data = response.get_json()
+    assert response.status_code == 400
+    assert InvalidFilterError.BEACON_UNSUPPORTED_FILTER_MESSAGE in data["error"]["errorMessage"]
 
 
 # --------------------------------------------------------
