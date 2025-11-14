@@ -22,6 +22,7 @@ class InvalidQuery(APIException):
 
 class InvalidFilterError(InvalidQuery):
     BEACON_UNSUPPORTED_FILTER_MESSAGE = "Query used an unsupported filter"
+
     def __init__(self, filter):
         super().__init__(message=f"{self.BEACON_UNSUPPORTED_FILTER_MESSAGE}: {filter}")
 
