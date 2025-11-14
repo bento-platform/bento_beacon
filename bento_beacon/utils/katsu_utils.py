@@ -13,7 +13,7 @@ from ..authz.headers import auth_header_from_request
 RequiresAuthOptions = Literal["none", "forwarded", "full"]
 
 KATSU_ERROR_MESSAGE = "error calling katsu metadata service"
-UNSUPPORTED_FIELD_MESSAGE = "Unsupported field used in query"
+KATSU_UNSUPPORTED_FIELD_MESSAGE = "Unsupported field used in query"
 
 
 async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False, project_id=None, dataset_id=None):
@@ -196,10 +196,10 @@ def unsupported_filter_in_query(response: dict) -> str | None:
         # each message is also an array
         msg_array = e.get("message", [])
         for m in msg_array:
-            if isinstance(m, str) and m.startswith(UNSUPPORTED_FIELD_MESSAGE):
+            if isinstance(m, str) and m.startswith(KATSU_UNSUPPORTED_FIELD_MESSAGE):
                 # return the name of the field
                 # katsu only returns one bad field, even if there are several in the query
-                return m.removeprefix(UNSUPPORTED_FIELD_MESSAGE + ": ")
+                return m.removeprefix(KATSU_UNSUPPORTED_FIELD_MESSAGE + ": ")
     return None
 
 
