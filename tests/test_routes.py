@@ -82,8 +82,9 @@ BEACON_BAD_CONFIG_FIELD_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
 BEACON_BAD_CONFIG_FIELD_REQUEST_BODY["query"]["filters"] = [{"id": "trepanation", "operator": "=", "value": "true"}]
 
 BEACON_BAD_CONFIG_VALUE_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
-BEACON_BAD_CONFIG_VALUE_REQUEST_BODY["query"]["filters"] = [{"id": "date_of_consent", "operator": "=", "value": "DecembNever"}]
-
+BEACON_BAD_CONFIG_VALUE_REQUEST_BODY["query"]["filters"] = [
+    {"id": "date_of_consent", "operator": "=", "value": "DecembNever"}
+]
 
 
 # aioresponses includes query params when matching urls
@@ -621,8 +622,8 @@ def test_individuals_query_good_config_field_but_unknown_value(app_config, clien
     mock_gohan_query(app_config, aioresponse)
     response = client.post("/individuals", json=BEACON_BAD_CONFIG_VALUE_REQUEST_BODY)
     data = response.get_json()
-    assert response.status_code == 4001
-
+    assert InvalidFilterError.BEACON_UNSUPPORTED_FILTER_MESSAGE in data["error"]["errorMessage"]
+    assert response.status_code == 400
 
 
 # --------------------------------------------------------
