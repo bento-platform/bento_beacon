@@ -419,6 +419,20 @@ katsu_response_for_unknown_discovery_config_field = {
 }
 
 
+katsu_response_for_unknown_discovery_config_value = {
+    "code": 400,
+    "message": "Bad Request",
+    "timestamp": "2025-11-14T14:31:15.915551Z",
+    "errors": [
+        {
+            "message": [
+                "Invalid value used in field query: date_of_consent=DecembNever (<ValidatedDiscoveryScope project=a23c3139-6961-4db1-8157-00023d6efe8e dataset=None>)"
+            ]
+        }
+    ]
+}
+
+
 service_down_html_response = """<html>
 <head>
 	<title>404 Not Found</title>
