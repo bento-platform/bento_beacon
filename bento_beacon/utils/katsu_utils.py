@@ -12,8 +12,9 @@ from ..authz.headers import auth_header_from_request
 
 RequiresAuthOptions = Literal["none", "forwarded", "full"]
 
-KATSU_ERROR_MESSAGE = "error calling katsu metadata service"
-KATSU_UNSUPPORTED_FIELD_MESSAGE = "Unsupported field used in query"
+BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE = "error calling katsu metadata service"
+KATSU_BAD_DISCOVERY_KEY_MESSAGE = "Unsupported field used in query"
+KATSU_BAD_DISCOVERY_VALUE_MESSAGE = "Invalid value used in field query"
 
 
 async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False, project_id=None, dataset_id=None):
@@ -23,7 +24,7 @@ async def katsu_filters_query(beacon_filters, datatype, get_biosample_ids=False,
     match_list = []
 
     if results is None:
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
     # response correct but nothing found
     if not results:
@@ -83,14 +84,14 @@ async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
         # older requests library raised JSONDecodeError for unexpected html
         # aiohttp uses ContentTypeError instead, and raises JSONDecodeError only for malformed json
         current_app.logger.error(f"katsu error: error reading katsu response from POST {url}")
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
     except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
     if not r.ok:
         current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
     return katsu_response
 
@@ -142,21 +143,18 @@ async def katsu_get(
         # older requests library raised JSONDecodeError for unexpected html
         # aiohttp uses ContentTypeError instead, and raises JSONDecodeError only for malformed json
         current_app.logger.error(f"katsu error: error reading katsu response from GET {query_url}")
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
     except aiohttp.ClientError as e:
         current_app.logger.error(f"katsu error: {e}")
-        raise APIException(message=KATSU_ERROR_MESSAGE)
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
     if not r.ok:
-        if unsupported_filter := unsupported_filter_in_query(katsu_response):
-            # custom error if query used a discovery config search term not present in this bento instance
-            # this can happen in a network context
-            current_app.logger.warning(f"katsu query used an unsupported search term: {unsupported_filter}")
-            raise InvalidFilterError(unsupported_filter)
-        else:
-            current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
-            raise APIException(message=KATSU_ERROR_MESSAGE)
+        if bad_filter := katsu_bad_discovery_field_or_value(katsu_response):
+            raise InvalidFilterError(bad_filter)
+        # else generic bad request response
+        current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
+        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
     return katsu_response
 
@@ -190,16 +188,20 @@ async def get_katsu_config_search_fields(project_id=None, dataset_id=None):
     return fields
 
 
-def unsupported_filter_in_query(response: dict) -> str | None:
+def katsu_bad_discovery_field_or_value(response: dict) -> str | None:
     errors = response.get("errors", [])
     for e in errors:
         # each message is also an array
         msg_array = e.get("message", [])
         for m in msg_array:
-            if isinstance(m, str) and m.startswith(KATSU_UNSUPPORTED_FIELD_MESSAGE):
-                # return the name of the field
-                # katsu only returns one bad field, even if there are several in the query
-                return m.removeprefix(KATSU_UNSUPPORTED_FIELD_MESSAGE + ": ")
+            if not isinstance(m, str):
+                continue
+            if m.startswith(KATSU_BAD_DISCOVERY_KEY_MESSAGE):
+                bad_key = m.removeprefix(f"{KATSU_BAD_DISCOVERY_KEY_MESSAGE}: ")
+                return bad_key
+            if m.startswith(KATSU_BAD_DISCOVERY_VALUE_MESSAGE):
+                bad_value = m.removeprefix(f"{KATSU_BAD_DISCOVERY_VALUE_MESSAGE}: ").split()[0]
+                return bad_value
     return None
 
 
