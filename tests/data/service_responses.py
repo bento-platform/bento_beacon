@@ -433,6 +433,15 @@ katsu_response_for_unknown_discovery_config_value = {
 }
 
 
+katsu_generic_bad_request_response = {
+    "code": 400,
+    "message": "Bad Request",
+    "timestamp": "2025-10-27T19:42:41.613100Z",
+    "errors": [
+        {"message": ["an error ocurred"]},
+    ],
+}
+
 service_down_html_response = """<html>
 <head>
 	<title>404 Not Found</title>

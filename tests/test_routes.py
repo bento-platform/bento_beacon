@@ -19,6 +19,7 @@ from .data.service_responses import (
     service_down_html_response,
     katsu_response_for_unknown_discovery_config_field,
     katsu_response_for_unknown_discovery_config_value,
+    katsu_generic_bad_request_response,
 )
 
 from .conftest import (
@@ -252,6 +253,11 @@ def mock_katsu_bad_discovery_key_response(app_config, aioresponse, query_params)
 def mock_katsu_bad_discovery_value_response(app_config, aioresponse, query_params):
     url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
     aioresponse.get(url, status=400, payload=katsu_response_for_unknown_discovery_config_value)
+
+
+def mock_katsu_generic_bad_request_response(app_config, aioresponse, query_params):
+    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    aioresponse.get(url, status=400, payload=katsu_generic_bad_request_response)
 
 
 def mock_gohan_overview(app_config, aioresponse):
@@ -624,6 +630,18 @@ def test_individuals_query_good_config_field_but_unknown_value(app_config, clien
     data = response.get_json()
     assert InvalidFilterError.BEACON_UNSUPPORTED_FILTER_MESSAGE in data["error"]["errorMessage"]
     assert response.status_code == 400
+
+
+def test_individuals_query_generic_katsu_bad_request_response(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_generic_bad_request_response(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_REQUEST_BODY)
+    data = response.get_json()
+    assert response.status_code == 500
 
 
 # --------------------------------------------------------
