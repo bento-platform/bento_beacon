@@ -85,10 +85,6 @@ async def katsu_post(payload, endpoint=None, project_id=None, dataset_id=None):
         # aiohttp uses ContentTypeError instead, and raises JSONDecodeError only for malformed json
         current_app.logger.error(f"katsu error: error reading katsu response from POST {url}")
         raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
-    except aiohttp.ClientError as e:
-        current_app.logger.error(f"katsu error: {e}")
-        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
-
     if not r.ok:
         current_app.logger.error(f"katsu error, status: {r.status}, message: {katsu_response.get('message')}")
         raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
