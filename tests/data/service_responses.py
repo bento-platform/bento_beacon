@@ -2631,37 +2631,6 @@ drs_query_response = [
 ]
 
 
-katsu_private_search_1 = {
-    "results": {
-        "dataset-345-01": {
-            "data_type": "phenopacket",
-            "matches": [
-                "ind-HG00096",
-                "ind-HG00100",
-                "ind-HG00101",
-                "ind-HG00102",
-                "ind-HG00103",
-                "ind-HG00105",
-                "ind-HG00106",
-                "ind-HG00130",
-                "ind-HG00131",
-                "ind-HG00132",
-                "ind-HG00133",
-                "ind-HG00136",
-                "ind-HG00137",
-                "ind-HG00138",
-                "ind-HG00139",
-                "ind-HG00150",
-                "ind-HG00151",
-                "ind-HG00154",
-                "ind-HG00155",
-                "ind-HG00157",
-            ],
-        }
-    },
-    "time": 0.123216,
-}
-
 
 katsu_private_search_for_files = {
     "results": {
@@ -2675,6 +2644,19 @@ katsu_private_search_for_files = {
     },
     "time": 0.125905,
 }
+
+
+katsu_private_search_failure = {
+    "code": 500,
+    "message": "Internal Server Error",
+    "timestamp": "2025-11-20T14:03:16.492075Z",
+    "errors": [
+        {
+            "message": "Error from service: 500, message='fake error message'"
+        }
+    ]
+}
+
 
 katsu_private_search_for_phenopackets = {
     "results": {

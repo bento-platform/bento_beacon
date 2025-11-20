@@ -10,6 +10,7 @@ from .data.service_responses import (
     katsu_private_search_response_no_results,
     katsu_private_search_for_files,
     katsu_private_search_for_phenopackets,
+    katsu_private_search_failure,
     katsu_public_search_response,
     katsu_private_search_overview_response,
     katsu_individuals_response,
@@ -217,6 +218,11 @@ def mock_katsu_private_search_for_handover_files(app_config, aioresponse):
 def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
     private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
     aioresponse.post(private_search_url, payload=katsu_private_search_for_phenopackets)
+
+
+def mock_katsu_private_search_error_response(app_config, aioresponse):
+    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    aioresponse.post(private_search_url, payload=katsu_private_search_failure)
 
 
 def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
@@ -530,8 +536,7 @@ def test_individuals_query_bad_katsu_private_search_response(app_config, client,
     mock_permissions_all(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    katsu_private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    mock_service_empty_response(aioresponse, "POST", katsu_private_search_url)
+    mock_katsu_private_search_error_response(app_config, aioresponse)
     mock_katsu_private_search_for_handover_files(app_config, aioresponse)
     mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
