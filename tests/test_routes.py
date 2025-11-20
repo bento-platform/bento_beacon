@@ -222,7 +222,7 @@ def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
 
 def mock_katsu_private_search_error_response(app_config, aioresponse):
     private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    aioresponse.post(private_search_url, payload=katsu_private_search_failure)
+    aioresponse.post(private_search_url, status=500, payload=katsu_private_search_failure)
 
 
 def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
