@@ -141,10 +141,6 @@ async def katsu_get(
         current_app.logger.error(f"katsu error: error reading katsu response from GET {query_url}")
         raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
 
-    except aiohttp.ClientError as e:
-        current_app.logger.error(f"katsu error: {e}")
-        raise APIException(message=BEACON_ERROR_MESSAGE_FOR_KATSU_FAILURE)
-
     if not r.ok:
         if bad_filter := katsu_bad_discovery_field_or_value(katsu_response):
             raise InvalidFilterError(bad_filter)
