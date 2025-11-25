@@ -48,11 +48,11 @@ class NetworkNode(ABC):
         self.filtering_terms = None
 
     @abstractmethod
-    async def retrieve_beacon_info(self):
+    async def retrieve_beacon_info(self):  # pragma: no cover
         pass
 
     @abstractmethod
-    async def query_beacon(self, payload, endpoint):
+    async def query_beacon(self, payload, endpoint):  # pragma: no cover
         pass
 
     def node_info_to_json(self):
