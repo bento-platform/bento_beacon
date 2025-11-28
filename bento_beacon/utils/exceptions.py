@@ -20,6 +20,13 @@ class InvalidQuery(APIException):
         self.status_code = status_code
 
 
+class InvalidFilterError(InvalidQuery):
+    BEACON_UNSUPPORTED_FILTER_MESSAGE = "Query used an unsupported filter"
+
+    def __init__(self, bad_filter):
+        super().__init__(message=f"{self.BEACON_UNSUPPORTED_FILTER_MESSAGE}: {bad_filter}")
+
+
 class NotFoundException(APIException):
     def __init__(self, message="Not found", status_code=404):
         super().__init__()

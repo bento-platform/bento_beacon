@@ -1,5 +1,6 @@
 from copy import deepcopy
 from aiohttp import ClientError
+from bento_beacon.utils.exceptions import InvalidFilterError
 from .data.service_responses import (
     katsu_projects_response,
     katsu_public_rules_response,
@@ -9,6 +10,7 @@ from .data.service_responses import (
     katsu_private_search_response_no_results,
     katsu_private_search_for_files,
     katsu_private_search_for_phenopackets,
+    katsu_private_search_failure,
     katsu_public_search_response,
     katsu_private_search_overview_response,
     katsu_individuals_response,
@@ -16,6 +18,9 @@ from .data.service_responses import (
     token_response,
     drs_query_response,
     service_down_html_response,
+    katsu_response_for_unknown_discovery_config_field,
+    katsu_response_for_unknown_discovery_config_value,
+    katsu_generic_bad_request_response,
 )
 
 from .conftest import (
@@ -75,11 +80,21 @@ BEACON_PHENOPACKET_QUERY["query"]["filters"] = [
     {"id": "phenopacket.diseases/term.label", "operator": "=", "value": "COVID-19"}
 ]
 
+BEACON_BAD_CONFIG_FIELD_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
+BEACON_BAD_CONFIG_FIELD_REQUEST_BODY["query"]["filters"] = [{"id": "trepanation", "operator": "=", "value": "true"}]
+
+BEACON_BAD_CONFIG_VALUE_REQUEST_BODY = deepcopy(BEACON_REQUEST_BODY)
+BEACON_BAD_CONFIG_VALUE_REQUEST_BODY["query"]["filters"] = [
+    {"id": "date_of_consent", "operator": "=", "value": "DecembNever"}
+]
+
 
 # aioresponses includes query params when matching urls
 KATSU_QUERY_PARAMS = "sex=FEMALE"
 KATSU_QUERY_PARAMS_PROJECT_SCOPED = f"project={PROJECT_1}&sex=FEMALE"
 KATSU_QUERY_PARAMS_DATASET_SCOPED = f"dataset={PROJECT_1_DATASET}&project={PROJECT_1}&sex=FEMALE"
+KATSU_BAD_FIELD_QUERY_PARAM = "trepanation=true"
+KATSU_BAD_VALUE_QUERY_PARAM = "date_of_consent=DecembNever"
 
 GOHAN_QUERY_PARAMS = "assemblyId=GRCh38&chromosome=3&getSampleIdsOnly=True&lowerBound=189631389&upperBound=189897276"
 
@@ -205,6 +220,11 @@ def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
     aioresponse.post(private_search_url, payload=katsu_private_search_for_phenopackets)
 
 
+def mock_katsu_private_search_error_response(app_config, aioresponse):
+    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    aioresponse.post(private_search_url, status=500, payload=katsu_private_search_failure)
+
+
 def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
     private_search_url = (
         app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"] + "?" + f"project={project_id}"
@@ -229,6 +249,21 @@ def mock_katsu_individuals_scoped(app_config, aioresponse):
         app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + f"?page_size=1&project={PROJECT_1}"
     )
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
+
+
+def mock_katsu_bad_discovery_key_response(app_config, aioresponse, query_params):
+    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    aioresponse.get(url, status=400, payload=katsu_response_for_unknown_discovery_config_field)
+
+
+def mock_katsu_bad_discovery_value_response(app_config, aioresponse, query_params):
+    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    aioresponse.get(url, status=400, payload=katsu_response_for_unknown_discovery_config_value)
+
+
+def mock_katsu_generic_bad_request_response(app_config, aioresponse, query_params):
+    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    aioresponse.get(url, status=400, payload=katsu_generic_bad_request_response)
 
 
 def mock_gohan_overview(app_config, aioresponse):
@@ -501,8 +536,7 @@ def test_individuals_query_bad_katsu_private_search_response(app_config, client,
     mock_permissions_all(app_config, aioresponse)
     mock_katsu_public_rules(app_config, aioresponse)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    katsu_private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
-    mock_service_empty_response(aioresponse, "POST", katsu_private_search_url)
+    mock_katsu_private_search_error_response(app_config, aioresponse)
     mock_katsu_private_search_for_handover_files(app_config, aioresponse)
     mock_katsu_private_search_for_phenopackets(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
@@ -575,6 +609,44 @@ def test_individuals_by_id_query_wrong_permissions(app_config, client, aiorespon
 
     # expect permissions error
     assert response.status_code == 403
+
+
+def test_individuals_query_bad_discovery_config_field(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_bad_discovery_key_response(app_config, aioresponse, KATSU_BAD_FIELD_QUERY_PARAM)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_BAD_CONFIG_FIELD_REQUEST_BODY)
+    data = response.get_json()
+    assert response.status_code == 400
+    assert InvalidFilterError.BEACON_UNSUPPORTED_FILTER_MESSAGE in data["error"]["errorMessage"]
+
+
+def test_individuals_query_good_config_field_but_unknown_value(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_bad_discovery_value_response(app_config, aioresponse, KATSU_BAD_VALUE_QUERY_PARAM)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_BAD_CONFIG_VALUE_REQUEST_BODY)
+    data = response.get_json()
+    assert InvalidFilterError.BEACON_UNSUPPORTED_FILTER_MESSAGE in data["error"]["errorMessage"]
+    assert response.status_code == 400
+
+
+def test_individuals_query_generic_katsu_bad_request_response(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    mock_katsu_generic_bad_request_response(app_config, aioresponse, KATSU_QUERY_PARAMS)
+    mock_katsu_private_search_query(app_config, aioresponse)
+    mock_katsu_private_search_overview(app_config, aioresponse)
+    mock_gohan_query(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_REQUEST_BODY)
+    data = response.get_json()
+    assert response.status_code == 500
 
 
 # --------------------------------------------------------
