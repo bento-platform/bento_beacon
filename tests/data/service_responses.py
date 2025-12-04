@@ -2582,6 +2582,24 @@ network_beacon_filtering_terms_response_bento_18 = {
 }
 
 
+network_beacon_filtering_terms_response_has_no_overlap_with_other_beacons = {
+    "response": {
+        "filteringTerms": [
+            {
+                "bento": {"section": "General"},
+                "description": "Diseases observed as either present or absent",
+                "id": "diseases",
+                "label": "Diseases",
+                "type": "alphanumeric",
+                "values": [
+                    "An obscure disease"
+                ],
+            },
+        ]
+    }
+}
+
+
 drs_query_response = [
     {
         "access_methods": [
