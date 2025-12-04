@@ -79,9 +79,12 @@ def test_network_endpoint(app_config, client, aioresponse):
 
 def test_network_config_missing(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
+    network_config = app_config["NETWORK_CONFIG"]
     app_config["NETWORK_CONFIG"] = {}
     response = client.get("/network")
     assert response.status_code == 500
+    # replace config or we kill the other tests
+    app_config["NETWORK_CONFIG"] = network_config
 
 
 def test_network_beacon_query(app_config, client, aioresponse):
