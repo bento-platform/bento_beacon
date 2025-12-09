@@ -182,8 +182,6 @@ def test_network_local_beacon_query(app_config, client, aioresponse):
     assert response.status_code == 200
 
 
-
-
 def test_network_beacon_bad_filtering_terms_call(app_config, client, aioresponse):
     mock_permissions_all(app_config, aioresponse)
     mock_network_init_bad_filtering_terms(app_config, aioresponse)
