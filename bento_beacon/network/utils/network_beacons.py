@@ -138,7 +138,7 @@ class NetworkBeacon(NetworkNode):
                         raise APIException()
                     beacon_response = await r.json()
 
-        except (JSONDecodeError) as e:
+        except (JSONDecodeError, aiohttp.ContentTypeError) as e:
             msg = f"beacon network error calling url {url}: {e}"
             raise APIException(message=msg)
 
