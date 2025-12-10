@@ -134,8 +134,10 @@ class NetworkBeacon(NetworkNode):
                     s.get(url, timeout=timeout) if method == "GET" else s.post(url, timeout=timeout, json=payload)
                 ) as r:
                     if not r.ok:
-                        self.logger.error(f"failed network call to {url}")
-                        raise APIException()
+                        status = r.status
+                        error_message = (await r.json()).get("error", {}).get("errorMessage")
+                        self.logger.error(f"failed network call to {url}: {error_message}")
+                        raise APIException(status_code=status, message=error_message)
                     beacon_response = await r.json()
 
         except (JSONDecodeError, aiohttp.ContentTypeError) as e:
