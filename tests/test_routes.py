@@ -88,6 +88,20 @@ BEACON_BAD_CONFIG_VALUE_REQUEST_BODY["query"]["filters"] = [
     {"id": "date_of_consent", "operator": "=", "value": "DecembNever"}
 ]
 
+BEACON_TOO_MANY_FILTERS_REQUEST = deepcopy(BEACON_REQUEST_BODY)
+BEACON_TOO_MANY_FILTERS_REQUEST["query"]["requestParameters"] = {}
+BEACON_TOO_MANY_FILTERS_REQUEST["query"]["filters"] = [
+    {"id": "sex", "operator": "=", "value": "FEMALE"},
+    {"id": "phenotypic_features", "operator": "=", "value": "Myalgia"},
+    {"id": "diseases", "operator": "=", "value": "diabetes mellitus"},
+]
+
+BEACON_PHENOPACKETS_FILTER_REQUEST = deepcopy(BEACON_REQUEST_BODY)
+BEACON_PHENOPACKETS_FILTER_REQUEST["query"]["requestParameters"] = {}
+BEACON_PHENOPACKETS_FILTER_REQUEST["query"]["filters"] = [
+    {"id": "phenopacket.diseases/term.label", "operator": "=", "value": "COVID-19"}
+]
+
 
 # aioresponses includes query params when matching urls
 KATSU_QUERY_PARAMS = "sex=FEMALE"
@@ -647,6 +661,24 @@ def test_individuals_query_generic_katsu_bad_request_response(app_config, client
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     data = response.get_json()
     assert response.status_code == 500
+
+
+def test_too_many_filters(app_config, client, aioresponse):
+    mock_permissions_project_counts(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_TOO_MANY_FILTERS_REQUEST)
+    data = response.get_json()
+    assert response.status_code == 400
+    assert "too many filters in request" in data["error"]["errorMessage"]
+
+
+def test_phenopacket_filter_without_permission(app_config, client, aioresponse):
+    mock_permissions_project_counts(app_config, aioresponse)
+    mock_katsu_public_rules(app_config, aioresponse)
+    response = client.post("/individuals", json=BEACON_PHENOPACKETS_FILTER_REQUEST)
+    data = response.get_json()
+    assert response.status_code == 400
+    assert "insufficient permissions for this request" in data["error"]["errorMessage"]
 
 
 # --------------------------------------------------------
