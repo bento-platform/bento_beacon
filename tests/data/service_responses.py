@@ -2632,6 +2632,78 @@ network_beacon_filtering_terms_response_has_no_overlap_with_other_beacons = {
 }
 
 
+network_beacon_bad_discovery_key_response = {
+    "error": {
+        "errorCode": 400,
+        "errorMessage": "Query used an unsupported filter: trepanation"
+    },
+    "meta": {
+        "apiVersion": "v2.1.1",
+        "beaconId": "ca.sd4h.bento.staging.beacon",
+        "receivedRequestSummary": {
+            "apiVersion": "2.0.0",
+            "bento": {
+                "showSummaryStatistics": True
+            },
+            "filters": [
+                {
+                    "id": "trepanation",
+                    "operator": "=",
+                    "value": "true"
+                }
+            ],
+            "pagination": {
+                "limit": 10,
+                "skip": 0
+            },
+            "requestParameters": {
+                "g_variant": {}
+            },
+            "requestedGranularity": "count",
+            "requestedSchemas": []
+        },
+        "returnedGranularity": None,
+        "returnedSchemas": []
+    }
+}
+
+
+network_beacon_bad_discovery_value_response = {
+    "error": {
+        "errorCode": 400,
+        "errorMessage": "Query used an unsupported filter: date_of_consent=DecembNever"
+    },
+    "meta": {
+        "apiVersion": "v2.1.1",
+        "beaconId": "ca.sd4h.bento.staging.beacon",
+        "receivedRequestSummary": {
+            "apiVersion": "2.0.0",
+            "bento": {
+                "showSummaryStatistics": True
+            },
+            "filters": [
+                {
+                    "id": "date_of_consent",
+                    "operator": "=",
+                    "value": "DecembNever"
+                }
+            ],
+            "pagination": {
+                "limit": 10,
+                "skip": 0
+            },
+            "requestParameters": {
+                "g_variant": {}
+            },
+            "requestedGranularity": "count",
+            "requestedSchemas": []
+        },
+        "returnedGranularity": None,
+        "returnedSchemas": []
+    }
+}
+
+
 drs_query_response = [
     {
         "access_methods": [
