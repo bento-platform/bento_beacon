@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bento_beacon"
-version = "0.24.0"
+version = "0.24.1"
 description = "GA4GH Beacon v2 microservice for the Bento platform"
 authors = ["Gordon Krieger <gordon.krieger@mcgill.ca>"]
 license = "LGPL-3.0-only"
@@ -20,7 +20,7 @@ werkzeug = "^3.1.4"
 [tool.poetry.group.dev.dependencies]
 debugpy = "^1.8.17"
 black = "^25.9.0"
-pytest = "^8.4.2"
+pytest = "^9.0.2"
 responses = "^0.25.8"
 pytest-cov = "^7.0.0"
 
