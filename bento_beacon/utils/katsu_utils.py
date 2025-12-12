@@ -329,7 +329,7 @@ async def katsu_projects(project_id=None):
         current_app.config["KATSU_PROJECTS_ENDPOINT"],
         entity_id=project_id,
         query_dict={"format": "phenopackets"},
-        requires_auth="none",
+        requires_auth="forwarded",
     )
 
 
