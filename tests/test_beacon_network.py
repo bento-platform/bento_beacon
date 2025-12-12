@@ -20,6 +20,8 @@ from .data.service_responses import (
     network_beacon_query_response_bento_18,
     network_beacon_filtering_terms_response_bento_18,
     network_beacon_filtering_terms_response_has_no_overlap_with_other_beacons,
+    network_beacon_bad_discovery_key_response,
+    network_beacon_bad_discovery_value_response,
 )
 
 
@@ -38,6 +40,16 @@ def mock_network_beacon_query_throws_exception(aioresponse):
     aioresponse.post(
         url, payload=network_beacon_query_response_bento_18, exception=ClientConnectionError("Connection refused")
     )
+
+
+def mock_network_beacon_query_bad_discovery_key(aioresponse):
+    url = "https://fake2.bento.ca/api/beacon/individuals"
+    aioresponse.post(url, status=400, payload=network_beacon_bad_discovery_key_response)
+
+
+def mock_network_beacon_query_bad_discovery_value(aioresponse):
+    url = "https://fake2.bento.ca/api/beacon/individuals"
+    aioresponse.post(url, status=400, payload=network_beacon_bad_discovery_value_response)
 
 
 def mock_network_beacon_filtering_terms(aioresponse):
@@ -149,6 +161,26 @@ def test_network_beacon_query_failed(app_config, client, aioresponse):
     mock_network_beacon_query_throws_exception(aioresponse)
     response = client.post(f"/network/beacons/ca.fake2.bento.beacon/individuals", json=BEACON_REQUEST_BODY)
     assert response.status_code == 500
+
+
+def test_network_beacon_query_bad_discovery_key(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_network_init(app_config, aioresponse)
+    mock_network_beacon_query_bad_discovery_key(aioresponse)
+    response = client.post(f"/network/beacons/ca.fake2.bento.beacon/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 400
+    error_message = response.get_json().get("error", {}).get("errorMessage")
+    assert "Query used an unsupported filter" in error_message
+
+
+def test_network_beacon_query_bad_discovery_value(app_config, client, aioresponse):
+    mock_permissions_all(app_config, aioresponse)
+    mock_network_init(app_config, aioresponse)
+    mock_network_beacon_query_bad_discovery_value(aioresponse)
+    response = client.post(f"/network/beacons/ca.fake2.bento.beacon/individuals", json=BEACON_REQUEST_BODY)
+    assert response.status_code == 400
+    error_message = response.get_json().get("error", {}).get("errorMessage")
+    assert "Query used an unsupported filter" in error_message
 
 
 def test_network_beacon_query_bad_endpoint(app_config, client, aioresponse):
