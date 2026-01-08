@@ -1,16 +1,13 @@
 from flask import current_app
 from functools import reduce
 from .gohan_utils import query_gohan
-from .katsu_utils import (
-    katsu_filters_query,
-    search_from_config,
-    biosample_ids_for_individuals,
-)
+from .katsu_utils import KatsuService
 from .beacon_response import add_info_to_response
 
 
 # TODO: search by linked field set elements instead of hardcoding
 async def biosample_id_search(
+    katsu: KatsuService,
     variants_query=None,
     phenopacket_filters=None,
     experiment_filters=None,
@@ -34,7 +31,7 @@ async def biosample_id_search(
         results_biosample_ids["variant_sample_ids"] = variant_sample_ids
 
     if experiment_filters:
-        experiment_sample_ids = await katsu_filters_query(
+        experiment_sample_ids = await katsu.katsu_filters_query(
             experiment_filters, "experiment", get_biosample_ids=True, project_id=project_id, dataset_id=dataset_id
         )
         if not experiment_sample_ids:
@@ -44,7 +41,7 @@ async def biosample_id_search(
     # next two return *all* biosample ids for matching individuals
 
     if phenopacket_filters:
-        phenopacket_sample_ids = await katsu_filters_query(
+        phenopacket_sample_ids = await katsu.katsu_filters_query(
             phenopacket_filters, "phenopacket", get_biosample_ids=True, project_id=project_id, dataset_id=dataset_id
         )
         if not phenopacket_sample_ids:
@@ -52,9 +49,11 @@ async def biosample_id_search(
         results_biosample_ids["phenopacket_sample_ids"] = phenopacket_sample_ids
 
     if config_filters:
-        config_individuals = await search_from_config(config_filters, project_id=project_id, dataset_id=dataset_id)
+        config_individuals = await katsu.search_from_config(
+            config_filters, project_id=project_id, dataset_id=dataset_id
+        )
         if not config_individuals:
             return []
-        results_biosample_ids["config_sample_ids"] = await biosample_ids_for_individuals(config_individuals)
+        results_biosample_ids["config_sample_ids"] = await katsu.biosample_ids_for_individuals(config_individuals)
 
     return list(reduce(set.intersection, (set(ids) for ids in results_biosample_ids.values())))

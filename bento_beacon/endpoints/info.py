@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app
 from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import beacon_info_response
-from ..utils.katsu_utils import katsu_get, katsu_datasets
+from ..utils.katsu_utils import get_katsu_service
 from ..utils.scope import scoped_route_decorator_for_blueprint, verify_request_project_scope
 from .. import __version__
 
@@ -13,7 +13,7 @@ route_with_optional_project_id = scoped_route_decorator_for_blueprint(info)
 # but needs to verify project ids in the url path
 @info.before_request
 async def before_info_request():
-    await verify_request_project_scope()
+    await verify_request_project_scope(get_katsu_service())
 
 
 # All info endpoints accept an optional project_id prefix in the path, i.e. they will accept both
@@ -87,13 +87,13 @@ def beacon_map(project_id=None):
 @route_with_optional_project_id("/individual_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_individual_schema(project_id=None):
-    return await katsu_get(current_app.config["KATSU_INDIVIDUAL_SCHEMA_ENDPOINT"], requires_auth="none")
+    return await get_katsu_service().individual_schema()
 
 
 @route_with_optional_project_id("/experiment_schema", methods=["GET", "POST"])
 @authz_middleware.deco_public_endpoint
 async def get_experiment_schema(project_id=None):
-    return await katsu_get(current_app.config["KATSU_EXPERIMENT_SCHEMA_ENDPOINT"], requires_auth="none")
+    return await get_katsu_service().experiment_schema()
 
 
 # -------------------------------------------------------
@@ -142,7 +142,7 @@ async def beacon_description(project_id=None):
     # retrieve dataset description from DATS
     # may be multiple datasets, so collect all descriptions into one string
     # to use a custom description instead, add a "description" field to service info in beacon_config.json
-    k_datasets = await katsu_datasets(project_id)
+    k_datasets = await get_katsu_service().list_datasets(project_id)
     dats_array = list(map(lambda d: d.get("datsFile", {}), k_datasets))
     description = " ".join([d.get("description") for d in dats_array if "description" in d])
     custom_description = current_app.config["BEACON_CONFIG"].get("serviceInfo", {}).get("description")

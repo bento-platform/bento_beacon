@@ -1,5 +1,5 @@
 from flask import request
-from .katsu_utils import katsu_projects
+from .katsu_utils import KatsuService
 from .exceptions import InvalidQuery
 
 MESSAGE_FOR_TOO_MANY_DATASETS = "'datasetIds' field currently cannot take more than one dataset id"
@@ -32,9 +32,9 @@ def scoped_route_decorator_for_blueprint(blueprint):
 
 
 # used by info endpoints that don't check censorship settings
-async def verify_request_project_scope() -> None:
+async def verify_request_project_scope(katsu: KatsuService) -> None:
     view_args = request.view_args if request.view_args else {}
     project_id = view_args.get("project_id")
-    project_ids = [p["identifier"] for p in (await katsu_projects()).get("results", [])]
+    project_ids = [p["identifier"] for p in (await katsu.list_projects()).get("results", [])]
     if project_id is not None and project_id not in project_ids:
         raise InvalidQuery(f"No project found with id {project_id}")

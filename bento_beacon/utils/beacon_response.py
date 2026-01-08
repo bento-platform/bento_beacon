@@ -1,5 +1,5 @@
 from flask import current_app, g, request, url_for
-from .katsu_utils import search_summary_statistics, overview_statistics
+from .katsu_utils import KatsuService
 from .censorship import (
     get_censorship_threshold,
     censored_count,
@@ -32,21 +32,21 @@ def add_no_results_censorship_message_to_response():
     add_info_to_response(f"censorship threshold: {g.count_threshold}")
 
 
-async def add_stats_to_response(ids, project_id=None, dataset_id=None):
-    stats = await summary_stats(ids, project_id=project_id, dataset_id=dataset_id)
+async def add_stats_to_response(katsu: KatsuService, ids, project_id=None, dataset_id=None):
+    stats = await summary_stats(katsu, ids, project_id=project_id, dataset_id=dataset_id)
     if stats:
         g.response_info["bento"] = stats
 
 
-async def add_overview_stats_to_response(project_id=None, dataset_id=None):
-    await add_stats_to_response(None, project_id, dataset_id)
+async def add_overview_stats_to_response(katsu: KatsuService, project_id=None, dataset_id=None):
+    await add_stats_to_response(katsu, None, project_id, dataset_id)
 
 
-async def summary_stats(ids, project_id=None, dataset_id=None):
+async def summary_stats(katsu: KatsuService, ids, project_id=None, dataset_id=None):
     # several cases where summary stats are not given:
 
     # 1. results are below threshold, so all summary stats will be below it as well
-    if ids is not None and len(ids) <= (await get_censorship_threshold()):
+    if ids is not None and len(ids) <= (await get_censorship_threshold(katsu)):
         return {}
 
     # 2. user does not have count permissions at this scope
@@ -59,13 +59,13 @@ async def summary_stats(ids, project_id=None, dataset_id=None):
         return {}
 
     if ids is None:
-        return await overview_statistics(project_id=project_id, dataset_id=dataset_id)
+        return await katsu.overview_statistics(project_id=project_id, dataset_id=dataset_id)
 
-    stats = await search_summary_statistics(ids)
-    return await package_biosample_and_experiment_stats(stats)
+    stats = await katsu.search_summary_statistics(ids)
+    return await package_biosample_and_experiment_stats(stats, katsu)
 
 
-async def package_biosample_and_experiment_stats(stats):
+async def package_biosample_and_experiment_stats(stats, katsu: KatsuService):
     phenopacket_dts_stats = stats.get("phenopacket", {}).get("data_type_specific", {})
     experiment_stats = stats.get("experiment", {}).get("data_type_specific", {}).get("experiments", {})
 
@@ -82,12 +82,12 @@ async def package_biosample_and_experiment_stats(stats):
 
     return {
         "biosamples": {
-            "count": await censored_count(biosamples_count),
-            "sampled_tissue": await censored_chart_data(sampled_tissue_data),
+            "count": await censored_count(biosamples_count, katsu),
+            "sampled_tissue": await censored_chart_data(sampled_tissue_data, katsu),
         },
         "experiments": {
-            "count": await censored_count(experiments_count),
-            "experiment_type": await censored_chart_data(experiment_type_data),
+            "count": await censored_count(experiments_count, katsu),
+            "experiment_type": await censored_chart_data(experiment_type_data, katsu),
         },
     }
 
@@ -120,11 +120,11 @@ def response_granularity():
     return requested_g if requested_g else default_g
 
 
-async def build_query_response(ids=None, num_total_results=None, full_record_handler=None):
+async def build_query_response(katsu: KatsuService, ids=None, num_total_results=None, full_record_handler=None):
     granularity = response_granularity()
     count = len(ids) if num_total_results is None else num_total_results
-    returned_count = await censored_count(count)
-    if returned_count == 0 and (await get_censorship_threshold()) > 0:
+    returned_count = await censored_count(count, katsu)
+    if returned_count == 0 and (await get_censorship_threshold(katsu)) > 0:
         add_no_results_censorship_message_to_response()
     if granularity == GRANULARITY_BOOLEAN:
         return beacon_boolean_response(returned_count)
@@ -247,8 +247,8 @@ def beacon_error_response(message, status_code):
     return {"meta": response_meta([], None), "error": {"errorCode": status_code, "errorMessage": message}}
 
 
-async def zero_count_response():
-    return await build_query_response(ids=[])
+async def zero_count_response(katsu: KatsuService):
+    return await build_query_response(katsu, ids=[])
 
 
 # --------------------------------
