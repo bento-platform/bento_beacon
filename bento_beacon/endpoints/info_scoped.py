@@ -2,13 +2,9 @@ from flask import Blueprint, current_app, g
 from ..authz.middleware import authz_middleware
 from .info import beacon_format_service_details
 from ..utils.beacon_response import beacon_info_response, add_info_to_response, summary_stats
-from ..utils.katsu_utils import (
-    get_filtering_terms,
-    katsu_total_individuals_count,
-)
+from ..utils.katsu_utils import get_katsu_service
 from ..utils.gohan_utils import gohan_counts_for_overview
 from ..utils.scope import scoped_route_decorator_for_blueprint
-from ..utils.exceptions import InvalidQuery
 
 info_scoped = Blueprint("info_scoped", __name__)
 route_with_optional_project_id = scoped_route_decorator_for_blueprint(info_scoped)
@@ -43,8 +39,8 @@ async def filtering_terms(project_id=None):
     Could be generalized to arbitrary datatsets, but this reflects the current restrictions in katsu and the UI
     """
     dataset_id = g.beacon_query.get("dataset_id")
-    filtering_terms = await get_filtering_terms(project_id, dataset_id)
-    return beacon_info_response({"resources": [], "filteringTerms": filtering_terms})
+    terms = await get_katsu_service().get_filtering_terms(project_id, dataset_id)
+    return beacon_info_response({"resources": [], "filteringTerms": terms})
 
 
 # -------------------------------------------------------
