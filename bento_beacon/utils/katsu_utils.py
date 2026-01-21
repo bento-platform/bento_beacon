@@ -370,6 +370,10 @@ async def biosample_ids_for_individuals(individual_ids):
     return await katsu_filters_query(filters, "phenopacket", get_biosample_ids=True)
 
 
+async def individual_ids_for_biosamples(biosample_ids):
+    return await katsu_filters_and_sample_ids_query([], "phenopacket", biosample_ids)
+
+
 # scope done elsewhere, summary based on ids
 async def search_summary_statistics(ids):
     endpoint = current_app.config["KATSU_SEARCH_OVERVIEW"]

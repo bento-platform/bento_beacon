@@ -18,17 +18,10 @@ def request_defaults():
     }
 
 
-# replace compact phenopacket and experiment ids with native bento format
-def expand_path(id):
-    return id.replace("/", ".[item].")
-
 
 def parse_query_params(request_data):
     variants_query = request_data.get("requestParameters", {}).get("g_variant") or {}
     filters = request_data.get("filters") or []
-    phenopacket_filters = list(filter(lambda f: f["id"].startswith("phenopacket."), filters))
-    experiment_filters = list(filter(lambda f: f["id"].startswith("experiment."), filters))
-    config_filters = [f for f in filters if f not in phenopacket_filters and f not in experiment_filters]
 
     # plural here for future-proofing and best match with other beacons
     # even though we only accept one dataset currently
@@ -43,32 +36,9 @@ def parse_query_params(request_data):
     if dataset_id and project_id is None:
         raise InvalidQuery("dataset ids require a corresponding project id")
 
-    # strip filter prefixes and convert remaining ids to bento format
-    phenopacket_filters = list(
-        map(
-            lambda f: {
-                "id": expand_path(f["id"])[len("phenopacket.") :],
-                "operator": f["operator"],
-                "value": f["value"],
-            },
-            phenopacket_filters,
-        )
-    )
-    experiment_filters = list(
-        map(
-            lambda f: {
-                "id": expand_path(f["id"])[len("experiment.") :],
-                "operator": f["operator"],
-                "value": f["value"],
-            },
-            experiment_filters,
-        )
-    )
     return {
         "variants_query": variants_query,
-        "phenopacket_filters": phenopacket_filters,
-        "experiment_filters": experiment_filters,
-        "config_filters": config_filters,
+        "filters": filters,
         "dataset_id": dataset_id,
     }
 
