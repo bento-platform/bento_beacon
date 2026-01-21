@@ -1,3 +1,4 @@
 [submodule "beacon-v2"]
 	path = beacon-v2
 	url = https://github.com/ga4gh-beacon/beacon-v2/
+	branch = develop-filters-or-groups
