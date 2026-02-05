@@ -19,7 +19,7 @@ werkzeug = "^3.1.5"
 
 [tool.poetry.group.dev.dependencies]
 debugpy = "^1.8.17"
-black = "^25.9.0"
+black = "^26.1.0"
 pytest = "^9.0.2"
 responses = "^0.25.8"
 pytest-cov = "^7.0.0"

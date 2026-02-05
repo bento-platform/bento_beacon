@@ -3,7 +3,6 @@ from .exceptions import APIException, InvalidQuery
 from .katsu_utils import katsu_censorship_settings
 from ..authz.utils import has_full_record_permissions
 
-
 MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS = "No results. Either none were found, or the query produced results numbering at or below the threshold for censorship."
 
 

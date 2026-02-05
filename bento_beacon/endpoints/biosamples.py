@@ -1,7 +1,6 @@
 from flask import Blueprint
 from ..utils.exceptions import NotImplemented
 
-
 biosamples = Blueprint("biosamples", __name__)
 
 

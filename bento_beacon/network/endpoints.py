@@ -2,7 +2,6 @@ from flask import current_app, request, Blueprint
 from ..utils.exceptions import NotFoundException, APIException, NotImplemented
 from .utils.network_beacons import init_network_service_registry
 
-
 network = Blueprint("network", __name__, url_prefix="/network")
 
 # Long-term TODOs:

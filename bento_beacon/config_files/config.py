@@ -4,7 +4,6 @@ import os
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
 from .. import __version__
 
-
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
 
 
