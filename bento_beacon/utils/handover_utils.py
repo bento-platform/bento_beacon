@@ -6,7 +6,6 @@ from .exceptions import APIException
 from .http import tcp_connector
 from ..authz.headers import auth_header_from_request
 
-
 DRS_TIMEOUT_SECONDS = 10
 
 
