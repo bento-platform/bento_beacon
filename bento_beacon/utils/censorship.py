@@ -88,6 +88,11 @@ async def censored_chart_data(data) -> list[dict[str, int]]:
     return [{"label": d["label"], "value": d["value"]} for d in data if d["value"] > t]
 
 
+async def censored_key_value_list(data) -> list[dict[str, int]]:
+    t = await get_censorship_threshold()
+    return {key: value for key, value in data.items() if value > t}
+
+
 def query_has_phenopacket_filter() -> bool:
     return bool(g.beacon_query["phenopacket_filters"])
 
