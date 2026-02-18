@@ -137,6 +137,11 @@ class Config:
             "schema": f"{GA4GH_BEACON_REPO_URL}/main/framework/json/responses/beaconMapResponse.json",
         },
         "/overview": {},
+        #  link to aggregation pr
+        "/aggregation_terms": {
+            "entityType": "aggregationTerm",
+            "schema": f"{GA4GH_BEACON_REPO_URL}/refs/heads/add-aggregation-response/framework/json/responses/beaconAggregationConceptsResponse.json",
+        },
     }
     # -------------------
     # katsu
