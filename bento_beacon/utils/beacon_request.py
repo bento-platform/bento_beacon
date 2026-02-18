@@ -5,7 +5,7 @@ from .exceptions import InvalidQuery, PermissionsException
 from .scope import MESSAGE_FOR_TOO_MANY_DATASETS
 from ..authz.middleware import evaluate_permissions_on_resource
 from ..authz.utils import PermissionsDict, has_bool_permissions, has_count_permissions, has_full_record_permissions
-from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
+from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD, GRANULARITY_AGGREGATION
 
 
 def request_defaults():
@@ -137,6 +137,7 @@ async def save_request_data():
     query_request_parameters = request_query.get("requestParameters")
     query_filters = request_query.get("filters")
     query_dataset_ids = request_query.get("datasets", {}).get("datasetIds")
+    query_aggregation_terms = request_query.get("aggregationTerms")
 
     request_data = {
         "apiVersion": request_meta.get("apiVersion", defaults["apiVersion"]),
@@ -155,6 +156,9 @@ async def save_request_data():
 
     if request_bento:
         request_data["bento"] = request_bento
+
+    if query_aggregation_terms:
+        request_data["aggregationTerms"] = query_aggregation_terms
 
     # raw request data, this is echoed in response "meta" field
     g.request_data = request_data
@@ -191,6 +195,23 @@ def validate_request():
 
 def summary_stats_requested():
     return g.request_data.get("bento", {}).get("showSummaryStatistics")
+
+
+def aggregation_stats_requested():
+
+    has_aggregation_terms = bool(g.request_data.get("aggregationTerms"))
+    aggregation_granularity_requested = g.request_data.get("requestedGranularity") == GRANULARITY_AGGREGATION
+
+    return has_aggregation_terms or aggregation_granularity_requested
+
+    # criteria:
+    # for count response + aggregation stats:
+    # 1. requestedGranularity is "aggregated"
+    # 2. requestedGranularity is "count" + aggregation terms in request  (?)
+
+    # 3. requestedGranularity is "record" and aggregation terms in request (??)
+    # 4. ... what if I want record response + full aggregation response? (don't want to configure with aggregation terms) (??)
+
 
 
 async def verify_permissions():
