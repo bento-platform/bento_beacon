@@ -2,13 +2,9 @@ from flask import Blueprint, current_app, g
 from ..authz.middleware import authz_middleware
 from .info import beacon_format_service_details
 from ..utils.beacon_response import beacon_info_response, add_info_to_response, summary_stats
-from ..utils.katsu_utils import (
-    get_filtering_terms,
-    katsu_total_individuals_count,
-)
+from ..utils.katsu_utils import get_filtering_terms, get_aggregation_terms
 from ..utils.gohan_utils import gohan_counts_for_overview
 from ..utils.scope import scoped_route_decorator_for_blueprint
-from ..utils.exceptions import InvalidQuery
 
 info_scoped = Blueprint("info_scoped", __name__)
 route_with_optional_project_id = scoped_route_decorator_for_blueprint(info_scoped)
@@ -45,6 +41,18 @@ async def filtering_terms(project_id=None):
     dataset_id = g.beacon_query.get("dataset_id")
     filtering_terms = await get_filtering_terms(project_id, dataset_id)
     return beacon_info_response({"resources": [], "filteringTerms": filtering_terms})
+
+
+@route_with_optional_project_id("/aggregation_terms")
+@authz_middleware.deco_public_endpoint
+async def aggregation_terms(project_id=None):
+    """
+    Terms to specify fields available for summary statistics,
+    see https://github.com/ga4gh-beacon/beacon-v2/pull/259
+    """
+    dataset_id = g.beacon_query.get("dataset_id")
+    agg_terms = await get_aggregation_terms(project_id, dataset_id)
+    return beacon_info_response({"aggregationTerms": agg_terms})
 
 
 # -------------------------------------------------------
