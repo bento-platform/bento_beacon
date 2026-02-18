@@ -213,7 +213,6 @@ def aggregation_stats_requested():
     # 4. ... what if I want record response + full aggregation response? (don't want to configure with aggregation terms) (??)
 
 
-
 async def verify_permissions():
     resource = requested_resource()
     permissions = await retrieve_permissions(resource)

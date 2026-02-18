@@ -315,7 +315,7 @@ async def get_filtering_terms(project_id, dataset_id):
 
 
 async def get_aggregation_terms(project_id, dataset_id):
-    # just hardcoded fields for now 
+    # just hardcoded fields for now
     return [
         {
             "description": "Biosamples count",
@@ -341,7 +341,6 @@ async def get_aggregation_terms(project_id, dataset_id):
             "property": "analyses.experimentType.label",
         },
     ]
-
 
 
 # -------------------------------------------------------
