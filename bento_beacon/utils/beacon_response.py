@@ -9,7 +9,7 @@ from .censorship import (
 )
 from ..authz.utils import has_count_permissions
 from .exceptions import InvalidQuery
-from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
+from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD, GRANULARITY_AGGREGATION
 
 
 def init_response_data():
@@ -230,7 +230,7 @@ async def build_query_response(ids=None, num_total_results=None, full_record_han
         add_no_results_censorship_message_to_response()
     if granularity == GRANULARITY_BOOLEAN:
         return beacon_boolean_response(returned_count)
-    if granularity == GRANULARITY_COUNT:
+    if granularity in [GRANULARITY_COUNT, GRANULARITY_AGGREGATION]:
         return beacon_count_response(returned_count)
     if granularity == GRANULARITY_RECORD:
         if full_record_handler is None:
