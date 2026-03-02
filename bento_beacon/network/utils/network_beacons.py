@@ -56,8 +56,12 @@ class NetworkNode(ABC):
         pass
 
     def node_info_to_json(self):
-        # filtering terms?
-        return {**self.service_details, "apiUrl": self.api_url, "overview": self.overview}
+        return {
+            **self.service_details,
+            "apiUrl": self.api_url,
+            "overview": self.overview,
+            "filteringTerms": self.filtering_terms,
+        }
 
 
 class HostBeacon(NetworkNode):
