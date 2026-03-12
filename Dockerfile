@@ -1,4 +1,4 @@
-FROM ghcr.io/bento-platform/bento_base_image:python-debian-2026.02.01
+FROM ghcr.io/bento-platform/bento_base_image:python-debian-2026.03.01
 
 SHELL ["/bin/bash", "-c"]
 
@@ -8,7 +8,7 @@ WORKDIR /beacon
 # Install dependencies
 COPY pyproject.toml .
 COPY poetry.lock .
-RUN pip install --no-cache-dir gunicorn==23.0.0 && \
+RUN pip install --no-cache-dir gunicorn==25.1.0 && \
     poetry config virtualenvs.create false && \
     poetry install --without dev --no-root
 
