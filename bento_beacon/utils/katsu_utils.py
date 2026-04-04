@@ -310,6 +310,40 @@ async def get_filtering_terms(project_id, dataset_id):
 
 
 # -------------------------------------------------------
+#       aggregation terms
+# -------------------------------------------------------
+
+
+async def get_aggregation_terms(project_id, dataset_id):
+    # just hardcoded fields for now
+    return [
+        {
+            "description": "Biosamples count",
+            "id": "biosamples_count",
+            "label": "Biosamples",
+        },
+        {
+            "description": "Biosamples sampled tissue",
+            "id": "sampled_tissue",
+            "label": "Biosample sampled tissue",
+            "property": "biosamples.sampleOriginDetail.label",
+        },
+        {
+            "description": "Experiments count",
+            "id": "experiments_count",
+            "label": "Experiments count",
+        },
+        {
+            "description": "Experiment type",
+            "id": "experiment_type",
+            "label": "Experiment type",
+            # beacon spec has no exact analogue for bento experiment type
+            "property": "analyses.experimentType.label",
+        },
+    ]
+
+
+# -------------------------------------------------------
 #       utils
 # -------------------------------------------------------
 

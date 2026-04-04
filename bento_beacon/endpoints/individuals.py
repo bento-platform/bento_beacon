@@ -1,11 +1,11 @@
 from flask import Blueprint, g
 from functools import reduce
 from ..authz.utils import has_download_data_permissions, requires_full_record_permissions
-from ..utils.beacon_request import summary_stats_requested
+from ..utils.beacon_request import aggregation_stats_requested
 from ..utils.beacon_response import (
     add_info_to_response,
-    add_stats_to_response,
-    add_overview_stats_to_response,
+    add_aggregation_stats_to_response,
+    add_aggregation_overview_stats_to_response,
     zero_count_response,
     build_query_response,
     beacon_result_set_response,
@@ -42,8 +42,12 @@ async def get_individuals(project_id=None):
     if no_query:
         add_info_to_response("no query found, returning total count")
         total_count = await katsu_total_individuals_count(project_id=project_id, dataset_id=dataset_id)
-        if summary_stats_requested():
-            await add_overview_stats_to_response(project_id=project_id, dataset_id=dataset_id)
+        # if summary_stats_requested():
+        #     await add_overview_stats_to_response(project_id=project_id, dataset_id=dataset_id)
+
+        if aggregation_stats_requested():
+            await add_aggregation_overview_stats_to_response(project_id=project_id, dataset_id=dataset_id)
+
         return await build_query_response(num_total_results=total_count)
 
     # ----------------------------------------------------------
@@ -87,8 +91,8 @@ async def get_individuals(project_id=None):
     # baroque syntax but covers all cases
     individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
 
-    if summary_stats_requested():
-        await add_stats_to_response(individual_ids, project_id, dataset_id)
+    if aggregation_stats_requested():
+        await add_aggregation_stats_to_response(individual_ids, project_id, dataset_id)
 
     return await build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
 

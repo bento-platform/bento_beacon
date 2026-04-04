@@ -4,11 +4,12 @@ from .censorship import (
     get_censorship_threshold,
     censored_count,
     censored_chart_data,
+    censored_key_value_list,
     MESSAGE_FOR_CENSORED_QUERY_WITH_NO_RESULTS,
 )
 from ..authz.utils import has_count_permissions
 from .exceptions import InvalidQuery
-from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD
+from ..constants import GRANULARITY_BOOLEAN, GRANULARITY_COUNT, GRANULARITY_RECORD, GRANULARITY_AGGREGATION
 
 
 def init_response_data():
@@ -32,37 +33,89 @@ def add_no_results_censorship_message_to_response():
     add_info_to_response(f"censorship threshold: {g.count_threshold}")
 
 
-async def add_stats_to_response(ids, project_id=None, dataset_id=None):
-    stats = await summary_stats(ids, project_id=project_id, dataset_id=dataset_id)
-    if stats:
-        g.response_info["bento"] = stats
-
-
-async def add_overview_stats_to_response(project_id=None, dataset_id=None):
-    await add_stats_to_response(None, project_id, dataset_id)
-
-
-async def summary_stats(ids, project_id=None, dataset_id=None):
+async def can_give_summary_stats(ids, project_id=None, dataset_id=None):
     # several cases where summary stats are not given:
 
     # 1. results are below threshold, so all summary stats will be below it as well
     if ids is not None and len(ids) <= (await get_censorship_threshold()):
-        return {}
+        return False
 
     # 2. user does not have count permissions at this scope
     is_datset_level = dataset_id is not None
     if not has_count_permissions(is_datset_level, g.permissions):
-        return {}
+        return False
 
     # 3. count stats don't make sense for a boolean request, regardless of permissions
     if g.request_data.get("requestedGranularity") == GRANULARITY_BOOLEAN:
+        return False
+
+
+# bento_public-style summary stats
+async def summary_stats(ids, project_id=None, dataset_id=None):
+    if not can_give_summary_stats(ids, project_id=None, dataset_id=None):
         return {}
 
     if ids is None:
+        # legacy bento public overview format with counts & two charts
         return await overview_statistics(project_id=project_id, dataset_id=dataset_id)
 
+    # bento_web ids-based summary stats, more charts and a different format
     stats = await search_summary_statistics(ids)
+
+    # or just return above
     return await package_biosample_and_experiment_stats(stats)
+
+
+# --------------------------------------------------------------------
+# proof of concept for "aggregation" summary stats proposal
+# See https://github.com/ga4gh-beacon/beacon-v2/pull/259
+# --------------------------------------------------------------------
+
+
+async def add_aggregation_overview_stats_to_response(project_id, dataset_id):
+    overview_stats = await overview_statistics(project_id=project_id, dataset_id=dataset_id)
+
+    # map to aggregation format
+    # values have already passed censorship & guaranteed not to be None
+    biosamples_count = overview_stats["biosamples"]["count"]
+    sampled_tissue = overview_stats["biosamples"]["sampled_tissue"]
+
+    experiments_count = overview_stats["experiments"]["count"]
+    experiment_type = overview_stats["experiments"]["experiment_type"]
+
+    biosample_count_agg_item = aggregation_item(
+        "biosamples", "Count of biosamples", {"biosamples": (biosamples_count)}, scope="biosamples"
+    )
+    biosample_sampled_tissue_agg_item = aggregation_item(
+        "biosamples.sampleOriginDetail.label", "Sampled tissue", sampled_tissue, scope="biosamples"
+    )
+
+    experiments_count_agg_item = aggregation_item(
+        "analyses", "analyses", {"Count of analyses": experiments_count}, scope="analyses"
+    )
+    experiment_type_agg_item = aggregation_item(
+        "analyses.experimentType.label", "Experiment type", experiment_type, scope="analyses"
+    )
+
+    return [
+        biosample_count_agg_item,
+        biosample_sampled_tissue_agg_item,
+        experiments_count_agg_item,
+        experiment_type_agg_item,
+    ]
+
+
+async def add_aggregation_stats_to_response(ids, project_id, dataset_id):
+    agg_stats = await aggregation_stats(ids, project_id=project_id, dataset_id=dataset_id)
+    if agg_stats:
+        g.response_data["response_aggregation"] = agg_stats
+
+
+async def aggregation_stats(ids, project_id=None, dataset_id=None):
+    if not can_give_summary_stats(ids, project_id=None, dataset_id=None):
+        return {}
+    stats = await search_summary_statistics(ids)
+    return await censored_aggregation_format_stats(stats)
 
 
 async def package_biosample_and_experiment_stats(stats):
@@ -90,6 +143,55 @@ async def package_biosample_and_experiment_stats(stats):
             "experiment_type": await censored_chart_data(experiment_type_data),
         },
     }
+
+
+async def censored_aggregation_format_stats(katsu_stats):
+    biosample_stats = katsu_stats.get("phenopacket", {}).get("data_type_specific", {}).get("biosamples", {})
+    experiment_stats = katsu_stats.get("experiment", {}).get("data_type_specific", {}).get("experiments", {})
+
+    biosamples_count = await censored_count(biosample_stats.get("count", 0))
+    sampled_tissue = await censored_key_value_list(biosample_stats.get("sampled_tissue", {}))
+
+    experiments_count = await censored_count(experiment_stats.get("count", 0))
+    experiment_type = await censored_key_value_list(experiment_stats.get("experiment_type", {}))
+
+    biosample_count_agg_item = aggregation_item(
+        "biosamples", "Count of biosamples", {"biosamples": (biosamples_count)}, scope="biosamples"
+    )
+    biosample_sampled_tissue_agg_item = aggregation_item(
+        "biosamples.sampleOriginDetail.label", "Sampled tissue", sampled_tissue, scope="biosamples"
+    )
+
+    experiments_count_agg_item = aggregation_item(
+        "analyses", "analyses", {"Count of analyses": experiments_count}, scope="analyses"
+    )
+    # beacon spec has no exact analogue for bento experiment type
+    experiment_type_agg_item = aggregation_item(
+        "analyses.experimentType.label", "Experiment type", experiment_type, scope="analyses"
+    )
+
+    return [
+        biosample_count_agg_item,
+        biosample_sampled_tissue_agg_item,
+        experiments_count_agg_item,
+        experiment_type_agg_item,
+    ]
+
+
+def aggregation_item(id, description, katsu_dict, scope=None):
+    item = {
+        "concepts": [{"property": id}],
+        "description": description,
+        "id": id,  # again!
+        "distribution": [
+            {"conceptValues": [{"id": key, "label": key}], "count": val} for key, val in katsu_dict.items()
+        ],  # katsu response has label only for now, so we use that as a key also
+        "label": description,  # again!
+    }
+    if scope is not None:
+        item["scope"] = scope
+
+    return item
 
 
 def received_request():
@@ -128,7 +230,7 @@ async def build_query_response(ids=None, num_total_results=None, full_record_han
         add_no_results_censorship_message_to_response()
     if granularity == GRANULARITY_BOOLEAN:
         return beacon_boolean_response(returned_count)
-    if granularity == GRANULARITY_COUNT:
+    if granularity in [GRANULARITY_COUNT, GRANULARITY_AGGREGATION]:
         return beacon_count_response(returned_count)
     if granularity == GRANULARITY_RECORD:
         if full_record_handler is None:
@@ -207,6 +309,8 @@ def beacon_count_response(count):
     info = response_info()
     if info:
         r["info"] = info
+    if aggregation_stats := g.response_data.get("response_aggregation", None):
+        r["responseAggregation"] = aggregation_stats
     return r
 
 
