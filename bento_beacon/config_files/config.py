@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from ..constants import GRANULARITY_COUNT, GRANULARITY_RECORD
-from .. import __version__
 
 GA4GH_BEACON_REPO_URL = "https://raw.githubusercontent.com/ga4gh-beacon/beacon-v2"
 
@@ -141,16 +140,6 @@ class Config:
     # katsu
 
     KATSU_BASE_URL = os.environ.get("KATSU_BASE_URL")
-    KATSU_BIOSAMPLES_ENDPOINT = "/api/biosamples"
-    KATSU_INDIVIDUALS_ENDPOINT = "/api/individuals"
-    KATSU_PROJECTS_ENDPOINT = "/api/projects"
-    KATSU_SEARCH_ENDPOINT = "/private/search"
-    KATSU_PUBLIC_CONFIG_ENDPOINT = "/api/discovery_search_fields"
-    KATSU_INDIVIDUAL_SCHEMA_ENDPOINT = "/api/schemas/phenopacket"
-    KATSU_EXPERIMENT_SCHEMA_ENDPOINT = "/api/schemas/experiment"
-    KATSU_BEACON_SEARCH = "/api/public"
-    KATSU_SEARCH_OVERVIEW = "/api/search_overview"
-    KATSU_PUBLIC_RULES = "/api/discovery_rules"
     KATSU_TIMEOUT = int(os.environ.get("BEACON_KATSU_TIMEOUT", 180))
 
     MAP_EXTRA_PROPERTIES_TO_INFO = str_to_bool(os.environ.get("MAP_EXTRA_PROPERTIES_TO_INFO", ""))

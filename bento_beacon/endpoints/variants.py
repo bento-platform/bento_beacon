@@ -2,6 +2,7 @@ from flask import Blueprint, g
 from ..authz.middleware import authz_middleware
 from ..utils.beacon_response import build_query_response, add_info_to_response, zero_count_response
 from ..utils.gohan_utils import query_gohan, gohan_total_variants_count, gohan_totals_by_sample_id
+from ..utils.katsu_utils import get_katsu_service
 from ..utils.search import biosample_id_search
 
 variants = Blueprint("variants", __name__)
@@ -22,7 +23,7 @@ async def get_variants():
     if not (variants_query or has_filters):
         add_info_to_response("no query found, returning total count")
         total_count = await gohan_total_variants_count()
-        return await build_query_response(num_total_results=total_count)
+        return await build_query_response(get_katsu_service(), num_total_results=total_count)
 
     #  collect biosample ids from all filters
     sample_ids = []
@@ -57,7 +58,7 @@ async def get_variants():
         else:
             gohan_count = sum(variant_totals.values())
 
-    return await build_query_response(num_total_results=gohan_count)
+    return await build_query_response(get_katsu_service(), num_total_results=gohan_count)
 
 
 # -------------------------------------------------------

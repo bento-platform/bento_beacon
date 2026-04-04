@@ -1,6 +1,7 @@
 from copy import deepcopy
 from aiohttp import ClientError
 from bento_beacon.utils.exceptions import InvalidFilterError
+from bento_beacon.utils.katsu_utils import KatsuService
 from .data.service_responses import (
     katsu_projects_response,
     katsu_public_rules_response,
@@ -179,69 +180,69 @@ def mock_katsu_public_rules(app_config, aioresponse, project_id=None, dataset_id
             params += f"dataset={PROJECT_1_DATASET}&"
         if project_id:
             params += f"project={PROJECT_1}"
-    public_rules_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_RULES"] + params
+    public_rules_url = app_config["KATSU_BASE_URL"] + KatsuService.PUBLIC_RULES_ENDPOINT + params
     aioresponse.get(public_rules_url, payload=katsu_public_rules_response)
 
 
 def mock_katsu_public_rules_mismatched_scope(app_config, aioresponse):
     mismatched_rules_url = (
         app_config["KATSU_BASE_URL"]
-        + app_config["KATSU_PUBLIC_RULES"]
+        + KatsuService.PUBLIC_RULES_ENDPOINT
         + f"?dataset={PROJECT_1_DATASET}&project={PROJECT_2}"
     )
     aioresponse.get(mismatched_rules_url, payload=katsu_scope_error_response)
 
 
 def mock_katsu_projects(app_config, aioresponse):
-    projects_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
+    projects_url = app_config["KATSU_BASE_URL"] + KatsuService.PROJECTS_ENDPOINT + "?format=phenopackets"
     aioresponse.get(projects_url, payload=katsu_projects_response)
 
 
 def mock_katsu_public_search_fields(app_config, aioresponse, project_id=None):
-    search_fields_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PUBLIC_CONFIG_ENDPOINT"]
+    search_fields_url = app_config["KATSU_BASE_URL"] + KatsuService.DISCOVERY_SEARCH_FIELDS_ENDPOINT
     if project_id:
         search_fields_url += f"?project={project_id}"
     aioresponse.get(search_fields_url, payload=katsu_config_search_fields_response)
 
 
 def mock_katsu_public_search_no_query(app_config, aioresponse):
-    public_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"]
+    public_search_url = app_config["KATSU_BASE_URL"] + KatsuService.BEACON_SEARCH_ENDPOINT
     aioresponse.get(public_search_url, payload=katsu_public_search_response)
 
 
 def mock_katsu_public_search_query(app_config, aioresponse, query_params):
-    public_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    public_search_url = app_config["KATSU_BASE_URL"] + KatsuService.BEACON_SEARCH_ENDPOINT + "?" + query_params
     aioresponse.get(public_search_url, payload=katsu_public_search_response)
 
 
 def mock_katsu_private_search_query(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    private_search_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     aioresponse.post(private_search_url, payload=katsu_private_search_response)
 
 
 def mock_katsu_private_search_query_no_results(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    private_search_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     aioresponse.post(private_search_url, payload=katsu_private_search_response_no_results)
 
 
 def mock_katsu_private_search_for_handover_files(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    private_search_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     aioresponse.post(private_search_url, payload=katsu_private_search_for_files)
 
 
 def mock_katsu_private_search_for_phenopackets(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    private_search_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     aioresponse.post(private_search_url, payload=katsu_private_search_for_phenopackets)
 
 
 def mock_katsu_private_search_error_response(app_config, aioresponse):
-    private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    private_search_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     aioresponse.post(private_search_url, status=500, payload=katsu_private_search_failure)
 
 
 def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=None, dataset_id=None):
     private_search_url = (
-        app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"] + "?" + f"project={project_id}"
+        app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT + "?" + f"project={project_id}"
     )
     if dataset_id:
         private_search_url += f"&dataset={dataset_id}"
@@ -249,34 +250,34 @@ def mock_katsu_private_search_query_scoped(app_config, aioresponse, project_id=N
 
 
 def mock_katsu_private_search_overview(app_config, aioresponse):
-    search_overview_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_OVERVIEW"]
+    search_overview_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_OVERVIEW_ENDPOINT
     aioresponse.post(search_overview_url, payload=katsu_private_search_overview_response)
 
 
 def mock_katsu_individuals(app_config, aioresponse):
-    individuals_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + "?page_size=1"
+    individuals_url = app_config["KATSU_BASE_URL"] + KatsuService.INDIVIDUALS_ENDPOINT + "?page_size=1"
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
 
 
 def mock_katsu_individuals_scoped(app_config, aioresponse):
     individuals_url = (
-        app_config["KATSU_BASE_URL"] + app_config["KATSU_INDIVIDUALS_ENDPOINT"] + f"?page_size=1&project={PROJECT_1}"
+        app_config["KATSU_BASE_URL"] + KatsuService.INDIVIDUALS_ENDPOINT + f"?page_size=1&project={PROJECT_1}"
     )
     aioresponse.get(individuals_url, payload=katsu_individuals_response)
 
 
 def mock_katsu_bad_discovery_key_response(app_config, aioresponse, query_params):
-    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    url = app_config["KATSU_BASE_URL"] + KatsuService.BEACON_SEARCH_ENDPOINT + "?" + query_params
     aioresponse.get(url, status=400, payload=katsu_response_for_unknown_discovery_config_field)
 
 
 def mock_katsu_bad_discovery_value_response(app_config, aioresponse, query_params):
-    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    url = app_config["KATSU_BASE_URL"] + KatsuService.BEACON_SEARCH_ENDPOINT + "?" + query_params
     aioresponse.get(url, status=400, payload=katsu_response_for_unknown_discovery_config_value)
 
 
 def mock_katsu_generic_bad_request_response(app_config, aioresponse, query_params):
-    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_BEACON_SEARCH"] + "?" + query_params
+    url = app_config["KATSU_BASE_URL"] + KatsuService.BEACON_SEARCH_ENDPOINT + "?" + query_params
     aioresponse.get(url, status=400, payload=katsu_generic_bad_request_response)
 
 
@@ -715,7 +716,7 @@ def test_individuals_query_dataset_with_dataset_permissions(app_config, client, 
 
 
 def test_katsu_non_json_response_from_get(app_config, client, aioresponse):
-    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
+    url = app_config["KATSU_BASE_URL"] + KatsuService.PROJECTS_ENDPOINT + "?format=phenopackets"
     mock_service_down_response(aioresponse, "GET", url)
     service_info_response = client.get("/service-info")
     assert service_info_response.status_code == 500
@@ -726,7 +727,7 @@ def test_katsu_non_json_response_from_post(app_config, client, aioresponse):
     mock_katsu_public_rules(app_config, aioresponse)
     mock_gohan_query(app_config, aioresponse)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
-    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     mock_service_down_response(aioresponse, "POST", url)
     query_response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     assert query_response.status_code == 500
@@ -745,7 +746,7 @@ def test_gohan_down_response(app_config, client, aioresponse):
 
 
 def test_katsu_get_client_error(app_config, client, aioresponse):
-    url = app_config["KATSU_BASE_URL"] + app_config["KATSU_PROJECTS_ENDPOINT"] + "?format=phenopackets"
+    url = app_config["KATSU_BASE_URL"] + KatsuService.PROJECTS_ENDPOINT + "?format=phenopackets"
     mock_service_client_error(aioresponse, "GET", url)
     response = client.get("/service-info")
     assert response.status_code == 500
@@ -756,7 +757,7 @@ def test_katsu_post_client_error(app_config, client, aioresponse):
     mock_katsu_public_rules(app_config, aioresponse)
     mock_katsu_public_search_query(app_config, aioresponse, KATSU_QUERY_PARAMS)
     mock_gohan_query(app_config, aioresponse)
-    katsu_private_search_url = app_config["KATSU_BASE_URL"] + app_config["KATSU_SEARCH_ENDPOINT"]
+    katsu_private_search_url = app_config["KATSU_BASE_URL"] + KatsuService.SEARCH_ENDPOINT
     mock_service_client_error(aioresponse, "POST", katsu_private_search_url)
     response = client.post("/individuals", json=BEACON_REQUEST_BODY)
     assert response.status_code == 500
