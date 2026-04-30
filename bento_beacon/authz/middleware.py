@@ -19,7 +19,7 @@ from ..utils.beacon_response import middleware_meta_callback
 
 __all__ = [
     "authz_middleware",
-    "check_permission",
+    "evaluate_permissions_on_resource",
 ]
 
 

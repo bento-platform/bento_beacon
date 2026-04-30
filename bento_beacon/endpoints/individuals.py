@@ -10,12 +10,7 @@ from ..utils.beacon_response import (
     build_query_response,
     beacon_result_set_response,
 )
-from ..utils.katsu_utils import (
-    katsu_filters_and_sample_ids_query,
-    katsu_total_individuals_count,
-    search_from_config,
-    phenopackets_for_ids,
-)
+from ..utils.katsu_utils import get_katsu_service
 from ..utils.search import biosample_id_search
 from ..utils.handover_utils import handover_for_ids
 from ..utils.exceptions import NotFoundException
@@ -27,6 +22,8 @@ route_with_optional_project_id = scoped_route_decorator_for_blueprint(individual
 
 @route_with_optional_project_id("/individuals", methods=["GET", "POST"])
 async def get_individuals(project_id=None):
+    katsu = get_katsu_service()
+
     variants_query = g.beacon_query["variants_query"]
     phenopacket_filters = g.beacon_query["phenopacket_filters"]
     experiment_filters = g.beacon_query["experiment_filters"]
@@ -41,10 +38,10 @@ async def get_individuals(project_id=None):
     # TODO: save 400ms on beacon UI startup by not calling katsu twice
     if no_query:
         add_info_to_response("no query found, returning total count")
-        total_count = await katsu_total_individuals_count(project_id=project_id, dataset_id=dataset_id)
+        total_count = await katsu.total_individuals_count(project_id=project_id, dataset_id=dataset_id)
         if summary_stats_requested():
-            await add_overview_stats_to_response(project_id=project_id, dataset_id=dataset_id)
-        return await build_query_response(num_total_results=total_count)
+            await add_overview_stats_to_response(katsu, project_id=project_id, dataset_id=dataset_id)
+        return await build_query_response(katsu, num_total_results=total_count)
 
     # ----------------------------------------------------------
     #  collect biosample ids from variant and experiment search
@@ -53,13 +50,14 @@ async def get_individuals(project_id=None):
 
     if search_sample_ids:
         sample_ids = await biosample_id_search(
+            katsu,
             variants_query=variants_query,
             experiment_filters=experiment_filters,
             project_id=project_id,
             dataset_id=dataset_id,
         )
         if not sample_ids:
-            return await zero_count_response()
+            return await zero_count_response(katsu)
 
     # -------------------------------
     #  get individuals
@@ -69,28 +67,28 @@ async def get_individuals(project_id=None):
 
     # get individuals from katsu config search
     if config_filters:
-        config_ids = await search_from_config(config_filters, project_id=project_id, dataset_id=dataset_id)
+        config_ids = await katsu.search_from_config(config_filters, project_id=project_id, dataset_id=dataset_id)
         if not config_ids:
-            return await zero_count_response()
+            return await zero_count_response(katsu)
         individual_results["config_ids"] = config_ids
 
     if not config_search_only:
         # retrieve all matching individuals from sample id search, filtered by any phenopacket filters
         # either of phenopacket_filters or sample_ids can be empty
-        phenopacket_ids = await katsu_filters_and_sample_ids_query(
+        phenopacket_ids = await katsu.katsu_filters_and_sample_ids_query(
             phenopacket_filters, "phenopacket", sample_ids, project_id=project_id, dataset_id=dataset_id
         )
         if not phenopacket_ids:
-            return await zero_count_response()
+            return await zero_count_response(katsu)
         individual_results["phenopacket_ids"] = phenopacket_ids
 
     # baroque syntax but covers all cases
     individual_ids = list(reduce(set.intersection, (set(ids) for ids in individual_results.values())))
 
     if summary_stats_requested():
-        await add_stats_to_response(individual_ids, project_id, dataset_id)
+        await add_stats_to_response(katsu, individual_ids, project_id, dataset_id)
 
-    return await build_query_response(ids=individual_ids, full_record_handler=individuals_full_results)
+    return await build_query_response(katsu, ids=individual_ids, full_record_handler=individuals_full_results)
 
 
 # TODO: pagination (ideally after katsu search gets paginated)
@@ -100,9 +98,11 @@ async def individuals_full_results(ids, project_id=None, dataset_id=None):
     # if len(ids) > 100:
     #     return {"message": "too many ids for full response"}
 
+    katsu = get_katsu_service()
+
     handover_permission = has_download_data_permissions(g.permissions)
-    handover = (await handover_for_ids(ids, project_id, dataset_id)) if handover_permission else {}
-    phenopackets_by_result_set = (await phenopackets_for_ids(ids, project_id, dataset_id)).get("results", {})
+    handover = (await handover_for_ids(katsu, ids, project_id, dataset_id)) if handover_permission else {}
+    phenopackets_by_result_set = (await katsu.phenopackets_for_ids(ids, project_id, dataset_id)).get("results", {})
     result_ids = list(phenopackets_by_result_set.keys())
     result_sets = {}
     num_total_results = 0

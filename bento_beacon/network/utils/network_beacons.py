@@ -13,10 +13,8 @@ from ...endpoints.datasets import get_datasets
 from ...endpoints.individuals import get_individuals
 from ...endpoints.variants import get_variants
 from ...endpoints.info import beacon_format_service_details as local_beacon_format_service_details
-from ...endpoints.info_scoped import (
-    get_filtering_terms as local_beacon_filtering_terms,
-    overview as local_beacon_overview,
-)
+from ...endpoints.info_scoped import overview as local_beacon_overview
+from ...utils.katsu_utils import KatsuService
 
 OVERVIEW_ENDPOINT = "overview"
 FILTERING_TERMS_ENDPOINT = "filtering_terms"
@@ -34,10 +32,11 @@ HOST_VIEWS_BY_ENDPOINT = {
 class NetworkNode(ABC):
 
     # shared constructor for subclasses
-    def __init__(self, node_config, app_config, logger):
+    def __init__(self, node_config, app_config, katsu: KatsuService, logger):
         self.api_url = node_config.get("api_url")
         self.node_config = node_config  # network config for this node
         self.app_config = app_config  # flask config
+        self.katsu = katsu  # Katsu service for current Bento instance, *not* network node's Katsu
         self.logger = logger
 
         # filled in after calls
@@ -71,12 +70,13 @@ class HostBeacon(NetworkNode):
         self.id = self.service_details.get("id")
         self.bento_beacon_version = self.service_details.get("version")
         self.overview = await local_beacon_overview()
-        self.filtering_terms = await local_beacon_filtering_terms(project_id=None, dataset_id=None)
+        # local beacon filtering terms from local Katsu instance:
+        self.filtering_terms = await self.katsu.get_filtering_terms(project_id=None, dataset_id=None)
 
     async def query_beacon(self, _, endpoint):
         # apply censorship for local beacon
         # other nodes in network handle their own censorship settings
-        await set_censorship()
+        await set_censorship(self.katsu)
 
         # payload is pulled directly from request data rather than passed here
         # endpoint already known to be valid
@@ -162,7 +162,7 @@ class NetworkBeacon(NetworkNode):
 # -----------------------------------
 
 
-async def init_network_service_registry(network_config, app_config, logger):
+async def init_network_service_registry(network_config, app_config, katsu: KatsuService, logger):
     network_beacons = network_config.get("beacons")
     host_beacon_url = app_config["BEACON_BASE_URL"]
 
@@ -170,9 +170,9 @@ async def init_network_service_registry(network_config, app_config, logger):
     beacons = []
     for node_config in network_beacons.values():
         if node_config.get("api_url") == host_beacon_url:
-            beacons.append(HostBeacon(node_config, app_config, logger))
+            beacons.append(HostBeacon(node_config, app_config, katsu, logger))
         else:
-            beacons.append(NetworkBeacon(node_config, app_config, logger))
+            beacons.append(NetworkBeacon(node_config, app_config, katsu, logger))
 
     # fill in service details and filtering terms for each beacon
     beacon_calls = [b.retrieve_beacon_info() for b in beacons]

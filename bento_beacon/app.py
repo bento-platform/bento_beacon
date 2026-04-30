@@ -18,6 +18,7 @@ from .utils.beacon_response import beacon_error_response
 from .utils.beacon_request import save_request_data, validate_request, verify_permissions
 from .utils.beacon_response import init_response_data
 from .utils.censorship import set_censorship
+from .utils.katsu_utils import get_katsu_service
 
 REQUEST_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/requests/"
 BEACON_MODELS = ["analyses", "biosamples", "cohorts", "datasets", "individuals", "runs", "variants"]
@@ -74,7 +75,7 @@ async def before_request():
     await verify_permissions()
     if request.blueprint != "network":
         # censorship is handled by individual beacons, not the network itself
-        await set_censorship()
+        await set_censorship(get_katsu_service())
     init_response_data()
 
 
