@@ -125,8 +125,8 @@ class NetworkBeacon(NetworkNode):
     def has_variants_query(self, payload):
         if not payload:
             return False
-        query = payload.get("requestParameters", {}).get("g_variant")
-        return bool(query)
+        variants_query = payload.get("query", {}).get("requestParameters", {}).get("g_variant")
+        return bool(variants_query)
 
     async def _network_beacon_call(self, method, url, payload=None):
         self.logger.info(f"Calling network url: {url}")
