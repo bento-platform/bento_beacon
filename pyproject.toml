@@ -15,8 +15,6 @@ requests = "^2.33.0"
 aiohttp = "^3.14.1"
 aiocache = "^0.12.3"
 werkzeug = "^3.1.5"
-aiointercept = "^0.1.6"
-pytest-asyncio = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 debugpy = "^1.8.17"
@@ -24,6 +22,8 @@ black = "^26.1.0"
 pytest = "^9.0.2"
 responses = "^0.26.0"
 pytest-cov = "^7.0.0"
+aiointercept = "^0.1.6"
+pytest-asyncio = "^1.4.0"
 
 [build-system]
 requires = ["poetry-core"]
