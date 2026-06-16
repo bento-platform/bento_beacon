@@ -2,10 +2,10 @@ import jsonschema
 import os
 import pathlib
 from urllib.parse import urlunsplit
-from aioresponses import aioresponses
+from aiointercept import aiointercept
 from flask import current_app
 import pytest
-
+import pytest_asyncio
 
 TESTS_DIR = pathlib.Path(__file__).parent.absolute()
 BEACON_RESPONSE_SPEC_RELATIVE_PATH = "beacon-v2/framework/json/responses/"
@@ -60,9 +60,9 @@ def app_config(beacon_test_app):
         yield current_app.config
 
 
-@pytest.fixture
-def aioresponse():
-    with aioresponses() as m:
+@pytest_asyncio.fixture
+async def aio():
+    async with aiointercept(mock_external_urls=True) as m:
         yield m
 
 
