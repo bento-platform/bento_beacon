@@ -12,7 +12,7 @@ network = Blueprint("network", __name__, url_prefix="/network")
 # (by e.g. adding our network as a single beacon to another network)
 
 
-@network.route("")
+@network.route("", strict_slashes=False)
 @network.route("/beacons")
 async def beacon_network():
     network_config = current_app.config["NETWORK_CONFIG"]
