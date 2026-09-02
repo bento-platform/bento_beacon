@@ -6,7 +6,7 @@ Beacon is a data-discovery tool that answers queries about genetic variation and
 
 _See a live bento beacon instance with synthetic data here_: [Bento GDI beacon](https://gdi.bento.sd4h.ca/en/beacon).
 
-_See an instance of a network of bento beacons with four nodes here_: [Bento GDI beacon network](https://gdi.bento.sd4h.ca/en/network)
+_See an instance of a network of bento beacons with four nodes here_: [Bento GDI beacon network](https://gdi.bento.sd4h.ca/en/network).
 
 ## Queries
 
