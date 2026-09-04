@@ -1,3 +1,7 @@
+![Test Status](https://github.com/bento-platform/bento_beacon/workflows/Test/badge.svg)
+![Lint Status](https://github.com/bento-platform/bento_beacon/workflows/Lint/badge.svg)
+[![codecov](https://codecov.io/gh/bento-platform/bento_beacon/graph/badge.svg?token=HT4ssvce9a)](https://codecov.io/gh/bento-platform/bento_beacon)
+
 # Bento Beacon
 
 This is an implementation of the [GA4GH Beacon v2 standard](https://www.ga4gh.org/product/beacon-api/) for genomic data discovery for the [Bento platform](https://bento-platform.github.io/).
