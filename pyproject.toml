@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bento_beacon"
-version = "0.26.5"
+version = "0.26.6"
 description = "GA4GH Beacon v2 microservice for the Bento platform"
 authors = ["Gordon Krieger <gordon.krieger@mcgill.ca>"]
 license = "LGPL-3.0-only"
@@ -9,7 +9,7 @@ packages = [{include = "bento_beacon"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-bento-lib = {extras = ["flask"], version = "^17.2.0"}
+bento-lib = {extras = ["flask"], version = "^18.1.1"}
 flask = {extras = ["async"], version = "^3.1.2"}
 requests = "^2.33.0"
 aiohttp = "^3.14.1"
