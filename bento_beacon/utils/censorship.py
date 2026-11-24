@@ -77,7 +77,7 @@ async def reject_if_too_many_filters() -> None:
         return
     max_filters = await get_max_filters()
     request_filters = g.get("request_data", {}).get("filters", [])
-    # a variant query counts as a single filter, regardless of how many variant parameters it has
+    # a variant query counts as a single filter
     variants_query = g.get("beacon_query", {}).get("variants_query")
     total_filters = len(request_filters) + (1 if variants_query else 0)
     if total_filters > max_filters:
